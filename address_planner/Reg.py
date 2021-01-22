@@ -2,7 +2,7 @@ from .GlobalValues  import *
 from .RegSpace      import RegSpace
 import math
 
-class Reg(RegSpace):
+class Register(RegSpace):
 
     def __init__(self,name,bit=32,description='',bus_width=APG_BUS_WIDTH):
         size = math.ceil(bit/bus_width)

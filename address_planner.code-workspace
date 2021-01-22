@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+            "path": ".",
+            "PYTHONPATH": "${workspaceRoot}/submodules"
+		}
+    ],
+    "settings": {
+        "python.autoComplete.extraPaths": [
+            "${workspaceRoot}/submodules",
+        ],
+        "python.languageServer": "Jedi",
+    }
+}

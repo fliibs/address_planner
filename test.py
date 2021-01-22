@@ -1,4 +1,5 @@
 from address_planner import * # pylint: disable=unused-wildcard-import
+from address_planner_reg_rtl import *
 
 # Define a system from the bottom up
 # Build the following structure
@@ -48,7 +49,7 @@ mem_B = AddressSpace(name='mem_B',size=2*KB,description='mem_B,size 2KB.')
 reg_bank_B = RegSpace(name='reg_bank_B',size=1*KB,description='reg_bank_B,contain many regs.')
 
 # declare reg_B
-reg_B = Reg(name='regB',bit=32,description='contain many fields.')
+reg_B = Register(name='regB',bit=32,description='contain many fields.')
 # add many field to reg_B
 reg_B.add_incr(FieldExternalReadOnly(name='field0',bit=1,description='fied0,ext read only.'))
 reg_B.add_incr(FieldExternalWriteOnly(name='field1',bit=1,description='fied0,ext write only.'))
@@ -106,37 +107,6 @@ top = AddressSpace(name='top',size=4*MB,description='demo top.')
 top.add_incr(sys0,name='sys0')
 top.add_incr(sys1,name='sys1')
 
-
-# sub0_sub0 = AddressSpace('sub_sub',10)
-# sub0_sub1 = AddressSpace('sub_sub',10)
-# sub0_sub2 = RegSpace('sub_subr',10)
-# 
-# reg0 = Reg('reg0')
-# reg1 = Reg('reg1')
-# 
-# reg0.add_incr(Field('field1',3))
-# reg0.add_incr(Field('field2',3))
-# reg0.add_incr(FieldExternalReadOnly('field3',3))
-# reg0.add_incr(FieldExternalWriteOnly('field4',3))
-# 
-# sub0_sub2.add_incr(reg0,'reg0')
-# sub0_sub2.add_incr(reg0,'reg1')
-# 
-# 
-# sub0 = AddressSpace('sub',100)
-# sub1 = AddressSpace('sub',100)
-# sub2 = AddressSpace('sub',100)
-# sub3 = AddressSpace('sub',100)
-# 
-# sub0.add(sub0_sub0,0,'sub0')
-# sub0.add(sub0_sub1,10,'sub1')
-# sub0.add(sub0_sub2,20,'subr')
-# 
-# top = AddressSpace('top',1000)
-# top.add(sub3,0,'sub0')
-# top.add(sub1,100,'sub1')
-# top.add(sub2,200,'sub2')
-# top.add(sub0,300,'sub3')
 top.path = ('%s' % top.module_name)
 top.clean_dir()
 top.build_dir()
