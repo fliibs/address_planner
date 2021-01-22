@@ -1,0 +1,88 @@
+from jinja2     import PackageLoader,Environment
+import os
+import builtins
+import shutil
+
+class AddressLogicRoot(object):
+
+    def __init__(self,name,description='',path='./'):
+        self.module_name = name
+        self.inst_name   = ''
+        self.description = description
+        self.path        = path
+        self.father      = None
+        self._name_prefix = 'addr'
+
+    @property
+    def global_name(self):
+        return self.module_name if self.father == None else '%s%s%s' % (self.father.global_name,'_',self.inst_name)
+
+    @property
+    def global_path(self):
+        return self.path if self.father == None else self.father.global_path
+
+    #########################################################################################
+    # file path definition
+    #########################################################################################
+
+    @property
+    def _vhead_dir(self):
+        return os.path.join(self.global_path,'vhead')
+
+    @property
+    def _chead_dir(self):
+        return os.path.join(self.global_path,'chead')
+
+    @property
+    def _html_dir(self):
+        return os.path.join(self.global_path,'html')
+
+
+
+    @property
+    def html_path(self):
+        return os.path.join(self._html_dir,self.html_name)
+
+    @property
+    def chead_path(self):
+        return os.path.join(self._chead_dir,self.chead_name)
+
+    @property
+    def vhead_path(self):
+        return os.path.join(self._vhead_dir,self.vhead_name)
+
+
+    @property
+    def html_name(self):
+        return '%s_%s.html' % (self._name_prefix,self.global_name)
+
+    @property
+    def chead_name(self):
+        return '%s_%s.h' % (self._name_prefix,self.global_name)
+
+    @property
+    def vhead_name(self):
+        return '%s_%s.vh' % (self._name_prefix,self.global_name)
+
+
+    #########################################################################################
+    # output generate
+    #########################################################################################
+
+    def clean_dir(self):
+        if os.path.exists(self.path):       shutil.rmtree(self.path)
+
+    def build_dir(self):
+        if not os.path.exists(self.path):       os.makedirs(self.path)
+        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
+        if not os.path.exists(self._chead_dir): os.makedirs(self._chead_dir) 
+        if not os.path.exists(self._vhead_dir): os.makedirs(self._vhead_dir) 
+
+    def report_from_template(self,template,extra_in_namespace={}):
+        env = Environment(loader=PackageLoader('address_planner','report_template'))
+        template = env.get_template(template)
+        template.globals['builtins'] = builtins
+        for k,v in extra_in_namespace.items():
+            template.globals[k] = v
+        text = template.render(space=self)
+        return text

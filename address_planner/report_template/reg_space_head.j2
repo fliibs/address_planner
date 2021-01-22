@@ -1,0 +1,17 @@
+{% for ss in space.sub_space_list %}
+//==========================================================
+// Definition of reg {{ss.global_name.upper()}}
+//==========================================================
+#ifndef ADDR_{{ss.global_name.upper()}}
+    #define {{ '%-40s' % 'ADDR_%s' % ss.global_name.upper()}} {{builtins.hex(ss.global_start_address)}}
+    #define {{ '%-40s' % 'SIZE_%s' % ss.global_name.upper()}} {{builtins.hex(ss.size)}}
+    #define {{ '%-40s' % 'OFFSET_%s' % ss.global_name.upper()}} {{builtins.hex(ss.offset)}}
+#endif
+{% for field in ss.field_list %}
+#ifndef OFFSET_{{field.global_name.upper()}}
+    #define OFFSET_{{field.global_name.upper()}} {{field.bit_offset}}
+    #define WIDTH_{{field.global_name.upper()}}  {{field.bit}}
+    #define MASK_{{field.global_name.upper()}}   {{field.mask}}
+#endif
+{% endfor %}
+{% endfor %}

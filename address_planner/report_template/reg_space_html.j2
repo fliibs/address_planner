@@ -1,0 +1,69 @@
+
+{% extends "base_html.j2" %}
+
+
+{% block sub_list %}
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Reg Size(Bit)</th>
+            <th>Address</th>
+            <th>Global Address</th>
+            <th>Link</th>
+            <th>Description</th>
+            <th>expand</th>
+        </tr>
+        
+        {% if builtins.len(space.sub_space_list) > 0 %}
+        {% for ss in space.sub_space_list %}
+        <tr>
+            <td>{{ss.inst_name}}</td>
+            <td>{{builtins.int(ss.bit)}}</td>
+            <td>{{builtins.hex(ss.start_address)}}</td>
+            <td>{{builtins.hex(ss.global_start_address)}}</td>
+            <td><a href="{{ss.html_name}}" target="_blank">Link</a></td>
+            <td>{{ss.description}}</td>
+            <td><div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ss.inst_name}}">
+                        expand
+                    </a>
+                </h4>
+            </div></td>
+        </tr>
+        <tr><td colspan="5">
+            <div id="collapse{{ss.inst_name}}" class="panel-collapse collapse out">
+                <div class="panel-body"></div>
+                    <table>
+                        <tr>
+                        <th>Field Name</th>
+                        <th>Location</th>
+                        <th>Software Access</th>
+                        <th>Software Write Effect</th>
+                        <th>Software Read Effect</th>
+                        <th>Hardware Type</th>
+                        <th>Init Value</th>
+                        <th>Description</th>
+                        </tr>
+
+                        {% for field in ss.field_list %}
+                        <tr>
+                            <td>{{field.inst_name}}</td>
+                            <td>[{{field.end_bit}}:{{field.start_bit}}]</td>
+                            <td>{{field.sw_access.value}}</td>
+                            <td>{{field.sw_write_effect.value}}</td>
+                            <td>{{field.sw_read_effect.value}}</td>
+                            <td>{{field.hw_type.value}}</td>
+                            <td>{{builtins.int(field.init_value)}}</td>
+                            <td>{{field.description}}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </td></tr>
+        {% endfor %}
+        {% endif %}
+
+    </table>
+{% endblock %}

@@ -1,0 +1,36 @@
+
+{% extends "base_html.j2" %}
+
+
+{% block sub_list %}
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Start Address</th>
+        <th>End Address</th>
+        <th>Global Start Address</th>
+        <th>Global End Address</th>
+        <th>Size</th>
+        <th>Link</th>
+        <th>Description</th>
+    </tr>
+    
+    {% if builtins.len(space.sub_space_list) > 0 %}
+    {% for ss in space.sub_space_list %}
+    <tr>
+        <td>{{ss.inst_name}}</td>
+        <td>{{builtins.hex(ss.start_address)}}</td>
+        <td>{{builtins.hex(ss.end_address)}}</td>
+        <td>{{builtins.hex(ss.global_start_address)}}</td>
+        <td>{{builtins.hex(ss.global_end_address)}}</td>
+        <td>{{builtins.hex(ss.size)}}</td>
+        <td><a href="{{ss.html_name}}" target="_blank">Link</a></td>
+        <td>{{ss.description}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+
+</table>
+
+{% endblock %}
