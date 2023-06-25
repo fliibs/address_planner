@@ -29,7 +29,7 @@ class AddressSpace(AddressLogicRoot):
 
     @property
     def global_offset(self):
-        return 0 if self.father == None else self.father.global_offset + self.offset
+        return 0 if self.father is None else self.father.global_offset + self.offset
 
     @property
     def global_start_address(self):

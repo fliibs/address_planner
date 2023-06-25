@@ -9,6 +9,6 @@
         "python.autoComplete.extraPaths": [
             "${workspaceRoot}/submodules",
         ],
-        "python.languageServer": "Jedi",
+        "python.languageServer": "Jedi"
     }
 }
