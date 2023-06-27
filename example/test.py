@@ -1,5 +1,7 @@
-from address_planner import * # pylint: disable=unused-wildcard-import
-from address_planner_reg_rtl import *
+from .address_planner import *
+
+#from address_planner import * # pylint: disable=unused-wildcard-import
+#from address_planner_reg_rtl import *
 
 # Define a system from the bottom up
 # Build the following structure
