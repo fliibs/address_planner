@@ -3,6 +3,8 @@ import os
 import builtins
 import shutil
 
+
+
 class AddressLogicRoot(object):
 
     def __init__(self,name,description='',path='./'):
@@ -17,8 +19,10 @@ class AddressLogicRoot(object):
     def global_name(self):
         return self.module_name if self.father == None else '%s%s%s' % (self.father.global_name,'_',self.inst_name)
 
+    def join_name(self,*args,join_str='_'):
+        return join_str.join([x for x in args if x is not None])
 
-    def name_until(self, T):
+    def father_until(self, T):
         if isinstance(self, T):
             return self
         elif self.father is None:
@@ -26,6 +30,20 @@ class AddressLogicRoot(object):
         else:
             return self.father.father_until(T)
 
+    def module_name_until(self,T,join_str='_'):
+        #print(self)
+        #print(type(self))
+        #print(T)
+        if self.father is None or self is T or (isinstance(T,type) and isinstance(self,T)):
+        #if self.father is None or isinstance(self, T) or (isinstance(T,type) and isinstance(self,T)):
+            return self.module_name
+        else:
+            return self.join_name(self.father.module_name_until(T,join_str),self.module_name,join_str=join_str)
+
+
+    def module_name_until_RegSpace(self):
+        from .RegSpace import RegSpace
+        return self.module_name_until(RegSpace)
 
 
     @property
@@ -69,11 +87,11 @@ class AddressLogicRoot(object):
 
     @property
     def chead_name(self):
-        return '%s_%s.h' % (self._name_prefix,self.global_name)
+        return '%s_%s.h' % (self._name_prefix,self.module_name)
 
     @property
     def vhead_name(self):
-        return '%s_%s.vh' % (self._name_prefix,self.global_name)
+        return '%s_%s.vh' % (self._name_prefix,self.module_name)
 
 
     #########################################################################################

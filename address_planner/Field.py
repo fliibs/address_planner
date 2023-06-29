@@ -12,7 +12,7 @@ class Field(AddressLogicRoot):
         init_value      = 0         ,
         description     = ''):
         super().__init__(name=name,description=description)
-        self.module_name        = name
+        self._name              = name
         self.bit                = bit
         self.sw_access          = sw_access
         self.sw_read_effect     = sw_read_effect
@@ -20,6 +20,10 @@ class Field(AddressLogicRoot):
         self.hw_type            = hw_type
         self.bit_offset         = 0
         self.init_value         = init_value
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def start_bit(self):
@@ -34,6 +38,12 @@ class Field(AddressLogicRoot):
         bin_str = '0' * (self.father.bit - self.bit - self.bit_offset) + '1' * self.bit + '0' * self.bit_offset
         integer = int(bin_str,2)
         return hex(integer)
+
+
+
+    @property
+    def module_name_until_regbank(self):
+        return self.father.module_name_until_regbank + '_' + self.module_name
 
     # @property
     # def global_offset(self):

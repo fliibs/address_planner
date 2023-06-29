@@ -51,6 +51,11 @@ class Register(RegSpace):
         return self.bit - 1
 
 
+    @property
+    def module_name_until_regbank(self):
+        return self.father.module_name + '_' + self.module_name
+
+
     #########################################################################################
     # output generate
     #
