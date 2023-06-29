@@ -49,3 +49,20 @@ class Register(RegSpace):
     @property
     def end_bit(self):
         return self.bit - 1
+
+
+    #########################################################################################
+    # output generate
+    #
+    #  For Reg, there is no need to generate a separate file. report_X is called recursively, 
+    #  so all of Reg's related functions need to be modified to empty functions.
+    #########################################################################################
+
+    def report_html(self):
+        return []
+
+    def report_chead_core(self):
+        return []
+
+    def report_vhead_core(self):
+        return []

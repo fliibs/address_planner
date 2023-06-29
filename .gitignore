@@ -2,3 +2,5 @@ __pycache__
 .pytest_cache
 .coverage
 cov.xml
+example_build
+coverage.xml

@@ -1,7 +1,0 @@
-`include "addr_top.vh"
-`include "addr_top_sys0.vh"
-`include "addr_top_sys0_ip_A.vh"
-`include "addr_top_sys0_ip_B.vh"
-`include "addr_top_sys0_ip_B_reg.vh"
-`include "addr_top_sys0_ip_B_reg_reg0.vh"
-`include "addr_top_sys0_ip_B_reg_reg1.vh"

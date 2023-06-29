@@ -17,6 +17,17 @@ class AddressLogicRoot(object):
     def global_name(self):
         return self.module_name if self.father == None else '%s%s%s' % (self.father.global_name,'_',self.inst_name)
 
+
+    def name_until(self, T):
+        if isinstance(self, T):
+            return self
+        elif self.father is None:
+            return None
+        else:
+            return self.father.father_until(T)
+
+
+
     @property
     def global_path(self):
         return self.path if self.father == None else self.father.global_path

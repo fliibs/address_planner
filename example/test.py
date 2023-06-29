@@ -1,4 +1,6 @@
-from .address_planner import *
+import sys
+sys.path.append('.')
+from address_planner import *
 
 #from address_planner import * # pylint: disable=unused-wildcard-import
 #from address_planner_reg_rtl import *
@@ -109,7 +111,7 @@ top = AddressSpace(name='top',size=4*MB,description='demo top.')
 top.add_incr(sys0,name='sys0')
 top.add_incr(sys1,name='sys1')
 
-top.path = ('%s' % top.module_name)
+top.path = ('example_build/%s' % top.module_name)
 top.clean_dir()
 top.build_dir()
 top.report_html()
