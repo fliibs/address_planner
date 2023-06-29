@@ -11,7 +11,7 @@ class AddressSpace(AddressLogicRoot):
     def __init__(self,name,size,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
         #self.module_name    = name
-        #self.inst_name      = ''
+        #self.module_name      = ''
         #self.name           = name
         #self.start_address  = start_address
         self.size           = size
@@ -58,15 +58,15 @@ class AddressSpace(AddressLogicRoot):
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = offset
         sub_space_copy.father = self
-        sub_space_copy.inst_name = name
+        sub_space_copy.module_name = name
 
         if not self.inclusion_detect(sub_space_copy):
-            raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.inst_name,self.inst_name))
+            raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
         for exist_space in self.sub_space_list:
             if self.collision_detect(exist_space,sub_space_copy):
                 raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
-                    % (sub_space_copy.inst_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.inst_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+                    % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
 
         self._next_offset = offset + sub_space_copy.size
@@ -106,7 +106,13 @@ class AddressSpace(AddressLogicRoot):
         chead_name_list = self.report_chead_core()
         with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
             for chead_name in chead_name_list:
-                f.write("`include \"%s\"\n" % chead_name)
+                f.write("#include \"%s\"\n" % chead_name)
+
+    def check_chead(self):
+        file_path = os.path.join(self._chead_dir,'all.h')
+        if os.system('gcc -include stdint.h %s' % file_path) !=0:
+            raise Exception('c head compile error.')
+
 
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()

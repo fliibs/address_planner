@@ -26,4 +26,4 @@ reg_bank_B.build_dir()
 reg_bank_B.report_html()
 reg_bank_B.report_chead()
 reg_bank_B.report_vhead()
-
+reg_bank_B.check_chead()

@@ -117,4 +117,4 @@ top.build_dir()
 top.report_html()
 top.report_chead()
 top.report_vhead()
-
+top.check_chead()

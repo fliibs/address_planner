@@ -43,4 +43,4 @@ ip_B.build_dir()
 ip_B.report_html()
 ip_B.report_chead()
 ip_B.report_vhead()
-
+ip_B.check_chead()
