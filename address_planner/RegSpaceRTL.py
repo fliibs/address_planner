@@ -38,7 +38,7 @@ class RegSpaceRTL(Component):
             reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
             reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(32)))
             reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
-            reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1)))
+            reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1))) 
 
             reg_wrdy += UInt(1,1)
             reg_rvld += UInt(1,1)
