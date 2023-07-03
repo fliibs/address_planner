@@ -1,5 +1,6 @@
 from .GlobalValues  import *
 from .RegSpace      import RegSpace
+from .Field         import FilledField
 import math
 
 class Register(RegSpace):
@@ -54,6 +55,28 @@ class Register(RegSpace):
     @property
     def module_name_until_regbank(self):
         return self.father.module_name + '_' + self.module_name
+
+    @property
+    def filled_field_list(self):
+        res = []
+        previous_field = None
+        for field in self.field_list:
+            if previous_field != None and field.start_bit > previous_field.end_bit + 1:
+
+                filled_field = FilledField(bit=field.start_bit - previous_field.end_bit - 1)
+                filled_field.bit_offset = previous_field.end_bit + 1
+
+                res.append(filled_field)
+            res.append(field)
+            previous_field = field
+        
+        if self.field_list[-1].end_bit < 31:
+            filled_field = FilledField(32 - previous_field.end_bit - 1)
+            filled_field.bit_offset = previous_field.end_bit + 1
+            res.append(filled_field)
+
+
+        return res
 
 
     #########################################################################################

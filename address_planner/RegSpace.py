@@ -1,6 +1,7 @@
 from .GlobalValues  import *
 from .AddressSpace  import AddressSpace
 
+from .RegSpaceRTL import *
 
 class RegSpace(AddressSpace):
 
@@ -9,6 +10,8 @@ class RegSpace(AddressSpace):
         self.bus_width = bus_width
         #self._name_prefix = 'reg'
 
+    def __str__(self) -> str:
+        return self.module_name
 
 
     #########################################################################################
@@ -39,3 +42,8 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
+
+    def report_rtl(self):
+        component = RegSpaceRTL(self)
+        component.generate_verilog()
+        component.run_lint()

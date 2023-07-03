@@ -17,10 +17,12 @@ class FieldSoftwareAccess(Enum):
     ReadOnly    = 'Read Only'
     WriteOnly   = 'Write Only'
     ReadWrite   = 'Read Write'
+    Null        = 'Null'
 
 ReadOnly  = FieldSoftwareAccess.ReadOnly
 WriteOnly = FieldSoftwareAccess.WriteOnly
 ReadWrite = FieldSoftwareAccess.ReadWrite
+Null      = FieldSoftwareAccess.Null
 
 
 @unique

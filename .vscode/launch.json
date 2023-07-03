@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "env": {"PYTHONPATH":"${workspaceRoot}/submodules"},
+            "env": {"PYTHONPATH":"${workspaceRoot}/submodules;${workspaceRoot}",},
             "console": "integratedTerminal"
         }
     ]

@@ -2,10 +2,16 @@ import math
 from .GlobalValues      import *
 from .AddressLogicRoot  import *
 
+from uhdl import *
+
+
+
+
 class Field(AddressLogicRoot):
 
     def __init__(self,name,bit,
         sw_access       = ReadWrite ,
+        hw_access       = ReadWrite ,
         sw_read_effect  = NoEffect  ,
         sw_write_effect = NoEffect  ,
         hw_type         = Unknown   ,
@@ -15,6 +21,7 @@ class Field(AddressLogicRoot):
         self._name              = name
         self.bit                = bit
         self.sw_access          = sw_access
+        self.hw_access          = hw_access
         self.sw_read_effect     = sw_read_effect
         self.sw_write_effect    = sw_write_effect
         self.hw_type            = hw_type
@@ -45,6 +52,26 @@ class Field(AddressLogicRoot):
     def module_name_until_regbank(self):
         return self.father.module_name_until_regbank + '_' + self.module_name
 
+
+    @property
+    def sw_readable(self):
+        return self.sw_access == ReadOnly or self.sw_access == ReadWrite
+
+    @property
+    def sw_writeable(self):
+        return self.sw_access == WriteOnly or self.sw_access == ReadWrite
+
+    @property
+    def hw_readable(self):
+        return self.hw_access == ReadOnly or self.hw_access == ReadWrite
+
+    @property
+    def hw_writeable(self):
+        return self.hw_access == WriteOnly or self.hw_access == ReadWrite
+
+
+
+
     # @property
     # def global_offset(self):
     #     return 0 if self.father == None else self.father.global_offset + self.offset
@@ -70,6 +97,13 @@ class Field(AddressLogicRoot):
     # @property
     # def offset(self):
     #     return math.floor(self.offset / self.father.bus_width)
+
+class FilledField(Field):
+
+    def __init__(self,bit):
+        super().__init__(name='FilledField',bit=bit,sw_access=Null,hw_access=Null)
+
+
 
 ################################################################################
 # Field Type "ExternalReadOnly"
