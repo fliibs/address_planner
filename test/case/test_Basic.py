@@ -2,6 +2,8 @@
 
 from address_planner import * # pylint: disable=unused-wildcard-import
 import address_planner
+import sys
+sys.path.append('./submodules')
 
 def test_smoke():
     assert True
