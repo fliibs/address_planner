@@ -2,7 +2,7 @@ import math
 from .GlobalValues      import *
 from .AddressLogicRoot  import *
 
-from uhdl import *
+#from uhdl import *
 
 
 

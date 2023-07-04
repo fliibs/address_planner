@@ -1,6 +1,6 @@
 
 
-from uhdl import *
+from .uhdl import *
 
 from .Field import FilledField
 
