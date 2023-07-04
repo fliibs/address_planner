@@ -13,6 +13,8 @@ jobs:
         python-version: '3.8'
     - name: Install requirements
       run: pip install -r config/requirements.txt
+    - name: Update Submodules
+      run: git submodule update
     - name: Run tests and collect coverage
       run: pytest --cov=address_planner --cov-report=xml
     - name: Upload coverage reports to Codecov with GitHub Action
