@@ -14,7 +14,7 @@ jobs:
     - name: Install requirements
       run: pip install -r config/requirements.txt
     - name: Update Submodules
-      run: git submodule update
+      run: git submodule init; git submodule update
     - name: Run tests and collect coverage
       run: pytest --cov=address_planner --cov-report=xml
     - name: Upload coverage reports to Codecov with GitHub Action
