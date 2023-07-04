@@ -40,20 +40,17 @@ class RegSpaceRTL(Component):
             reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
             reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1))) 
 
+  
             reg_wrdy += UInt(1,1)
             reg_rvld += UInt(1,1)
 
             reg_rrdy += And(self.rreq_vld, Equal(self.rreq_addr,UInt(32,sub_space.start_address)))
-
-
             rreq_dat_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(reg_rdat)
             rreq_vld_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(reg_rvld)
+            
             reg_wdat += self.wreq_data
             reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(32,sub_space.start_address)))
-            
             wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(32,sub_space.start_address))).then(reg_wrdy)
-
-
 
             rdat_list = []
             for field in sub_space.filled_field_list:
@@ -71,18 +68,27 @@ class RegSpaceRTL(Component):
 
                     field_reg   = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
                     
-                    field_reg += when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit]).\
-                                when(field_hw_wvld).then(field_hw_wdat).\
-                                when(reg_rrdy).then(UInt(field.bit,0)).\
-                                when(field_hw_rvld).then(UInt(field.bit,0))
-                
-                    
-                    field_hw_rvld += UInt(1,1)
+                    reg_val = EmptyWhen()
+                    if field.sw_writeable:
+                        reg_val.when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit])
+                    if field.hw_writeable:
+                        reg_val.when(field_hw_wvld).then(field_hw_wdat)
+                    if field.sw_read_clear:
+                        reg_val.when(reg_rrdy).then(UInt(field.bit,0))
+                    if field.hw_read_clear:                    
+                        reg_val.when(field_hw_rrdy).then(UInt(field.bit,0))
+                    if field.hw_readable:
+                        field_hw_rvld += UInt(1,1)
+                        field_hw_rdat += field_reg
+                            
+                    field_reg += reg_val
+                                
                     field_hw_wrdy += UInt(1,1)
-                    field_hw_rdat += field_reg
-
-
-                    rdat_list.append(field_reg)
+                    
+                    if field.sw_readable:
+                        rdat_list.append(UInt(field.bit,0))
+                    else:
+                        rdat_list.append(field_reg)
 
             reg_rdat += Combine(*rdat_list)
 

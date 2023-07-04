@@ -69,7 +69,14 @@ class Field(AddressLogicRoot):
     def hw_writeable(self):
         return self.hw_access == WriteOnly or self.hw_access == ReadWrite
 
-
+    @property
+    def sw_read_clear(self):
+        return self.sw_read_effect == ClearField
+    
+    @property 
+    def hw_read_clear(self):
+        # return self.hw_type == ClearField
+        return True
 
 
     # @property
