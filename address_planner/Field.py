@@ -121,9 +121,10 @@ ADD_TO_GLOBAL_VALUES(ExternalReadOnly=FieldHardwareType.ExternalReadOnly)
 
 class FieldExternalReadOnly(Field):
 
-    def __init__(self,name,bit,init_value=0,description=''):
+    def __init__(self,name,bit,hw_access=ReadWrite,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = ReadOnly,
+            hw_access       = hw_access,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
             hw_type         = FieldHardwareType.ExternalReadOnly,
@@ -139,12 +140,13 @@ ADD_TO_GLOBAL_VALUES(ExternalWriteOnly=FieldHardwareType.ExternalWriteOnly)
 
 class FieldExternalWriteOnly(Field):
 
-    def __init__(self,name,bit,init_value=0,description=''):
+    def __init__(self,name,bit,hw_access=ReadWrite,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = WriteOnly,
+            hw_access       = hw_access,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
-            hw_type         = FieldHardwareType.ExternalWriteOnly, 
+            hw_type         = FieldHardwareType.ExternalWriteOnly,
             init_value      = init_value,
             description     = description)
 
@@ -157,9 +159,10 @@ ADD_TO_GLOBAL_VALUES(ExternalReadWrite=FieldHardwareType.ExternalReadWrite)
 
 class FieldExternalReadWrite(Field):
 
-    def __init__(self,name,bit,init_value=0,description=''):
+    def __init__(self,name,bit,hw_access=ReadWrite,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = ReadWrite,
+            hw_access       = hw_access,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
             hw_type         = FieldHardwareType.ExternalReadWrite,
@@ -178,6 +181,7 @@ class FieldReadOnly(Field):
     def __init__(self,name,bit,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = ReadOnly,
+            hw_access       = ReadOnly,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
             hw_type         = FieldHardwareType.InternalReadOnly,
@@ -196,6 +200,7 @@ class FieldWriteOnly(Field):
     def __init__(self,name,bit,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = WriteOnly,
+            hw_access       = WriteOnly,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
             hw_type         = FieldHardwareType.InternalWriteOnly,
@@ -214,6 +219,7 @@ class FieldReadWrite(Field):
     def __init__(self,name,bit,init_value=0,description=''):
         super().__init__(name=name,bit=bit,
             sw_access       = ReadWrite,
+            hw_access       = ReadWrite,
             sw_read_effect  = NoEffect,
             sw_write_effect = NoEffect,
             hw_type         = FieldHardwareType.InternalReadWrite,

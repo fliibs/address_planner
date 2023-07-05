@@ -65,7 +65,8 @@ class RegSpaceRTL(Component):
                     field_hw_rvld = self.set("%s_rvld" % field_name , Output(UInt(1)))
                     field_hw_rrdy = self.set("%s_rrdy" % field_name , Input(UInt(1)))
 
-
+                    field_hw_wrdy += UInt(1,1)
+                    
                     field_reg   = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
                     
                     reg_val = EmptyWhen()
@@ -76,19 +77,20 @@ class RegSpaceRTL(Component):
                     if field.sw_read_clear:
                         reg_val.when(reg_rrdy).then(UInt(field.bit,0))
                     if field.hw_read_clear:                    
-                        reg_val.when(field_hw_rrdy).then(UInt(field.bit,0))
+                        reg_val.when(And(field_hw_rrdy)).then(UInt(field.bit,0))
                     if field.hw_readable:
                         field_hw_rvld += UInt(1,1)
                         field_hw_rdat += field_reg
+                    else:
+                        field_hw_rvld += UInt(1,0)
+                        field_hw_rdat += field_reg
                             
                     field_reg += reg_val
-                                
-                    field_hw_wrdy += UInt(1,1)
-                    
+                                    
                     if field.sw_readable:
-                        rdat_list.append(UInt(field.bit,0))
-                    else:
                         rdat_list.append(field_reg)
+                    else:
+                        rdat_list.append(UInt(field.bit,0))
 
             reg_rdat += Combine(*rdat_list)
 
