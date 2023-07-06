@@ -16,36 +16,43 @@ GB = 1024 * 1024 * 1024
 class FieldSoftwareAccess(Enum):
     ReadOnly    = 'Read Only'
     WriteOnly   = 'Write Only'
+    # WriteOnce   = 'Write One to Set'
     ReadWrite   = 'Read Write'
+    # ReadClean   = 'Read Clean'
     Null        = 'Null'
 
-ReadOnly  = FieldSoftwareAccess.ReadOnly
-WriteOnly = FieldSoftwareAccess.WriteOnly
-ReadWrite = FieldSoftwareAccess.ReadWrite
-Null      = FieldSoftwareAccess.Null
+ExternalReadOnly  = FieldSoftwareAccess.ReadOnly
+ExternalWriteOnly = FieldSoftwareAccess.WriteOnly
+ExternalReadWrite = FieldSoftwareAccess.ReadWrite
+# ExternalReadClean = FieldSoftwareAccess.ReadClean
+ExternalNull      = FieldSoftwareAccess.Null
 
 
 @unique
-class FieldSoftwareEffect(Enum):
+class FieldEffect(Enum):
     NoEffect    = 'No Effect'
-    ClearField  = 'Clear Field'
+    # ClearField  = 'Clear Field'
     GenPulse    = 'Generate Pulse'
+    WriteOnce   = 'Write One to Set'
+    ReadClean   = 'Read Clean'
 
-NoEffect    = FieldSoftwareEffect.NoEffect
-ClearField  = FieldSoftwareEffect.ClearField
-GenPulse    = FieldSoftwareEffect.GenPulse
+NoEffect    = FieldEffect.NoEffect
+# ClearField  = FieldEffect.ClearField
+GenPulse    = FieldEffect.GenPulse
+WriteOnce   = FieldEffect.WriteOnce
+ReadClean   = FieldEffect.ReadClean
 
 @unique
 class FieldHardwareType(Enum):
-    Unknown           = 'Unknown'
-#    ExternalReadOnly  = 'External Read Only'
-#    ExternalWriteOnly = 'External Write Only'
-#    ExternalReadWrite = 'External Read Write'
+    ReadOnly  = 'Read Only'
+    WriteOnly = 'Write Only'
+    ReadWrite = 'Read Write'
+    Null      = 'Null'
 
-Unknown           = FieldHardwareType.Unknown
-#ExternalReadOnly  = FieldHardwareType.ExternalReadOnly
-#ExternalWriteOnly = FieldHardwareType.ExternalWriteOnly
-#ExternalReadWrite = FieldHardwareType.ExternalReadWrite
+InternalReadOnly  = FieldHardwareType.ReadOnly
+InternalWriteOnly = FieldHardwareType.WriteOnly
+InternalReadWrite = FieldHardwareType.ReadWrite
+InternalNull      = FieldHardwareType.Null
 
 
 def ADD_TO_GLOBAL_VALUES(**kwargs):

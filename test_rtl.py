@@ -1,7 +1,7 @@
 
 import os
 import sys
-sys.path.append('../../..')
+sys.path.append('./submodules')
 
 from address_planner import * # pylint: disable=unused-wildcard-import
 
