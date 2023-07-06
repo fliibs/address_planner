@@ -56,7 +56,7 @@ def test_sw_no_write():
 
 
 
-if __name__ == '__main__':
+if __file__ == '__main__':
     test_regbank()
     test_sw_no_read()
     test_sw_no_write()
