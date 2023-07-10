@@ -81,6 +81,10 @@ class Field(AddressLogicRoot):
     def sw_write_one_to_set(self):
         return self.sw_writeable and self.sw_write_effect == WriteOnce
 
+    @property
+    def hw_read_clean(self):
+        return False
+
 
     # @property
     # def global_offset(self):

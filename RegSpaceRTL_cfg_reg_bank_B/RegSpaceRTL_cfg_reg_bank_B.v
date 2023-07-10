@@ -11,116 +11,78 @@
 //==========================================================================================================================
 
 
-//[UHDL]Key Start [md5:0799f50f530fb934d63e8648162e28d6]
+//[UHDL]Key Start [md5:1bd00419061011c95aca8323671385ba]
 //Version Control Hash: 3accddf64b1dd03abeb9b0b3e5a7ba44
-//Content Hash: 5859e83bc1668cfe1325c47d6fbb5d3a
+//Content Hash: 111ae4bd44471d2c2781e1b3f14d99f9
 //Parameter Hash: d41d8cd98f00b204e9800998ecf8427e
-//[UHDL]Key End [md5:0799f50f530fb934d63e8648162e28d6]
+//[UHDL]Key End [md5:1bd00419061011c95aca8323671385ba]
 
 //[UHDL]Version Control Start [md5:3accddf64b1dd03abeb9b0b3e5a7ba44]
 //[UHDL]Version Control Version:1.0.1
 //[UHDL]Version Control End [md5:3accddf64b1dd03abeb9b0b3e5a7ba44]
 
-//[UHDL]Tool Message Start [md5:62995f167da826eb3126211d8005b9b4]
-//Written by UHDL in 2023-07-06 14:24:25
-//[UHDL]Tool Message End [md5:62995f167da826eb3126211d8005b9b4]
+//[UHDL]Tool Message Start [md5:136c2ca90c4703b692ea0470be1feb9c]
+//Written by UHDL in 2023-07-10 10:19:50
+//[UHDL]Tool Message End [md5:136c2ca90c4703b692ea0470be1feb9c]
 
 //[UHDL]User Message Start [md5:d41d8cd98f00b204e9800998ecf8427e]
 
 //[UHDL]User Message End [md5:d41d8cd98f00b204e9800998ecf8427e]
 
-//[UHDL]Content Start [md5:5859e83bc1668cfe1325c47d6fbb5d3a]
+//[UHDL]Content Start [md5:111ae4bd44471d2c2781e1b3f14d99f9]
 module RegSpaceRTL_cfg_reg_bank_B (
-	input             clk             ,
-	input             rst_n           ,
-	input      [31:0] rreq_addr       ,
-	input             rreq_vld        ,
-	output            rreq_rdy        ,
-	output reg [31:0] rack_data       ,
-	output reg        rack_vld        ,
-	input             rack_rdy        ,
-	input      [31:0] wreq_addr       ,
-	input      [31:0] wreq_data       ,
-	input             wreq_vld        ,
-	output reg        wreq_rdy        ,
-	input             reg0_field0_wdat,
-	input             reg0_field0_wvld,
-	output            reg0_field0_wrdy,
-	output            reg0_field0_rdat,
-	output            reg0_field0_rvld,
-	input             reg0_field0_rrdy,
-	input             reg0_field1_wdat,
-	input             reg0_field1_wvld,
-	output            reg0_field1_wrdy,
-	output            reg0_field1_rdat,
-	output            reg0_field1_rvld,
-	input             reg0_field1_rrdy,
-	input             reg0_field2_wdat,
-	input             reg0_field2_wvld,
-	output            reg0_field2_wrdy,
-	output            reg0_field2_rdat,
-	output            reg0_field2_rvld,
-	input             reg0_field2_rrdy,
-	output            reg0_field3_rdat,
-	output            reg0_field3_rvld,
-	input             reg0_field3_rrdy,
-	input             reg0_field4_wdat,
-	input             reg0_field4_wvld,
-	output            reg0_field4_wrdy,
-	input             reg0_field5_wdat,
-	input             reg0_field5_wvld,
-	output            reg0_field5_wrdy,
-	output            reg0_field5_rdat,
-	output            reg0_field5_rvld,
-	input             reg0_field5_rrdy,
-	input      [1:0]  reg0_field6_wdat,
-	input             reg0_field6_wvld,
-	output            reg0_field6_wrdy,
-	output     [1:0]  reg0_field6_rdat,
-	output            reg0_field6_rvld,
-	input             reg0_field6_rrdy,
-	input             reg1_field0_wdat,
-	input             reg1_field0_wvld,
-	output            reg1_field0_wrdy,
-	output            reg1_field0_rdat,
-	output            reg1_field0_rvld,
-	input             reg1_field0_rrdy,
-	input             reg1_field1_wdat,
-	input             reg1_field1_wvld,
-	output            reg1_field1_wrdy,
-	output            reg1_field1_rdat,
-	output            reg1_field1_rvld,
-	input             reg1_field1_rrdy,
-	input             reg1_field2_wdat,
-	input             reg1_field2_wvld,
-	output            reg1_field2_wrdy,
-	output            reg1_field2_rdat,
-	output            reg1_field2_rvld,
-	input             reg1_field2_rrdy,
-	output            reg1_field3_rdat,
-	output            reg1_field3_rvld,
-	input             reg1_field3_rrdy,
-	input             reg1_field4_wdat,
-	input             reg1_field4_wvld,
-	output            reg1_field4_wrdy,
-	input             reg1_field5_wdat,
-	input             reg1_field5_wvld,
-	output            reg1_field5_wrdy,
-	output            reg1_field5_rdat,
-	output            reg1_field5_rvld,
-	input             reg1_field5_rrdy,
-	input      [1:0]  reg1_field6_wdat,
-	input             reg1_field6_wvld,
-	output            reg1_field6_wrdy,
-	output     [1:0]  reg1_field6_rdat,
-	output            reg1_field6_rvld,
-	input             reg1_field6_rrdy);
-	wire [31:0] reg0_rdat  ;
-	wire [0:0]  reg0_rvld  ;
+	input             clk                ,
+	input             rst_n              ,
+	input      [31:0] p_addr             ,
+	input      [2:0]  p_prot             ,
+	input             p_sel              ,
+	input             p_enable           ,
+	input             p_write            ,
+	input      [31:0] p_wdata            ,
+	input      [3:0]  p_strb             ,
+	output            p_ready            ,
+	output reg [31:0] p_rdata            ,
+	output            p_slverr           ,
+	input             reg0_field0_wdat   ,
+	input             reg0_field0_wenable,
+	output            reg0_field0_rdat   ,
+	input             reg0_field1_wdat   ,
+	input             reg0_field1_wenable,
+	output            reg0_field1_rdat   ,
+	input             reg0_field2_wdat   ,
+	input             reg0_field2_wenable,
+	output            reg0_field2_rdat   ,
+	output            reg0_field3_rdat   ,
+	input             reg0_field4_wdat   ,
+	input             reg0_field4_wenable,
+	input             reg0_field5_wdat   ,
+	input             reg0_field5_wenable,
+	output            reg0_field5_rdat   ,
+	input      [1:0]  reg0_field6_wdat   ,
+	input             reg0_field6_wenable,
+	output     [1:0]  reg0_field6_rdat   ,
+	input             reg1_field0_wdat   ,
+	input             reg1_field0_wenable,
+	output            reg1_field0_rdat   ,
+	input             reg1_field1_wdat   ,
+	input             reg1_field1_wenable,
+	output            reg1_field1_rdat   ,
+	input             reg1_field2_wdat   ,
+	input             reg1_field2_wenable,
+	output            reg1_field2_rdat   ,
+	output            reg1_field3_rdat   ,
+	input             reg1_field4_wdat   ,
+	input             reg1_field4_wenable,
+	input             reg1_field5_wdat   ,
+	input             reg1_field5_wenable,
+	output            reg1_field5_rdat   ,
+	input      [1:0]  reg1_field6_wdat   ,
+	input             reg1_field6_wenable,
+	output     [1:0]  reg1_field6_rdat   );
+	reg  [31:0] reg0_rdat  ;
 	wire [0:0]  reg0_rrdy  ;
 	wire [31:0] reg0_wdat  ;
 	wire [0:0]  reg0_wvld  ;
-	wire [0:0]  reg0_wrdy  ;
 	reg  [0:0]  reg0_field0;
 	reg  [0:0]  reg0_field1;
 	reg  [0:0]  reg0_field2;
@@ -128,12 +90,10 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	reg  [0:0]  reg0_field4;
 	reg  [0:0]  reg0_field5;
 	reg  [1:0]  reg0_field6;
-	wire [31:0] reg1_rdat  ;
-	wire [0:0]  reg1_rvld  ;
+	reg  [31:0] reg1_rdat  ;
 	wire [0:0]  reg1_rrdy  ;
 	wire [31:0] reg1_wdat  ;
 	wire [0:0]  reg1_wvld  ;
-	wire [0:0]  reg1_wrdy  ;
 	reg  [0:0]  reg1_field0;
 	reg  [0:0]  reg1_field1;
 	reg  [0:0]  reg1_field2;
@@ -141,78 +101,59 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	reg  [0:0]  reg1_field4;
 	reg  [0:0]  reg1_field5;
 	reg  [1:0]  reg1_field6;
-	assign rreq_rdy = (rack_rdy && rack_vld);
+	reg  [0:0]  p_ready_r  ;
+	assign p_ready = p_ready_r;
 	
 	always @(*) begin
-	    if((rreq_addr == 32'b0)) rack_data = reg0_rdat;
-	    else if((rreq_addr == 32'b1)) rack_data = reg1_rdat;
-	    else rack_data = 32'b0;
+	    if((p_addr == 32'b0)) p_rdata = reg0_rdat;
+	    else if((p_addr == 32'b1)) p_rdata = reg1_rdat;
+	    else p_rdata = 32'b0;
 	end
 	
-	always @(*) begin
-	    if((rreq_addr == 32'b0)) rack_vld = reg0_rvld;
-	    else if((rreq_addr == 32'b1)) rack_vld = reg1_rvld;
-	    else rack_vld = 1'b0;
+	assign p_slverr = 1'b0;
+	
+	always @(posedge clk or negedge rst_n) begin
+	    if(~rst_n) reg0_rdat <= 32'b0;
+	    else begin
+	        if((((!p_write) && p_sel && p_enable && (p_addr == 32'b0)))) reg0_rdat <= {reg0_field0, 2'b0, 1'b0, 1'b0, reg0_field2, 1'b0, reg0_field3, 1'b0, reg0_field4, 1'b0, reg0_field5, 1'b0, reg0_field6, 17'b0};
+	        else reg0_rdat <= 32'b0;
+	    end
 	end
 	
-	always @(*) begin
-	    if((wreq_addr == 32'b0)) wreq_rdy = reg0_wrdy;
-	    else if((wreq_addr == 32'b1)) wreq_rdy = reg1_wrdy;
-	    else wreq_rdy = 1'b0;
-	end
+	assign reg0_rrdy = ((!p_write) && p_sel && p_enable && (p_addr == 32'b0));
 	
-	assign reg0_rdat = {reg0_field0, 2'b0, 1'b0, 1'b0, reg0_field2, 1'b0, reg0_field3, 1'b0, reg0_field4, 1'b0, reg0_field5, 1'b0, reg0_field6, 17'b0};
+	assign reg0_wdat = p_wdata;
 	
-	assign reg0_rvld = 1'b1;
-	
-	assign reg0_rrdy = (rreq_vld && (rreq_addr == 32'b0));
-	
-	assign reg0_wdat = wreq_data;
-	
-	assign reg0_wvld = (wreq_vld && (wreq_addr == 32'b0));
-	
-	assign reg0_wrdy = 1'b1;
-	
-	assign reg0_field0_wrdy = 1'b1;
+	assign reg0_wvld = (p_write && p_sel && p_enable && (p_addr == 32'b0));
 	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field0 <= 1'b0;
 	    else begin
-	        if(reg0_field0_wvld) reg0_field0 <= reg0_field0_wdat;
+	        if(reg0_field0_wenable) reg0_field0 <= reg0_field0_wdat;
 	    end
 	end
 	
 	assign reg0_field0_rdat = reg0_field0;
 	
-	assign reg0_field0_rvld = 1'b1;
-	
-	assign reg0_field1_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field1 <= 1'b0;
 	    else begin
-	        if(reg0_field1_wvld) reg0_field1 <= reg0_field1_wdat;
+	        if(reg0_field1_wenable) reg0_field1 <= reg0_field1_wdat;
 	        else if(reg0_wvld) reg0_field1 <= reg0_wdat[3:3];
 	    end
 	end
 	
 	assign reg0_field1_rdat = reg0_field1;
 	
-	assign reg0_field1_rvld = 1'b1;
-	
-	assign reg0_field2_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field2 <= 1'b0;
 	    else begin
-	        if(reg0_field2_wvld) reg0_field2 <= reg0_field2_wdat;
+	        if(reg0_field2_wenable) reg0_field2 <= reg0_field2_wdat;
 	        else if(reg0_wvld) reg0_field2 <= reg0_wdat[5:5];
 	    end
 	end
 	
 	assign reg0_field2_rdat = reg0_field2;
-	
-	assign reg0_field2_rvld = 1'b1;
 	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field3 <= 1'b0;
@@ -223,38 +164,28 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	
 	assign reg0_field3_rdat = reg0_field3;
 	
-	assign reg0_field3_rvld = 1'b1;
-	
-	assign reg0_field4_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field4 <= 1'b0;
 	    else begin
-	        if(reg0_field4_wvld) reg0_field4 <= reg0_field4_wdat;
+	        if(reg0_field4_wenable) reg0_field4 <= reg0_field4_wdat;
 	        else if(reg0_wvld) reg0_field4 <= reg0_wdat[9:9];
 	    end
 	end
 	
-	assign reg0_field5_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field5 <= 1'b0;
 	    else begin
-	        if(reg0_field5_wvld) reg0_field5 <= reg0_field5_wdat;
+	        if(reg0_field5_wenable) reg0_field5 <= reg0_field5_wdat;
 	        else if(reg0_wvld) reg0_field5 <= reg0_wdat[11:11];
 	    end
 	end
 	
 	assign reg0_field5_rdat = reg0_field5;
 	
-	assign reg0_field5_rvld = 1'b1;
-	
-	assign reg0_field6_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg0_field6 <= 2'b0;
 	    else begin
-	        if(reg0_field6_wvld) reg0_field6 <= reg0_field6_wdat;
+	        if(reg0_field6_wenable) reg0_field6 <= reg0_field6_wdat;
 	        else if(reg0_wvld) reg0_field6 <= reg0_wdat[14:13];
 	        else if(reg0_rrdy) reg0_field6 <= 2'b0;
 	    end
@@ -262,60 +193,48 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	
 	assign reg0_field6_rdat = reg0_field6;
 	
-	assign reg0_field6_rvld = 1'b1;
+	always @(posedge clk or negedge rst_n) begin
+	    if(~rst_n) reg1_rdat <= 32'b0;
+	    else begin
+	        if((((!p_write) && p_sel && p_enable && (p_addr == 32'b1)))) reg1_rdat <= {reg1_field0, 2'b0, 1'b0, 1'b0, reg1_field2, 1'b0, reg1_field3, 1'b0, reg1_field4, 1'b0, reg1_field5, 1'b0, reg1_field6, 17'b0};
+	        else reg1_rdat <= 32'b0;
+	    end
+	end
 	
-	assign reg1_rdat = {reg1_field0, 2'b0, 1'b0, 1'b0, reg1_field2, 1'b0, reg1_field3, 1'b0, reg1_field4, 1'b0, reg1_field5, 1'b0, reg1_field6, 17'b0};
+	assign reg1_rrdy = ((!p_write) && p_sel && p_enable && (p_addr == 32'b1));
 	
-	assign reg1_rvld = 1'b1;
+	assign reg1_wdat = p_wdata;
 	
-	assign reg1_rrdy = (rreq_vld && (rreq_addr == 32'b1));
-	
-	assign reg1_wdat = wreq_data;
-	
-	assign reg1_wvld = (wreq_vld && (wreq_addr == 32'b1));
-	
-	assign reg1_wrdy = 1'b1;
-	
-	assign reg1_field0_wrdy = 1'b1;
+	assign reg1_wvld = (p_write && p_sel && p_enable && (p_addr == 32'b1));
 	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field0 <= 1'b0;
 	    else begin
-	        if(reg1_field0_wvld) reg1_field0 <= reg1_field0_wdat;
+	        if(reg1_field0_wenable) reg1_field0 <= reg1_field0_wdat;
 	    end
 	end
 	
 	assign reg1_field0_rdat = reg1_field0;
 	
-	assign reg1_field0_rvld = 1'b1;
-	
-	assign reg1_field1_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field1 <= 1'b0;
 	    else begin
-	        if(reg1_field1_wvld) reg1_field1 <= reg1_field1_wdat;
+	        if(reg1_field1_wenable) reg1_field1 <= reg1_field1_wdat;
 	        else if(reg1_wvld) reg1_field1 <= reg1_wdat[3:3];
 	    end
 	end
 	
 	assign reg1_field1_rdat = reg1_field1;
 	
-	assign reg1_field1_rvld = 1'b1;
-	
-	assign reg1_field2_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field2 <= 1'b0;
 	    else begin
-	        if(reg1_field2_wvld) reg1_field2 <= reg1_field2_wdat;
+	        if(reg1_field2_wenable) reg1_field2 <= reg1_field2_wdat;
 	        else if(reg1_wvld) reg1_field2 <= reg1_wdat[5:5];
 	    end
 	end
 	
 	assign reg1_field2_rdat = reg1_field2;
-	
-	assign reg1_field2_rvld = 1'b1;
 	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field3 <= 1'b0;
@@ -326,38 +245,28 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	
 	assign reg1_field3_rdat = reg1_field3;
 	
-	assign reg1_field3_rvld = 1'b1;
-	
-	assign reg1_field4_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field4 <= 1'b0;
 	    else begin
-	        if(reg1_field4_wvld) reg1_field4 <= reg1_field4_wdat;
+	        if(reg1_field4_wenable) reg1_field4 <= reg1_field4_wdat;
 	        else if(reg1_wvld) reg1_field4 <= reg1_wdat[9:9];
 	    end
 	end
 	
-	assign reg1_field5_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field5 <= 1'b0;
 	    else begin
-	        if(reg1_field5_wvld) reg1_field5 <= reg1_field5_wdat;
+	        if(reg1_field5_wenable) reg1_field5 <= reg1_field5_wdat;
 	        else if(reg1_wvld) reg1_field5 <= reg1_wdat[11:11];
 	    end
 	end
 	
 	assign reg1_field5_rdat = reg1_field5;
 	
-	assign reg1_field5_rvld = 1'b1;
-	
-	assign reg1_field6_wrdy = 1'b1;
-	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) reg1_field6 <= 2'b0;
 	    else begin
-	        if(reg1_field6_wvld) reg1_field6 <= reg1_field6_wdat;
+	        if(reg1_field6_wenable) reg1_field6 <= reg1_field6_wdat;
 	        else if(reg1_wvld) reg1_field6 <= reg1_wdat[14:13];
 	        else if(reg1_rrdy) reg1_field6 <= 2'b0;
 	    end
@@ -365,11 +274,17 @@ module RegSpaceRTL_cfg_reg_bank_B (
 	
 	assign reg1_field6_rdat = reg1_field6;
 	
-	assign reg1_field6_rvld = 1'b1;
+	always @(posedge clk or negedge rst_n) begin
+	    if(~rst_n) p_ready_r <= 1'b0;
+	    else begin
+	        if((reg1_wvld || reg1_rrdy)) p_ready_r <= 1'b1;
+	        else p_ready_r <= 1'b0;
+	    end
+	end
 	
 
 endmodule
-//[UHDL]Content End [md5:5859e83bc1668cfe1325c47d6fbb5d3a]
+//[UHDL]Content End [md5:111ae4bd44471d2c2781e1b3f14d99f9]
 
 //[UHDL]Parameter Start [md5:d41d8cd98f00b204e9800998ecf8427e]
 
