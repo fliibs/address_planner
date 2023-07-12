@@ -11,25 +11,25 @@
 //==========================================================================================================================
 
 
-//[UHDL]Key Start [md5:f1a343b3f482ea957bd5ee01ce8aa2e5]
+//[UHDL]Key Start [md5:4408a128da4a48eeee6407e5cbc96de1]
 //Version Control Hash: 3accddf64b1dd03abeb9b0b3e5a7ba44
-//Content Hash: 0ed88f60155eb1ef5100325cc78d3d66
+//Content Hash: 728060a2532c8b5c99a8a061a06c678e
 //Parameter Hash: d41d8cd98f00b204e9800998ecf8427e
-//[UHDL]Key End [md5:f1a343b3f482ea957bd5ee01ce8aa2e5]
+//[UHDL]Key End [md5:4408a128da4a48eeee6407e5cbc96de1]
 
 //[UHDL]Version Control Start [md5:3accddf64b1dd03abeb9b0b3e5a7ba44]
 //[UHDL]Version Control Version:1.0.1
 //[UHDL]Version Control End [md5:3accddf64b1dd03abeb9b0b3e5a7ba44]
 
-//[UHDL]Tool Message Start [md5:136c2ca90c4703b692ea0470be1feb9c]
-//Written by UHDL in 2023-07-10 10:19:50
-//[UHDL]Tool Message End [md5:136c2ca90c4703b692ea0470be1feb9c]
+//[UHDL]Tool Message Start [md5:6f6b70ff46796fa77b1c85281cd21cc5]
+//Written by UHDL in 2023-07-12 17:18:07
+//[UHDL]Tool Message End [md5:6f6b70ff46796fa77b1c85281cd21cc5]
 
 //[UHDL]User Message Start [md5:d41d8cd98f00b204e9800998ecf8427e]
 
 //[UHDL]User Message End [md5:d41d8cd98f00b204e9800998ecf8427e]
 
-//[UHDL]Content Start [md5:0ed88f60155eb1ef5100325cc78d3d66]
+//[UHDL]Content Start [md5:728060a2532c8b5c99a8a061a06c678e]
 module RegSpaceRTL_cfg_reg_bank_C (
 	input             clk                ,
 	input             rst_n              ,
@@ -61,6 +61,8 @@ module RegSpaceRTL_cfg_reg_bank_C (
 	input      [3:0]  reg1_field4_wdat   ,
 	input             reg1_field4_wenable,
 	output     [3:0]  reg1_field4_rdat   );
+
+	//Wire define for this module.
 	wire [0:0]  reg0_rrdy  ;
 	wire [31:0] reg0_wdat  ;
 	wire [0:0]  reg0_wvld  ;
@@ -75,6 +77,12 @@ module RegSpaceRTL_cfg_reg_bank_C (
 	reg  [1:0]  reg1_field2;
 	reg  [2:0]  reg1_field3;
 	reg  [3:0]  reg1_field4;
+
+	//Wire define for sub module.
+
+	//Wire define for Inout.
+
+	//Wire sub module connect to this module and inter module connect.
 	always @(*) begin
 	    if((wreq_addr == 32'b0)) wreq_rdy = 1'b1;
 	    else if((wreq_addr == 32'b100000)) wreq_rdy = 1'b1;
@@ -174,8 +182,12 @@ module RegSpaceRTL_cfg_reg_bank_C (
 	assign reg1_field4_rdat = reg1_field4;
 	
 
+	//Wire this module connect to sub module.
+
+	//module inst.
+
 endmodule
-//[UHDL]Content End [md5:0ed88f60155eb1ef5100325cc78d3d66]
+//[UHDL]Content End [md5:728060a2532c8b5c99a8a061a06c678e]
 
 //[UHDL]Parameter Start [md5:d41d8cd98f00b204e9800998ecf8427e]
 

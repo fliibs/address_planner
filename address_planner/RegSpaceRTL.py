@@ -1,6 +1,6 @@
 
 
-from .uhdl import *
+from .uhdl.uhdl import *
 
 from .Field import FilledField
 from .APBInterface import APB
@@ -21,7 +21,12 @@ def get_sw_writeable(sub_space_list, writeable=False):
     return writeable
 
 def byte_mask(data, mask):
-    pass
+    mask_data = []
+    for i in range(mask.width):
+        mask_data.append( BitAnd(data[8*i+7:8*i], Combine(mask[i],mask[i],mask[i],mask[i],mask[i],mask[i],mask[i],mask[i])) )
+    return Combine(*mask_data)
+
+
 
 
 class RegSpaceRTL(Component):
@@ -33,7 +38,16 @@ class RegSpaceRTL(Component):
         self.clk       = Input(UInt(1))
         self.rst_n     = Input(UInt(1))
 
-        if 'apb' not in self._cfg.external_interface:
+        if 'apb' in self._cfg.external_interface:
+            self.p              = APB()
+
+            self.p.slverr       += UInt(1,0)
+
+            rack_dat_read_mux   = EmptyWhen()
+            rack_read_mux       = EmptyWhen()
+            wack_rdy_mux        = EmptyWhen()
+           
+        else:
             if get_sw_readable(self._cfg.sub_space_list):
                 self.rreq_addr = Input(UInt(32))
                 self.rreq_vld  = Input(UInt(1))
@@ -46,7 +60,7 @@ class RegSpaceRTL(Component):
                 self.rreq_rdy += And(self.rack_rdy,self.rack_vld)
 
                 rack_dat_read_mux = EmptyWhen()
-                rack_read_mux = EmptyWhen()
+                rack_read_mux     = EmptyWhen()
             
             if get_sw_writeable(self._cfg.sub_space_list):
                 self.wreq_addr = Input(UInt(32))
@@ -55,19 +69,19 @@ class RegSpaceRTL(Component):
                 self.wreq_rdy  = Output(UInt(1))
 
                 wack_rdy_mux = EmptyWhen()
-                
-        else:
-            self.p              = APB()
-
-            self.p.slverr       += UInt(1,0)
-
-            rack_dat_read_mux   = EmptyWhen()
-            rack_read_mux       = EmptyWhen()
-            wack_rdy_mux        = EmptyWhen()
+            
 
         for sub_space in self._cfg.sub_space_list:
             if get_sw_readable(self._cfg.sub_space_list):
-                if 'apb' not in self._cfg.external_interface:
+                if 'apb' in self._cfg.external_interface:
+                    reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(32,0)))
+                    reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
+
+                    reg_rrdy += And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))
+                    rack_dat_read_mux.when(And(And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address))))).then(reg_rdat)
+                    rack_read_mux.when(And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))).then(UInt(1,1))
+                    
+                else:
                     reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(32)))
                     reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
 
@@ -75,42 +89,35 @@ class RegSpaceRTL(Component):
                     reg_rrdy += And(self.rreq_vld, Equal(self.rreq_addr,UInt(32,sub_space.start_address)))
                     rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(reg_rdat)
                     rack_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(UInt(1,1))
-                else:
-                    reg_rdat = self.set('%s_rdat' % sub_space.module_name, Reg(UInt(32,0), self.clk, self.rst_n))
-                    # reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Reg(UInt(1,0), self.clk, self.rst_n))
-                    reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
-
-                    # reg_rrdy.when(And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.rreq_addr,UInt(32,sub_space.start_address)))).then(UInt(1,1)).otherwise(UInt(1,0))
-                    reg_rrdy += And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))
-                    rack_dat_read_mux.when(Equal(self.p.addr,UInt(32,sub_space.start_address))).then(reg_rdat)
-                    rack_read_mux.when(And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))).then(UInt(1,1))
             else:
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rrdy += UInt(1,0)
 
             if get_sw_writeable(self._cfg.sub_space_list):
-                if 'apb' not in self._cfg.external_interface:
+                if 'apb' in self._cfg.external_interface:
+                    reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(32)))
+                    reg_wrdy = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
+
+                    # add mask
+                    reg_wdat += byte_mask(self.p.rdata, self.p.strb)
+                    reg_wrdy += And(self.p.write, self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))
+                    wack_rdy_mux.when(And(self.p.write, self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))).then(UInt(1,1))
+                    
+                else:
                     reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(32)))
                     reg_wrdy = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
 
                     reg_wdat += self.wreq_data
                     reg_wrdy += And(self.wreq_vld, Equal(self.wreq_addr,UInt(32,sub_space.start_address)))
                     wack_rdy_mux.when(Equal(self.wreq_addr, UInt(32,sub_space.start_address))).then(UInt(1,1))
-                else:
-                    reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(32)))
-                    # reg_wrdy = self.set('%s_wvld' % sub_space.module_name,  Reg(UInt(1,0), self.clk, self.rst_n))
-                    reg_wrdy = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
-
-                    # add mask
-                    reg_wdat += self.p.wdata
-                    # reg_wrdy.when(And((self.p.write, self.p.sel, self.p.enable, Equal(self.rreq_addr,UInt(32,sub_space.start_address))))).then(UInt(1,1)).otherwise(UInt(1,0))
-                    # reg_wrdy += And((self.p.write, self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address))))
-                    reg_wrdy += And(self.p.write, self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))
-                    wack_rdy_mux.when(And(self.p.write, self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address)))).then(UInt(1,1))
             else:
                 reg_wrdy = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
                 reg_wrdy += UInt(1,0)
 
+
+            ##########################################################################################################
+            #   Internal interface
+            ##########################################################################################################
             rdat_list = []
 
             for field in sub_space.filled_field_list:
@@ -134,8 +141,7 @@ class RegSpaceRTL(Component):
                         else:
                             reg_val.when(reg_wrdy).then(reg_wdat[field.end_bit:field.start_bit])
 
-
-                    field_reg   = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
+                    field_reg = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
@@ -145,7 +151,6 @@ class RegSpaceRTL(Component):
                         else:
                             field_hw_rdat += field_reg
                         
-                                            
                     if field.sw_readable:
                         if field.sw_read_clean:
                             reg_val.when(reg_rrdy).then(UInt(field.bit,0))                   
@@ -156,31 +161,32 @@ class RegSpaceRTL(Component):
                     field_reg += reg_val
                                     
             if get_sw_readable(self._cfg.sub_space_list):
-                if 'apb' not in self._cfg.external_interface:
-                    reg_rdat += Combine(*rdat_list)
-                else:
-                    reg_rdat += when(And(And(Not(self.p.write), self.p.sel, self.p.enable, Equal(self.p.addr,UInt(32,sub_space.start_address))))).then(Combine(*rdat_list)).otherwise(UInt(32,0))
+                reg_rdat += Combine(*rdat_list)
+       
+        ##########################################################################################################
 
 
         if get_sw_readable(self._cfg.sub_space_list):
-            if 'apb' not in self._cfg.external_interface:
+            if 'apb' in self._cfg.external_interface:
+                rack_dat_read_mux.otherwise(UInt(32,0))
+                rack_read_mux.otherwise(UInt(1,0))
+
+                self.p_rdata_r = Reg(UInt(self.p.rdata.width), self.clk, self.rst_n)
+                self.p_rdata_r += rack_dat_read_mux
+                self.p.rdata   += self.p_rdata_r
+            else:
                 rack_dat_read_mux.otherwise(UInt(32,0))
                 rack_read_mux.otherwise(UInt(1,0))
 
                 self.rack_data += rack_dat_read_mux
                 self.rack_vld  += rack_read_mux
-            else:
-                rack_dat_read_mux.otherwise(UInt(32,0))
-                rack_read_mux.otherwise(UInt(1,0))
-
-                self.p.rdata += rack_dat_read_mux
 
         if get_sw_writeable(self._cfg.sub_space_list):
-            if 'apb' not in self._cfg.external_interface:
+            if 'apb' in self._cfg.external_interface:
                 wack_rdy_mux.otherwise(UInt(1,0))
-                self.wreq_rdy  += wack_rdy_mux
             else:
                 wack_rdy_mux.otherwise(UInt(1,0))
+                self.wreq_rdy  += wack_rdy_mux
 
         if 'apb' in self._cfg.external_interface:
             self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
