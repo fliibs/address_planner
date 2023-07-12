@@ -1,6 +1,5 @@
 import os
 import sys
-sys.path.append('../../..')
 
 from address_planner import * # pylint: disable=unused-wildcard-import
 
