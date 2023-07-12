@@ -1,6 +1,6 @@
 [submodule "submodules/uhdl"]
 	path = submodules/uhdl
 	url = https://github.com/YuunqiLiu/uhdl.git
-[submodule "addressplanner/uhdl"]
-	path = addressplanner/uhdl
+[submodule "address_planner/uhdl"]
+	path = address_planner/uhdl
 	url = https://github.com/YuunqiLiu/uhdl.git
