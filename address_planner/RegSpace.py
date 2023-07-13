@@ -45,7 +45,7 @@ class RegSpace(AddressSpace):
         return vhead_name_list
 
     def report_rtl(self):
-        component = RegSpaceRTL(self)
+        component = RegSpaceRTL(self).u
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()
