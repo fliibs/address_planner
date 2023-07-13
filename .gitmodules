@@ -2,3 +2,6 @@
 	path = submodules/uhdl
 	url = https://github.com/YuunqiLiu/uhdl.git
 
+[submodule "address_planner/uhdl"]
+	path = address_planner/uhdl
+	url = https://github.com/YuunqiLiu/uhdl.git
