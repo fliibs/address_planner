@@ -1,4 +1,4 @@
-from .uhdl.uhdl import *
+from ..uhdl.uhdl import *
 
 
 class APB(Bundle):
