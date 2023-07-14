@@ -155,25 +155,42 @@ class RegSpaceAPB(Component):
         self.rs.clk     += self.clk
         self.rs.rst_n   += self.rst_n
         
-        self.rs.rreq_vld  += And(Not(self.p.write), self.p.sel)
-        self.rs.rack_rdy  += And(Not(self.p.write), self.p.sel, self.p.enable)
-        self.rs.rreq_addr += self.p.addr
-        
-        
-        self.rs.wreq_vld  += And(self.p.write, self.p.sel, self.p.enable)  
-        self.rs.wreq_addr += self.p.addr
-        self.rs.wreq_data += byte_mask(self.p.wdata,self.p.strb)
+        if get_sw_readable(self._cfg.sub_space_list):
+            self.rs.rreq_vld  += And(Not(self.p.write), self.p.sel)
+            self.rs.rack_rdy  += And(Not(self.p.write), self.p.sel, self.p.enable)
+            self.rs.rreq_addr += self.p.addr
 
-        self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
+        if get_sw_readable(self._cfg.sub_space_list):
+            self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
+            rdata_ff = EmptyWhen()
+            rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
+            self.p_rdata_r += rdata_ff
+            self.p.rdata   += self.p_rdata_r
+        else:
+            self.p.rdata   += UInt(self.p.rdata.width,0)
+        
+        if get_sw_writeable(self._cfg.sub_space_list):
+            self.rs.wreq_vld  += And(self.p.write, self.p.sel, self.p.enable)  
+            self.rs.wreq_addr += self.p.addr
+            self.rs.wreq_data += byte_mask(self.p.wdata,self.p.strb)
+
+
         self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
+        self.p_rready  = Wire(UInt(1))
+        self.p_wready  = Wire(UInt(1))
 
-        rdata_ff = EmptyWhen()
-        rdata_ff.when(And(self.rs.wreq_vld, self.rs.wreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
-        self.p_rdata_r += rdata_ff
-        self.p.rdata   += self.p_rdata_r
+        if get_sw_readable(self._cfg.sub_space_list):
+            self.p_rready = And(self.rs.rreq_vld, self.rs.rreq_rdy)
+        else:
+            self.p_rready = UInt(1,0)
+
+        if get_sw_writeable(self._cfg.sub_space_list):
+            self.p_wready = self.rs.wreq_rdy
+        else:
+            self.p_rready = UInt(1,0)
 
         ready_ff = EmptyWhen()
-        ready_ff.when(Or(And(self.rs.wreq_vld, self.rs.wreq_rdy),self.rs.rreq_rdy)).then(UInt(1,1)).otherwise(UInt(1,0))
+        ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
         self.p_ready_r += ready_ff
         self.p.ready   += self.p_ready_r
 

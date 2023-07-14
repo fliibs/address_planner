@@ -11,11 +11,11 @@
 //==========================================================================================================================
 
 
-//[UHDL]Key Start [md5:4ae4c27a45857e8eb1dfd9e6c4503d27]
+//[UHDL]Key Start [md5:0c2c67f561002c94c1b334c2d2b9e69f]
 //Version Control Hash: 3accddf64b1dd03abeb9b0b3e5a7ba44
-//Content Hash: 79787d17b2faa4bd08a5a588cd2948fb
+//Content Hash: d63e9da22715a11b358c7c0e25bad943
 //Parameter Hash: d41d8cd98f00b204e9800998ecf8427e
-//[UHDL]Key End [md5:4ae4c27a45857e8eb1dfd9e6c4503d27]
+//[UHDL]Key End [md5:0c2c67f561002c94c1b334c2d2b9e69f]
 
 //[UHDL]Version Control Start [md5:3accddf64b1dd03abeb9b0b3e5a7ba44]
 //[UHDL]Version Control Version:1.0.1
@@ -29,8 +29,8 @@
 
 //[UHDL]User Message End [md5:d41d8cd98f00b204e9800998ecf8427e]
 
-//[UHDL]Content Start [md5:79787d17b2faa4bd08a5a588cd2948fb]
-module RegSpaceAPB_cfg_reg_bank_B (
+//[UHDL]Content Start [md5:d63e9da22715a11b358c7c0e25bad943]
+module RegSpaceAPB_cfg_reg_bank_D (
 	input             clk                ,
 	input             rst_n              ,
 	input      [31:0] p_addr             ,
@@ -43,78 +43,54 @@ module RegSpaceAPB_cfg_reg_bank_B (
 	output            p_ready            ,
 	output     [31:0] p_rdata            ,
 	output            p_slverr           ,
-	input             rs_reg0_field0_wdat,
-	input             rs_reg0_field0_wvld,
-	output            rs_reg0_field0_wrdy,
-	output            rs_reg0_field0_rdat,
-	output            rs_reg0_field0_rvld,
-	input             rs_reg0_field0_rrdy,
 	input             rs_reg0_field1_wdat,
 	input             rs_reg0_field1_wvld,
 	output            rs_reg0_field1_wrdy,
 	output            rs_reg0_field1_rdat,
 	output            rs_reg0_field1_rvld,
 	input             rs_reg0_field1_rrdy,
-	input             rs_reg0_field2_wdat,
+	input      [1:0]  rs_reg0_field2_wdat,
 	input             rs_reg0_field2_wvld,
 	output            rs_reg0_field2_wrdy,
-	output            rs_reg0_field2_rdat,
+	output     [1:0]  rs_reg0_field2_rdat,
 	output            rs_reg0_field2_rvld,
 	input             rs_reg0_field2_rrdy,
-	output            rs_reg0_field3_rdat,
+	input      [2:0]  rs_reg0_field3_wdat,
+	input             rs_reg0_field3_wvld,
+	output            rs_reg0_field3_wrdy,
+	output     [2:0]  rs_reg0_field3_rdat,
 	output            rs_reg0_field3_rvld,
 	input             rs_reg0_field3_rrdy,
-	input             rs_reg0_field4_wdat,
+	input      [3:0]  rs_reg0_field4_wdat,
 	input             rs_reg0_field4_wvld,
 	output            rs_reg0_field4_wrdy,
-	input             rs_reg0_field5_wdat,
-	input             rs_reg0_field5_wvld,
-	output            rs_reg0_field5_wrdy,
-	output            rs_reg0_field5_rdat,
-	output            rs_reg0_field5_rvld,
-	input             rs_reg0_field5_rrdy,
-	input      [1:0]  rs_reg0_field6_wdat,
-	input             rs_reg0_field6_wvld,
-	output            rs_reg0_field6_wrdy,
-	output     [1:0]  rs_reg0_field6_rdat,
-	output            rs_reg0_field6_rvld,
-	input             rs_reg0_field6_rrdy,
-	input             rs_reg1_field0_wdat,
-	input             rs_reg1_field0_wvld,
-	output            rs_reg1_field0_wrdy,
-	output            rs_reg1_field0_rdat,
-	output            rs_reg1_field0_rvld,
-	input             rs_reg1_field0_rrdy,
+	output     [3:0]  rs_reg0_field4_rdat,
+	output            rs_reg0_field4_rvld,
+	input             rs_reg0_field4_rrdy,
 	input             rs_reg1_field1_wdat,
 	input             rs_reg1_field1_wvld,
 	output            rs_reg1_field1_wrdy,
 	output            rs_reg1_field1_rdat,
 	output            rs_reg1_field1_rvld,
 	input             rs_reg1_field1_rrdy,
-	input             rs_reg1_field2_wdat,
+	input      [1:0]  rs_reg1_field2_wdat,
 	input             rs_reg1_field2_wvld,
 	output            rs_reg1_field2_wrdy,
-	output            rs_reg1_field2_rdat,
+	output     [1:0]  rs_reg1_field2_rdat,
 	output            rs_reg1_field2_rvld,
 	input             rs_reg1_field2_rrdy,
-	output            rs_reg1_field3_rdat,
+	input      [2:0]  rs_reg1_field3_wdat,
+	input             rs_reg1_field3_wvld,
+	output            rs_reg1_field3_wrdy,
+	output     [2:0]  rs_reg1_field3_rdat,
 	output            rs_reg1_field3_rvld,
 	input             rs_reg1_field3_rrdy,
-	input             rs_reg1_field4_wdat,
+	input      [3:0]  rs_reg1_field4_wdat,
 	input             rs_reg1_field4_wvld,
 	output            rs_reg1_field4_wrdy,
-	input             rs_reg1_field5_wdat,
-	input             rs_reg1_field5_wvld,
-	output            rs_reg1_field5_wrdy,
-	output            rs_reg1_field5_rdat,
-	output            rs_reg1_field5_rvld,
-	input             rs_reg1_field5_rrdy,
-	input      [1:0]  rs_reg1_field6_wdat,
-	input             rs_reg1_field6_wvld,
-	output            rs_reg1_field6_wrdy,
-	output     [1:0]  rs_reg1_field6_rdat,
-	output            rs_reg1_field6_rvld,
-	input             rs_reg1_field6_rrdy,
+	output     [3:0]  rs_reg1_field4_rdat,
+	output            rs_reg1_field4_rvld,
+	input             rs_reg1_field4_rrdy,
 	output reg        p_wready           );
 
 	//Wire define for this module.
@@ -158,7 +134,7 @@ module RegSpaceAPB_cfg_reg_bank_B (
 	
 	always @(*) begin
 	    if((wreq_addr == 32'b0)) p_wready = reg0_wrdy;
-	    else if((wreq_addr == 32'b1)) p_wready = reg1_wrdy;
+	    else if((wreq_addr == 32'b100000)) p_wready = reg1_wrdy;
 	    else p_wready = 1'b0;
 	end
 	
@@ -182,7 +158,7 @@ module RegSpaceAPB_cfg_reg_bank_B (
 	
 
 	//module inst.
-	RegSpaceBase_cfg_reg_bank_B rs (
+	RegSpaceBase_cfg_reg_bank_D rs (
 		.clk(rs_clk),
 		.rst_n(rs_rst_n),
 		.rreq_addr(rs_rreq_addr),
@@ -195,12 +171,6 @@ module RegSpaceAPB_cfg_reg_bank_B (
 		.wreq_data(rs_wreq_data),
 		.wreq_vld(rs_wreq_vld),
 		.p_wready(u_p_wready),
-		.reg0_field0_wdat(rs_reg0_field0_wdat),
-		.reg0_field0_wvld(rs_reg0_field0_wvld),
-		.reg0_field0_wrdy(rs_reg0_field0_wrdy),
-		.reg0_field0_rdat(rs_reg0_field0_rdat),
-		.reg0_field0_rvld(rs_reg0_field0_rvld),
-		.reg0_field0_rrdy(rs_reg0_field0_rrdy),
 		.reg0_field1_wdat(rs_reg0_field1_wdat),
 		.reg0_field1_wvld(rs_reg0_field1_wvld),
 		.reg0_field1_wrdy(rs_reg0_field1_wrdy),
@@ -213,30 +183,18 @@ module RegSpaceAPB_cfg_reg_bank_B (
 		.reg0_field2_rdat(rs_reg0_field2_rdat),
 		.reg0_field2_rvld(rs_reg0_field2_rvld),
 		.reg0_field2_rrdy(rs_reg0_field2_rrdy),
+		.reg0_field3_wdat(rs_reg0_field3_wdat),
+		.reg0_field3_wvld(rs_reg0_field3_wvld),
+		.reg0_field3_wrdy(rs_reg0_field3_wrdy),
 		.reg0_field3_rdat(rs_reg0_field3_rdat),
 		.reg0_field3_rvld(rs_reg0_field3_rvld),
 		.reg0_field3_rrdy(rs_reg0_field3_rrdy),
 		.reg0_field4_wdat(rs_reg0_field4_wdat),
 		.reg0_field4_wvld(rs_reg0_field4_wvld),
 		.reg0_field4_wrdy(rs_reg0_field4_wrdy),
-		.reg0_field5_wdat(rs_reg0_field5_wdat),
-		.reg0_field5_wvld(rs_reg0_field5_wvld),
-		.reg0_field5_wrdy(rs_reg0_field5_wrdy),
-		.reg0_field5_rdat(rs_reg0_field5_rdat),
-		.reg0_field5_rvld(rs_reg0_field5_rvld),
-		.reg0_field5_rrdy(rs_reg0_field5_rrdy),
-		.reg0_field6_wdat(rs_reg0_field6_wdat),
-		.reg0_field6_wvld(rs_reg0_field6_wvld),
-		.reg0_field6_wrdy(rs_reg0_field6_wrdy),
-		.reg0_field6_rdat(rs_reg0_field6_rdat),
-		.reg0_field6_rvld(rs_reg0_field6_rvld),
-		.reg0_field6_rrdy(rs_reg0_field6_rrdy),
-		.reg1_field0_wdat(rs_reg1_field0_wdat),
-		.reg1_field0_wvld(rs_reg1_field0_wvld),
-		.reg1_field0_wrdy(rs_reg1_field0_wrdy),
-		.reg1_field0_rdat(rs_reg1_field0_rdat),
-		.reg1_field0_rvld(rs_reg1_field0_rvld),
-		.reg1_field0_rrdy(rs_reg1_field0_rrdy),
+		.reg0_field4_rdat(rs_reg0_field4_rdat),
+		.reg0_field4_rvld(rs_reg0_field4_rvld),
+		.reg0_field4_rrdy(rs_reg0_field4_rrdy),
 		.reg1_field1_wdat(rs_reg1_field1_wdat),
 		.reg1_field1_wvld(rs_reg1_field1_wvld),
 		.reg1_field1_wrdy(rs_reg1_field1_wrdy),
@@ -249,27 +207,21 @@ module RegSpaceAPB_cfg_reg_bank_B (
 		.reg1_field2_rdat(rs_reg1_field2_rdat),
 		.reg1_field2_rvld(rs_reg1_field2_rvld),
 		.reg1_field2_rrdy(rs_reg1_field2_rrdy),
+		.reg1_field3_wdat(rs_reg1_field3_wdat),
+		.reg1_field3_wvld(rs_reg1_field3_wvld),
+		.reg1_field3_wrdy(rs_reg1_field3_wrdy),
 		.reg1_field3_rdat(rs_reg1_field3_rdat),
 		.reg1_field3_rvld(rs_reg1_field3_rvld),
 		.reg1_field3_rrdy(rs_reg1_field3_rrdy),
 		.reg1_field4_wdat(rs_reg1_field4_wdat),
 		.reg1_field4_wvld(rs_reg1_field4_wvld),
 		.reg1_field4_wrdy(rs_reg1_field4_wrdy),
-		.reg1_field5_wdat(rs_reg1_field5_wdat),
-		.reg1_field5_wvld(rs_reg1_field5_wvld),
-		.reg1_field5_wrdy(rs_reg1_field5_wrdy),
-		.reg1_field5_rdat(rs_reg1_field5_rdat),
-		.reg1_field5_rvld(rs_reg1_field5_rvld),
-		.reg1_field5_rrdy(rs_reg1_field5_rrdy),
-		.reg1_field6_wdat(rs_reg1_field6_wdat),
-		.reg1_field6_wvld(rs_reg1_field6_wvld),
-		.reg1_field6_wrdy(rs_reg1_field6_wrdy),
-		.reg1_field6_rdat(rs_reg1_field6_rdat),
-		.reg1_field6_rvld(rs_reg1_field6_rvld),
-		.reg1_field6_rrdy(rs_reg1_field6_rrdy));
+		.reg1_field4_rdat(rs_reg1_field4_rdat),
+		.reg1_field4_rvld(rs_reg1_field4_rvld),
+		.reg1_field4_rrdy(rs_reg1_field4_rrdy));
 
 endmodule
-//[UHDL]Content End [md5:79787d17b2faa4bd08a5a588cd2948fb]
+//[UHDL]Content End [md5:d63e9da22715a11b358c7c0e25bad943]
 
 //[UHDL]Parameter Start [md5:d41d8cd98f00b204e9800998ecf8427e]
 
