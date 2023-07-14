@@ -58,7 +58,7 @@ class RegSpaceBase(Component):
                 reg_rrdy += UInt(1,1)
                 reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(32,sub_space.start_address)))
                 rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(reg_rdat)
-                rack_read_mux.when(Equal(self.rreq_addr,UInt(32,sub_space.start_address))).then(reg_rrdy)
+                rack_read_mux.when(And(self.rreq_vld, Equal(self.rreq_addr,UInt(32,sub_space.start_address)))).then(reg_rrdy)
             
             if get_sw_writeable(self._cfg.sub_space_list):
                 
