@@ -1,11 +1,15 @@
 from ..uhdl.uhdl import *
+from enum import Enum,unique
+
+# class ()
+
 
 
 class APB(Bundle):
-    def __init__(self):
+    def __init__(self, data_width=32, addr_width=32):
         super().__init__()
-        self.addr_width = 32
-        self.data_width = 32
+        self.addr_width = addr_width
+        self.data_width = data_width
         self.strb_width = int(self.data_width/8)
         # self.auser = 5
         # self.wuser = 5
@@ -27,6 +31,30 @@ class APB(Bundle):
         # self.wuser  = Input(UInt(self.wuser))
         # self.ruser  = Output(UInt(self.ruser))
         # self.buser  = Output(UInt(self.buser))
+
+    def reverse(self):
+        return APBReverse(self.data_width, self.addr_width)
+
+class APBReverse(Bundle):
+    def __init__(self, data_width=32, addr_width=32):
+        super().__init__()
+        self.addr_width = addr_width
+        self.data_width = data_width
+        self.strb_width = int(self.data_width/8)
+
+        self.addr   = Output(UInt(self.addr_width))
+        self.prot   = Output(UInt(3))
+        self.sel    = Output(UInt(1))
+        self.enable = Output(UInt(1))
+        self.write  = Output(UInt(1))
+        self.wdata  = Output(UInt(self.data_width))
+        self.strb   = Output(UInt(self.strb_width))
+        self.ready  = Input(UInt(1))
+        self.rdata  = Input(UInt(self.data_width))
+        self.slverr = Input(UInt(1))
+
+
+
 
 
 

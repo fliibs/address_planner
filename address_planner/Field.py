@@ -1,36 +1,26 @@
 import math
+
+from address_planner.GlobalValues import ReadWrite
 from .GlobalValues      import *
 from .AddressLogicRoot  import *
-
-#from uhdl import *
-
 
 
 
 class Field(AddressLogicRoot):
-
-    def __init__(self,name,bit,
-        sw_access       = ExternalReadWrite ,
-        hw_access       = InternalReadWrite ,
-        sw_read_effect  = NoEffect  ,
-        sw_write_effect = NoEffect  ,
-        hw_read_effect  = NoEffect  ,
-        hw_write_effect = NoEffect  ,
-        hw_type         = InternalNull  ,
-        init_value      = 0         ,
-        description     = ''):
-        super().__init__(name=name,description=description)
+    def __init__(self, name, bit, 
+                 sw_access          = ReadWrite,
+                 hw_access          = ReadWrite,
+                 init_value         = 0,
+                 description=''):
+        super().__init__(name=name, description=description)
+        
         self._name              = name
         self.bit                = bit
         self.sw_access          = sw_access
         self.hw_access          = hw_access
-        self.sw_read_effect     = sw_read_effect
-        self.sw_write_effect    = sw_write_effect
-        self.hw_read_effect     = hw_read_effect
-        self.hw_write_effect    = hw_write_effect
-        self.hw_type            = hw_type
+        self.is_external        = False
         self.bit_offset         = 0
-        self.init_value         = init_value
+        self.init_value         = init_value     
 
     @property
     def name(self):
@@ -59,28 +49,38 @@ class Field(AddressLogicRoot):
 
     @property
     def sw_readable(self):
-        return self.sw_access == ExternalReadOnly or self.sw_access == ExternalReadWrite
+        return self.sw_access == ReadOnly or \
+               self.sw_access == ReadWrite or \
+               self.sw_access == ReadClean
 
     @property
     def sw_writeable(self):
-        return self.sw_access == ExternalWriteOnly or self.sw_access == ExternalReadWrite
+        return self.sw_access == WriteOnly or \
+               self.sw_access == ReadWrite
 
     @property
     def hw_readable(self):
-        return self.hw_access == InternalReadOnly or self.hw_access == InternalReadWrite
+        return self.hw_access == ReadOnly or \
+               self.hw_access == ReadWrite
 
     @property
     def hw_writeable(self):
-        return self.hw_access == InternalWriteOnly or self.hw_access == InternalReadWrite
+        return self.hw_access == WriteOnly or \
+               self.hw_access == ReadWrite
 
     @property
     def sw_read_clean(self):
-        return self.sw_readable and self.sw_read_effect == ReadClean
+        return self.sw_access == ReadClean
     
+    @property
+    def sw_write_clean(self):
+        pass
+
     @property 
     def sw_write_one_to_set(self):
-        return self.sw_writeable and self.sw_write_effect == WriteOnce
+        pass
 
+    
     @property
     def hw_read_clean(self):
         return False
@@ -110,69 +110,15 @@ class Field(AddressLogicRoot):
     # def offset(self):
     #     return math.floor(self.offset / self.father.bus_width)
 
-
 class FilledField(Field):
 
     def __init__(self,bit):
-        super().__init__(name='FilledField',bit=bit,sw_access=ExternalNull,hw_access=InternalNull)
+        super().__init__(name='FilledField',bit=bit,
+                         sw_access     = Null, 
+                         hw_access     = Null
+                         )
 
-
-
-################################################################################
-# Field Type "ExternalReadOnly"
-################################################################################
-
-class FieldExternalReadOnly(Field):
-
-    def __init__(self,name,bit,hw_access=InternalReadWrite,hw_read_effect=NoEffect,hw_write_effect=NoEffect,\
-                 init_value=0,description=''):
-        super().__init__(name=name,bit=bit,
-            sw_access       = ExternalReadOnly,
-            hw_access       = hw_access,
-            sw_read_effect  = NoEffect  ,
-            sw_write_effect = NoEffect  ,
-            hw_read_effect  = hw_read_effect  ,
-            hw_write_effect = hw_write_effect  ,
-            hw_type         = hw_access,
-            init_value      = init_value,
-            description     = description)
-
-################################################################################
-# Field Type "ExternalWriteOnly"
-################################################################################
-
-class FieldExternalWriteOnly(Field):
-
-    def __init__(self,name,bit,hw_access=InternalReadWrite,hw_read_effect=NoEffect,hw_write_effect=NoEffect,\
-                 init_value=0,description=''):
-        super().__init__(name=name,bit=bit,
-            sw_access       = ExternalWriteOnly,
-            hw_access       = hw_access,
-            sw_read_effect  = NoEffect  ,
-            sw_write_effect = NoEffect  ,
-            hw_read_effect  = hw_read_effect  ,
-            hw_write_effect = hw_write_effect  ,
-            hw_type         = hw_access,
-            init_value      = init_value,
-            description     = description)
-
-################################################################################
-# Field Type "ExternalReadWrite"
-################################################################################
-
-class FieldExternalReadWrite(Field):
-
-    def __init__(self,name,bit,hw_access=InternalReadWrite,hw_read_effect=NoEffect,hw_write_effect=NoEffect,\
-                 init_value=0,description=''):
-        super().__init__(name=name,bit=bit,
-            sw_access       = ExternalReadWrite,
-            hw_access       = hw_access,
-            sw_read_effect  = NoEffect  ,
-            sw_write_effect = NoEffect  ,
-            hw_read_effect  = hw_read_effect  ,
-            hw_write_effect = hw_write_effect  ,
-            hw_type         = hw_access,
-            init_value      = init_value,
-            description     = description)
-
-
+class ExternalField(Field):
+    def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
+        super().__init__(name, bit, sw_access, hw_access, init_value, description)
+        self.is_external = True
