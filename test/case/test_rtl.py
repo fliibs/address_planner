@@ -8,7 +8,7 @@ from address_planner import * # pylint: disable=unused-wildcard-import
 def test_regbank():
 
     # declare reg bank for ip_B
-    reg_bank_B = RegSpace(name='reg_bank_B',size=1*KB,description='reg_bank_B,contain many regs.')
+    reg_bank_B = RegSpace(name='reg_bank_A',size=1*KB,description='reg_bank_A,contain many regs.')
 
     # declare reg_B
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
@@ -19,7 +19,7 @@ def test_regbank():
     reg_B.add(Field(name='field3',bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.'),offset=7)
     reg_B.add(Field(name='field4',bit=1,sw_access=ReadWrite,hw_access=WriteOnly,description='fied0,write only.'),offset=9)
     reg_B.add(Field(name='field5',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,read write.'),offset=11)
-    reg_B.add(ExternalField(name='field6',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,read clean.'),offset=13)
+    reg_B.add(Field(name='field6',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,read clean.'),offset=13)
 
     #add reg0 and reg1(inst from reg_B) to reg_bank_B
     reg_bank_B.add_incr(reg_B,'reg0')
