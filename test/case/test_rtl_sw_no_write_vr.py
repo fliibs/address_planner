@@ -10,10 +10,10 @@ def test_sw_no_write_vr():
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
 
     reg_B.add_incr(FilledField(bit=2))
-    reg_B.add(FieldExternalReadOnly(name='field1',bit=1,description='fied0,ext write only.'),offset=2)
-    reg_B.add(FieldExternalReadOnly(name='field2',bit=2,description='fied0,ext write only.'),offset=3)
-    reg_B.add(FieldExternalReadOnly(name='field3',bit=3,description='fied0,ext write only.'),offset=5)
-    reg_B.add(FieldExternalReadOnly(name='field4',bit=4,description='fied0,ext write only.'),offset=9)
+    reg_B.add(ExternalField(name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.'),offset=2)
+    reg_B.add(ExternalField(name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.'),offset=3)
+    reg_B.add(ExternalField(name='field3',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.'),offset=5)
+    reg_B.add(ExternalField(name='field4',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.'),offset=9)
 
     reg_bank_D.add_incr(reg_B,'reg0')
     reg_bank_D.add(reg_B,32,'reg1')

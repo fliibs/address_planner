@@ -12,47 +12,80 @@ KB = 1024
 MB = 1024 * 1024
 GB = 1024 * 1024 * 1024
 
-@unique
-class FieldSoftwareAccess(Enum):
-    ReadOnly    = 'Read Only'
-    WriteOnly   = 'Write Only'
-    # WriteOnce   = 'Write One to Set'
-    ReadWrite   = 'Read Write'
-    # ReadClean   = 'Read Clean'
-    Null        = 'Null'
+# @unique
+# class FieldSoftwareAccess(Enum):
+#     ReadOnly    = 'Read Only'
+#     WriteOnly   = 'Write Only'
+#     ReadWrite   = 'Read Write'
+#     Null        = 'Null'
 
-ExternalReadOnly  = FieldSoftwareAccess.ReadOnly
-ExternalWriteOnly = FieldSoftwareAccess.WriteOnly
-ExternalReadWrite = FieldSoftwareAccess.ReadWrite
-# ExternalReadClean = FieldSoftwareAccess.ReadClean
-ExternalNull      = FieldSoftwareAccess.Null
+# ExternalReadOnly  = FieldSoftwareAccess.ReadOnly
+# ExternalWriteOnly = FieldSoftwareAccess.WriteOnly
+# ExternalReadWrite = FieldSoftwareAccess.ReadWrite
+# ExternalNull      = FieldSoftwareAccess.Null
 
 
-@unique
-class FieldEffect(Enum):
-    NoEffect    = 'No Effect'
-    # ClearField  = 'Clear Field'
-    GenPulse    = 'Generate Pulse'
-    WriteOnce   = 'Write One to Set'
-    ReadClean   = 'Read Clean'
+# @unique
+# class FieldHardwareType(Enum):
+#     ReadOnly  = 'Read Only'
+#     WriteOnly = 'Write Only'
+#     ReadWrite = 'Read Write'
+#     Null      = 'Null'
 
-NoEffect    = FieldEffect.NoEffect
-# ClearField  = FieldEffect.ClearField
-GenPulse    = FieldEffect.GenPulse
-WriteOnce   = FieldEffect.WriteOnce
-ReadClean   = FieldEffect.ReadClean
+# InternalReadOnly  = FieldHardwareType.ReadOnly
+# InternalWriteOnly = FieldHardwareType.WriteOnly
+# InternalReadWrite = FieldHardwareType.ReadWrite
+# InternalNull      = FieldHardwareType.Null
+
 
 @unique
-class FieldHardwareType(Enum):
-    ReadOnly  = 'Read Only'
-    WriteOnly = 'Write Only'
-    ReadWrite = 'Read Write'
-    Null      = 'Null'
+class FieldAccess(Enum):
+    Null            = 'Null'
+    ReadWrite       = 'Read Write'
+    ReadCleanWrite  = 'ReadClean Write'
+    ReadSetWrite    = 'ReadSet Write'
 
-InternalReadOnly  = FieldHardwareType.ReadOnly
-InternalWriteOnly = FieldHardwareType.WriteOnly
-InternalReadWrite = FieldHardwareType.ReadWrite
-InternalNull      = FieldHardwareType.Null
+    ReadOnly        = 'Read Only'
+    ReadClean       = 'Read Clean'
+    ReadSet         = 'Read Set'
+
+    WriteOnly       = 'Write Only'
+    WriteClean      = 'Write Clean'
+    Write1Clean     = 'Write 1 Clean'
+    Write0Clean     = 'Write 0 Clean'
+    Write1Toggle    = 'Write 1 Toggle'
+    
+    
+Null       = FieldAccess.Null
+ReadWrite  = FieldAccess.ReadWrite
+ReadOnly   = FieldAccess.ReadOnly
+ReadClean  = FieldAccess.ReadClean
+
+WriteOnly  = FieldAccess.WriteOnly
+WriteClean = FieldAccess.WriteClean
+
+
+
+
+# @unique
+# class FieldEffect(Enum):
+#     NoEffect    = 'No Effect'
+#     # ClearField  = 'Clear Field'
+#     GenPulse    = 'Generate Pulse'
+#     WriteClean  = 'Write Clean'
+#     WriteOnce = 'Write One to Set'
+#     ReadClean   = 'Read Clean'
+#     ReadSet     = 'Read Set'
+
+
+
+# NoEffect    = FieldEffect.NoEffect
+# # ClearField  = FieldEffect.ClearField
+# GenPulse    = FieldEffect.GenPulse
+# WriteOnce   = FieldEffect.WriteOnce
+# ReadClean   = FieldEffect.ReadClean
+
+
 
 
 def ADD_TO_GLOBAL_VALUES(**kwargs):
@@ -60,6 +93,6 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
     for k,v in kwargs.items():
         gbl[k] = v
 
-def ADD_TO_FIELD_HARDWARE_TYPE(**kwargs):
-    for k,v in kwargs.items():
-        setattr(FieldHardwareType,k,v)
+# def ADD_TO_FIELD_HARDWARE_TYPE(**kwargs):
+#     for k,v in kwargs.items():
+#         setattr(FieldHardwareType,k,v)

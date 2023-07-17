@@ -39,9 +39,6 @@
                         <th>Field Name</th>
                         <th>Location</th>
                         <th>Software Access</th>
-                        <th>Software Write Effect</th>
-                        <th>Software Read Effect</th>
-                        <th>Hardware Type</th>
                         <th>Init Value</th>
                         <th>Description</th>
                         </tr>
@@ -51,9 +48,6 @@
                             <td>{{field.inst_name}}</td>
                             <td>[{{field.end_bit}}:{{field.start_bit}}]</td>
                             <td>{{field.sw_access.value}}</td>
-                            <td>{{field.sw_write_effect.value}}</td>
-                            <td>{{field.sw_read_effect.value}}</td>
-                            <td>{{field.hw_type.value}}</td>
                             <td>{{builtins.int(field.init_value)}}</td>
                             <td>{{field.description}}</td>
                             </tr>
