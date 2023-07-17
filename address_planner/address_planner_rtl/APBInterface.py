@@ -1,12 +1,9 @@
 from ..uhdl.uhdl import *
-from enum import Enum,unique
-
-# class ()
-
+from ..GlobalValues import *
 
 
 class APB(Bundle):
-    def __init__(self, data_width=32, addr_width=32):
+    def __init__(self, data_width=APG_DATA_WIDTH, addr_width=APG_ADDR_WIDTH):
         super().__init__()
         self.addr_width = addr_width
         self.data_width = data_width
@@ -54,6 +51,8 @@ class APBReverse(Bundle):
         self.slverr = Input(UInt(1))
 
 
+# if __name__=="__main__":
+#     u_apb = APB().reverse()
 
 
 
