@@ -4,7 +4,6 @@ from .uhdl.uhdl import *
 from .Field import *
 from .address_planner_rtl.APBInterface import APB
 from .address_planner_rtl.Common import *
-from .address_planner_rtl.InterfaceParam import *
 
 
 class RegSpaceRTL(Component):
