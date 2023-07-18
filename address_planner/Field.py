@@ -6,7 +6,7 @@ from .AddressLogicRoot  import *
 
 
 
-class Field(AddressLogicRoot):
+class FieldRoot(AddressLogicRoot):
     def __init__(self, name, bit, 
                  sw_access          = ReadWrite,
                  hw_access          = ReadWrite,
@@ -84,6 +84,18 @@ class Field(AddressLogicRoot):
     @property
     def hw_read_clean(self):
         return False
+    
+    # def field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
+    #     return Field(name, bit, sw_access, hw_access, init_value, description)
+    
+    # def reserved_field(self, bit):
+    #     return FilledField(bit)
+    
+    # def external_field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
+    #     return ExternalField(name, bit, sw_access, hw_access, init_value, description)
+    
+    # def end(self):
+    #     pass
 
 
     # @property
@@ -110,7 +122,7 @@ class Field(AddressLogicRoot):
     # def offset(self):
     #     return math.floor(self.offset / self.father.bus_width)
 
-class FilledField(Field):
+class FilledField(FieldRoot):
 
     def __init__(self,bit):
         super().__init__(name='FilledField',bit=bit,
@@ -118,7 +130,13 @@ class FilledField(Field):
                          hw_access     = Null
                          )
 
-class ExternalField(Field):
+class Field(FieldRoot):
+    def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
+        super().__init__(name, bit, sw_access, hw_access, init_value, description)
+        self.is_external = False
+
+
+class ExternalField(FieldRoot):
     def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = True

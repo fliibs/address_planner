@@ -197,6 +197,7 @@ class RegSpaceAPB(Component):
         self.rs.rreq_vld    += And(Not(self.p.write), self.p.sel)
         self.rs.rack_rdy    += And(Not(self.p.write), self.p.sel, self.p.enable)
         self.rs.rreq_addr   += self.p.addr
+        # self.rs.rreq_addr   += UInt(16,0)
 
         self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
         rdata_ff = EmptyWhen()

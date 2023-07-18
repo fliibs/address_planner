@@ -50,3 +50,14 @@ class RegSpace(AddressSpace):
         component.generate_filelist()
         component.run_lint()
         # component.run_slang_compile()
+
+    def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH):
+        from .Reg import Register
+
+        u_reg = Register(name, bit, description, bus_width)
+        u_reg.father = self
+        return u_reg
+    
+    @property
+    def generate(self):
+        self.report_rtl()

@@ -1,6 +1,6 @@
 from .GlobalValues  import *
 from .RegSpace      import RegSpace
-from .Field         import FilledField
+from .Field         import *
 import math
 
 class Register(RegSpace):
@@ -12,7 +12,7 @@ class Register(RegSpace):
         self._next_offset   = 0
         self.field_list     = []
 
-    def add(self,field,offset,name=None):
+    def add(self,field,offset=0,name=None):
         field.bit_offset    = offset
         field.father    = self
         field.inst_name = field.module_name if name == None else name
@@ -94,3 +94,24 @@ class Register(RegSpace):
 
     def report_vhead_core(self):
         return []
+    
+    def add_field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
+        self.add_incr(Field(name, bit, sw_access, hw_access, init_value, description))
+        return self
+    
+    def field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description='', offset=0):
+        self.add(Field(name, bit, sw_access, hw_access, init_value, description), offset=offset)
+        return self
+
+    def reserved_field(self, bit):
+        self.add(FilledField(bit))
+        return self
+    
+    def external_field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description='', offset=0):
+        self.add(ExternalField(name, bit, sw_access, hw_access, init_value, description), offset=offset)
+        return self
+    
+    @property
+    def end(self):
+        self.father.add_incr(self, self.module_name)
+        return self.father
