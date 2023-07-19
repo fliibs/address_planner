@@ -1,0 +1,63 @@
+[
+    {
+      "key": 1,
+      "type": "sys",
+      "name": "SYS1",
+      "start_addr": "0x00",
+      "end_addr": "0x32",
+      "size": "32B",
+      "children": [
+        {
+          "key": 2,
+          "type": "ip",
+          "name": "IP1",
+          "start_addr": "0x00",
+          "end_addr": "0x19",
+          "size": "16B",
+          "children": [
+            {
+              "key": 5,
+              "type": "reg",
+              "name": "reg1",
+              "start_addr": "0x00",
+              "end_addr": "0x4",
+              "size": "4B",
+              "fields": [
+                {
+                  "key": 10,
+                  "name": "field1",
+                  "description": "func3"
+                },
+                {
+                  "key": 12,
+                  "name": "field2",
+                  "description": "func4"
+                }
+              ]
+            },
+            {
+              "key": 6,
+              "type": "reg",
+              "name": "reg2",
+              "start_addr": "0x05",
+              "end_addr": "0x8",
+              "size": "4B",
+              "fields": [
+                {
+                  "key": 11,
+                  "name": "field3",
+                  "description": "func3"
+                },
+                {
+                  "key": 14,
+                  "name": "field4",
+                  "description": "func4"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    
+  ]
