@@ -28,18 +28,18 @@ def test_regbank():
 
 def test():
 
-    RegSpace(name='reg_bank_tables',size=1*KB,description='reg_bank_B,contain many regs.')  \
-        .register(name='reg0',bit=32,description='contain many fields.') \
-        .field(name='field0',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.') \
-        .field(name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,ext write only.',offset=3) \
-        .field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,ext read write.',offset=5)\
+    RegSpace(name='reg_bank_tables',size=1*KB,description='reg_bank_B,contain many regs.')\
+        .register(name='reg0',bit=32,description='contain many fields.')\
+            .field(name='field0',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.')\
+            .field(name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,ext write only.',offset=3) \
+            .field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,ext read write.',offset=5)\
         .end\
         .register(name='reg1',bit=32,description='contain many fields 2.')\
-        .external_field(name='field3',bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.')\
-        .external_field(name='field4',bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.', offset=3)\
-        .external_field(name='field5',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,read write.', offset=5)\
-        .end \
-        .generate
+            .external_field(name='field3',bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.')\
+            .external_field(name='field4',bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.', offset=3)\
+            .external_field(name='field5',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,read write.', offset=5)\
+        .end\
+    .generate
 
 if __name__ == '__main__':
     test()
