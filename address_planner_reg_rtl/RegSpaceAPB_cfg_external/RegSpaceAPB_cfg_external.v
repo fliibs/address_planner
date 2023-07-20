@@ -1,4 +1,4 @@
-//[UHDL]Content Start [md5:07c4e2192fe82a06c245879355eb3636]
+//[UHDL]Content Start [md5:d31598fb55cfd079f9ff576a11fe175a]
 module RegSpaceAPB_cfg_external (
 	input         clk                     ,
 	input         rst_n                   ,
@@ -56,11 +56,13 @@ module RegSpaceAPB_cfg_external (
 	reg  [31:0] p_rdata_r;
 
 	//Wire define for sub module.
+	wire [15:0] rs_rreq_addr;
 	wire        rs_rreq_vld ;
 	wire        rs_rreq_rdy ;
 	wire [31:0] rs_rack_data;
 	wire        rs_rack_vld ;
 	wire        rs_rack_rdy ;
+	wire [15:0] rs_wreq_addr;
 	wire [31:0] rs_wreq_data;
 	wire        rs_wreq_vld ;
 	wire        rs_wreq_rdy ;
@@ -82,14 +84,14 @@ module RegSpaceAPB_cfg_external (
 	    end
 	end
 	
-	assign p_rready = (rs_rreq_vld && rs_rreq_rdy);
+	assign p_rready = (rreq_vld && rs_rreq_rdy);
 	
 	assign p_wready = rs_wreq_rdy;
 	
 	always @(posedge clk or negedge rst_n) begin
 	    if(~rst_n) p_rdata_r <= 32'b0;
 	    else begin
-	        if((rs_rreq_vld && rs_rreq_rdy)) p_rdata_r <= rs_rack_data;
+	        if((rreq_vld && rs_rreq_rdy)) p_rdata_r <= rs_rack_data;
 	        else p_rdata_r <= 32'b0;
 	    end
 	end
@@ -165,5 +167,5 @@ module RegSpaceAPB_cfg_external (
 		.reg1_sw_field3_wrdy(D_rs_reg1_sw_field3_wrdy));
 
 endmodule
-//[UHDL]Content End [md5:07c4e2192fe82a06c245879355eb3636]
+//[UHDL]Content End [md5:d31598fb55cfd079f9ff576a11fe175a]
 

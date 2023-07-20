@@ -45,25 +45,25 @@ class RegSpace(AddressSpace):
             vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
     
-    def report_json(self, output_dir=''):
-        json_list=[]
-        json_dict={}
-        json_dict["key"] = ADD_KEY()
-        json_dict["type"] = "sys"
-        json_dict["name"] = self.module_name
-        json_dict["start_addr"] = self.start_address
-        json_dict["end_addr"] = self.end_address
-        json_dict["size"] = ConvertSize(self.size)
-        child_list = []
-        for sub in self.sub_space_list:
-            sub.report_json(child_list)
+    # def report_json_core(self, output_dir='.'):
+    #     json_list=[]
+    #     json_dict={}
+    #     json_dict["key"] = ADD_KEY()
+    #     json_dict["type"] = "sys"
+    #     json_dict["name"] = self.module_name
+    #     json_dict["start_addr"] = self.start_address
+    #     json_dict["end_addr"] = self.end_address
+    #     json_dict["size"] = ConvertSize(self.size)
+    #     child_list = []
+    #     for sub in self.sub_space_list:
+    #         sub.report_json(child_list)
 
-        json_dict["children"] = child_list
-        json_list.append(json_dict)
-        jtext = json.dumps(json_list,ensure_ascii=False, indent=2)
-        json_name = self.module_name+'.json'
-        with open(output_dir+'/'+json_name, 'w') as f:
-            f.write(jtext)
+    #     json_dict["children"] = child_list
+    #     json_list.append(json_dict)
+    #     jtext = json.dumps(json_list,ensure_ascii=False, indent=2)
+    #     json_name = self.module_name+'.json'
+    #     with open(output_dir+'/'+json_name, 'w') as f:
+    #         f.write(jtext)
 
 
     def report_rtl(self):

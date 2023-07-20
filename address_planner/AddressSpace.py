@@ -5,6 +5,7 @@ from .GlobalValues      import *
 
 import os
 import builtins
+import json
 
 class AddressSpace(AddressLogicRoot):
 
@@ -154,3 +155,22 @@ class AddressSpace(AddressLogicRoot):
         # template = env.get_template('chead_space.h')
         # template.globals['builtins'] = builtins
         # text = template.render(space=self)
+
+
+    def report_json_core(self):
+        json_dict={}
+        json_dict["key"]        = ADD_KEY()
+        json_dict["type"]       = "sys"
+        json_dict["name"]       = self.module_name
+        json_dict["start_addr"] = self.start_address
+        json_dict["end_addr"]   = self.end_address
+        json_dict["size"]       = ConvertSize(self.size)
+        json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
+        return json_dict
+
+    def report_json(self):
+        json_list= [self.report_json_core()]
+        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        
+        with open(self.json_path, 'w') as f:
+            f.write(jtext)

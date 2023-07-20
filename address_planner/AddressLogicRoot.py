@@ -79,6 +79,10 @@ class AddressLogicRoot(object):
     @property
     def vhead_path(self):
         return os.path.join(self._vhead_dir,self.vhead_name)
+    
+    @property
+    def json_path(self):
+        return os.path.join(self._html_dir, 'data.json')
 
 
     @property
@@ -92,6 +96,7 @@ class AddressLogicRoot(object):
     @property
     def vhead_name(self):
         return '%s_%s.vh' % (self._name_prefix,self.module_name)
+    
 
 
     #########################################################################################

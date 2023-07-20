@@ -3,9 +3,6 @@ import math
 # from address_planner.GlobalValues import ReadWrite
 from .GlobalValues      import *
 from .AddressLogicRoot  import *
-import json
-
-
 
 class FieldRoot(AddressLogicRoot):
     def __init__(self, name, bit, 
@@ -85,14 +82,15 @@ class FieldRoot(AddressLogicRoot):
     @property
     def hw_read_clean(self):
         return False
-    
-    def report_json(self, field_list):
-        json_dict = {}
-        json_dict["key"] = ADD_KEY()
-        json_dict["name"] = self._name 
-        json_dict["size"] = ConvertSize(self.bit)
-        json_dict["description"] = self.description
-        field_list.append(json_dict)
+
+
+    def report_json_core(self):
+        field_dict = {}
+        field_dict["key"]           = ADD_KEY()
+        field_dict["name"]          = self._name 
+        field_dict["size"]          = ConvertSize(self.bit)
+        field_dict["description"]   = self.description
+        return field_dict 
 
 
         # jtext = json.dumps(field_list,ensure_ascii=False)
