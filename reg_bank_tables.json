@@ -1,0 +1,68 @@
+[
+  {
+    "key": 1,
+    "type": "sys",
+    "name": "reg_bank_tables",
+    "start_addr": 0,
+    "end_addr": 1023,
+    "size": "128B",
+    "children": [
+      {
+        "key": 2,
+        "type": "reg",
+        "name": "reg0",
+        "start_addr": 0,
+        "end_addr": 0,
+        "size": "4B",
+        "fields": [
+          {
+            "key": 3,
+            "name": "field0",
+            "size": "1 bit",
+            "description": "fied0,ext read only."
+          },
+          {
+            "key": 4,
+            "name": "field1",
+            "size": "1 bit",
+            "description": "fied0,ext write only."
+          },
+          {
+            "key": 5,
+            "name": "field2",
+            "size": "1 bit",
+            "description": "fied0,ext read write."
+          }
+        ]
+      },
+      {
+        "key": 6,
+        "type": "reg",
+        "name": "reg1",
+        "start_addr": 1,
+        "end_addr": 1,
+        "size": "4B",
+        "fields": [
+          {
+            "key": 7,
+            "name": "field3",
+            "size": "1 bit",
+            "description": "fied0,read only."
+          },
+          {
+            "key": 8,
+            "name": "field4",
+            "size": "1 bit",
+            "description": "fied0,read only."
+          },
+          {
+            "key": 9,
+            "name": "field5",
+            "size": "1 bit",
+            "description": "fied0,read write."
+          }
+        ]
+      }
+    ]
+  }
+]

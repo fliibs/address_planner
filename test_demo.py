@@ -39,8 +39,29 @@ def test():
             .external_field (name='field4',     bit=1,sw_access=ReadWrite,hw_access=ReadOnly,description='fied0,read only.', offset=3)\
             .external_field (name='field5',     bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,read write.', offset=5)\
         .end \
-    .generate
+        .generate
+
 
 if __name__ == '__main__':
     test()
+    # from address_planner.Field import *
+    # from address_planner.Reg import *
+    # import json
+
+    # flist = []
+    # ft = Field(name='field0', bit=1,description='this is field0')
+    # jtext = ft.report_json(flist)
+    # print(jtext)
+    # # jtext = json.dumps(flist,ensure_ascii=False)
+    # # print(jtext)
+
+    # rt = Register           (name='reg0',       bit=32,description='contain many fields.') \
+    #             .field          (name='field0',     bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0,ext read only.') \
+    #             .field          (name='field1',     bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,ext write only.',offset=3) \
+    #             .field          (name='field2',     bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,ext read write.',offset=5)
+
+
+    # rt.report_json(flist)
+    # jtext = json.dumps(flist,ensure_ascii=False)
+    # print(jtext)
 

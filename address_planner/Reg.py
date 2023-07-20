@@ -115,3 +115,19 @@ class Register(RegSpace):
     def end(self):
         self.father.add_incr(self, self.module_name)
         return self.father
+    
+    def report_json(self, reg_list):
+        json_dict={}
+        json_dict["key"] = ADD_KEY()
+        json_dict["type"] = "reg"
+        json_dict["name"] = self.module_name 
+        json_dict["start_addr"] = self.start_address
+        json_dict["end_addr"] = self.end_address
+        json_dict["size"] = ConvertSize(self.bit)
+
+        field_list=[]
+        for field in self.field_list:
+            field.report_json(field_list)
+        
+        json_dict["fields"] = field_list
+        reg_list.append(json_dict)

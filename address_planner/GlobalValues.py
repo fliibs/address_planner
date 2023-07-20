@@ -66,8 +66,24 @@ ReadClean  = FieldAccess.ReadClean
 WriteOnly  = FieldAccess.WriteOnly
 WriteClean = FieldAccess.WriteClean
 
+key = 0
 
+def ADD_KEY():
+    global key 
+    key = key + 1
+    return key
 
+def ConvertSize(size):
+    if size/8 > KB-1:
+        return "%.1fKB"% float(size / KB /8)
+    elif size/8 > MB-1:
+        return "%.1fMB"% float(size / MB/8)
+    elif size/8 > GB-1:
+        return "%.1fGB"% float(size / GB/8)
+    elif size/8 >=1:
+        return "%dB"% int(size/8)
+    else:
+        return "%d bit"% size
 
 # @unique
 # class FieldEffect(Enum):
