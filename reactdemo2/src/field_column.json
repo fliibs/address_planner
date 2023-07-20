@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Name",
+    "dataIndex": "name",
+    "key": "name"
+  },
+  {
+    "title": "Position",
+    "dataIndex": "sw_access",
+    "key": "sw_access",
+    "width": "10%"
+  },
+  {
+    "title": "External",
+    "dataIndex": "sw_access",
+    "key": "sw_access",
+    "width": "10%"
+  },
+  {
+    "title": "Software Access",
+    "dataIndex": "sw_access",
+    "key": "sw_access",
+    "width": "10%"
+  },
+  {
+    "title": "Hardware Access",
+    "dataIndex": "sw_access",
+    "key": "sw_access",
+    "width": "10%"
+  },
+  {
+    "title": "Description",
+    "dataIndex": "description",
+    "key": "description",
+    "width": "50%"
+  }
+]

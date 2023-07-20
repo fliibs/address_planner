@@ -1,110 +1,9 @@
 import React, { useState } from 'react';
 import {Layout, Space, Switch, Table } from 'antd';
 let bank_data_json = require('./reg_data.json');
-const bank_colum = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: 'Start_addr',
-    dataIndex: 'start_addr',
-    key: 'start_addr',
-    width: '12%',
-  },
-  {
-    title: 'End_addr',
-    dataIndex: 'end_addr',
-    width: '12%',
-    key: 'end_addr',
-  },
-  {
-    title: 'Size',
-    dataIndex: 'size',
-    width: '15%',
-    key: 'size',
-  },
-];
+let bank_column_json = require('./bank_column.json');
+let field_column_json = require('./field_column.json');
 
-const bank_data = [
-  {
-    key: 1,
-    type: 'sys',
-    name: 'SYS1',
-    start_addr: '0x00',
-    end_addr: '0x32',
-    size: '32B',
-    children: [
-      {
-        key: 2,
-        type: 'ip',
-        name: 'IP1',
-        start_addr: '0x00',
-        end_addr: '0x19',
-        size: '16B',
-        children: [
-          {
-            key: 5,
-            type: 'reg',
-            name: 'reg1',
-            start_addr: '0x00',
-            end_addr: '0x4',
-            size: '4B',
-            fields: [
-              {
-                key: 10,
-                name: 'field1',
-                description: 'func3'
-              },
-              {
-                key: 12,
-                name: 'field2',
-                description: 'func4'
-              }
-            ]
-          },
-          {
-            key: 6,
-            type: 'reg',
-            name: 'reg2',
-            start_addr: '0x05',
-            end_addr: '0x8',
-            size: '4B',
-            fields: [
-              {
-                key: 11,
-                name: 'field3',
-                description: 'func3'
-              },
-              {
-                key: 14,
-                name: 'field4',
-                description: 'func4'
-              }
-            ],
-          },
-        ],
-      },
-      {
-        key: 3,
-        type: 'ip',
-        name: 'IP2',
-        start_addr: '0x20',
-        end_addr: '0x32',
-        size: '16B',
-      },
-    ],
-  },
-  {
-    key: 4,
-    type: 'sys',
-    name: 'SYS2',
-    start_addr: '0x33',
-    end_addr: '0x64',
-    size: '32B',
-  },
-];
 
 const fakeData = [
   {
@@ -120,20 +19,6 @@ const fakeData = [
   },
 ];
 
-const reg_colum = [
-  {
-    title: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    width: '12%',
-  },
- 
-];
 
 
 export default function App () {
@@ -165,7 +50,7 @@ export default function App () {
       </Space>
       <Layout>
       <Table
-        columns={bank_colum}
+        columns={bank_column_json}
         onRow={(record) => ({
           onClick: ()=>{
             if(record.type =='reg') {
@@ -179,7 +64,7 @@ export default function App () {
       </Layout>
       <Layout>
       <Table
-        columns={reg_colum}
+        columns={field_column_json}
        
         dataSource={newData}
       />
@@ -187,3 +72,125 @@ export default function App () {
     </>
   );
 };
+
+// const reg_colum = [
+//   {
+//     title: 'Name',
+//     dataIndex: 'name',
+//     key: 'name',
+//   },
+//   {
+//     title: 'Description',
+//     dataIndex: 'description',
+//     key: 'description',
+//     width: '12%',
+//   },
+//  
+// ];
+
+
+// const bank_colum = [
+//   {
+//     title: 'Name',
+//     dataIndex: 'name',
+//     key: 'name',
+//   },
+//   {
+//     title: 'Start_addr',
+//     dataIndex: 'start_addr',
+//     key: 'start_addr',
+//     width: '12%',
+//   },
+//   {
+//     title: 'End_addr',
+//     dataIndex: 'end_addr',
+//     width: '12%',
+//     key: 'end_addr',
+//   },
+//   {
+//     title: 'Size',
+//     dataIndex: 'size',
+//     width: '15%',
+//     key: 'size',
+//   },
+// ];
+
+
+//   const bank_data = [
+//     {
+//       key: 1,
+//       type: 'sys',
+//       name: 'SYS1',
+//       start_addr: '0x00',
+//       end_addr: '0x32',
+//       size: '32B',
+//       children: [
+//         {
+//           key: 2,
+//           type: 'ip',
+//           name: 'IP1',
+//           start_addr: '0x00',
+//           end_addr: '0x19',
+//           size: '16B',
+//           children: [
+//             {
+//               key: 5,
+//               type: 'reg',
+//               name: 'reg1',
+//               start_addr: '0x00',
+//               end_addr: '0x4',
+//               size: '4B',
+//               fields: [
+//                 {
+//                   key: 10,
+//                   name: 'field1',
+//                   description: 'func3'
+//                 },
+//                 {
+//                   key: 12,
+//                   name: 'field2',
+//                   description: 'func4'
+//                 }
+//               ]
+//             },
+//             {
+//               key: 6,
+//               type: 'reg',
+//               name: 'reg2',
+//               start_addr: '0x05',
+//               end_addr: '0x8',
+//               size: '4B',
+//               fields: [
+//                 {
+//                   key: 11,
+//                   name: 'field3',
+//                   description: 'func3'
+//                 },
+//                 {
+//                   key: 14,
+//                   name: 'field4',
+//                   description: 'func4'
+//                 }
+//               ],
+//             },
+//           ],
+//         },
+//         {
+//           key: 3,
+//           type: 'ip',
+//           name: 'IP2',
+//           start_addr: '0x20',
+//           end_addr: '0x32',
+//           size: '16B',
+//         },
+//       ],
+//     },
+//     {
+//       key: 4,
+//       type: 'sys',
+//       name: 'SYS2',
+//       start_addr: '0x33',
+//       end_addr: '0x64',
+//       size: '32B',
+//     },
+//   ];

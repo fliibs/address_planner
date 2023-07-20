@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Name",
+    "dataIndex": "name",
+    "key": "name"
+  },
+  {
+    "title": "Start_addr",
+    "dataIndex": "start_addr",
+    "key": "start_addr",
+    "width": "12%"
+  },
+  {
+    "title": "End_addr",
+    "dataIndex": "end_addr",
+    "width": "12%",
+    "key": "end_addr"
+  },
+  {
+    "title": "Size",
+    "dataIndex": "size",
+    "width": "15%",
+    "key": "size"
+  },
+  {
+    "title": "Description",
+    "dataIndex": "description",
+    "width": "50%",
+    "key": "description"
+  }
+]
+  

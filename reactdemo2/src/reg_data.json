@@ -1,63 +1,104 @@
 [
-    {
-      "key": 1,
-      "type": "sys",
-      "name": "SYS1",
-      "start_addr": "0x00",
-      "end_addr": "0x32",
-      "size": "32B",
-      "children": [
-        {
-          "key": 2,
-          "type": "ip",
-          "name": "IP1",
-          "start_addr": "0x00",
-          "end_addr": "0x19",
-          "size": "16B",
-          "children": [
-            {
-              "key": 5,
-              "type": "reg",
-              "name": "reg1",
-              "start_addr": "0x00",
-              "end_addr": "0x4",
-              "size": "4B",
-              "fields": [
-                {
-                  "key": 10,
-                  "name": "field1",
-                  "description": "func3"
-                },
-                {
-                  "key": 12,
-                  "name": "field2",
-                  "description": "func4"
-                }
-              ]
-            },
-            {
-              "key": 6,
-              "type": "reg",
-              "name": "reg2",
-              "start_addr": "0x05",
-              "end_addr": "0x8",
-              "size": "4B",
-              "fields": [
-                {
-                  "key": 11,
-                  "name": "field3",
-                  "description": "func3"
-                },
-                {
-                  "key": 14,
-                  "name": "field4",
-                  "description": "func4"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-    
-  ]
+  {
+    "key": 1,
+    "type": "sys",
+    "name": "reg_bank_B",
+    "start_addr": 0,
+    "end_addr": 1023,
+    "size": "128 B",
+    "children": [
+      {
+        "key": 2,
+        "type": "reg",
+        "name": "reg0",
+        "start_addr": 0,
+        "end_addr": 0,
+        "size": "4 B",
+        "fields": [
+          {
+            "key": 3,
+            "name": "field0",
+            "size": "1 b",
+            "description": "fied0,ext read only."
+          },
+          {
+            "key": 4,
+            "name": "field1",
+            "size": "1 b",
+            "description": "fied0,ext write only."
+          },
+          {
+            "key": 5,
+            "name": "field2",
+            "size": "1 b",
+            "description": "fied0,ext read write."
+          },
+          {
+            "key": 6,
+            "name": "field3",
+            "size": "1 b",
+            "description": "fied0,read only."
+          },
+          {
+            "key": 7,
+            "name": "field4",
+            "size": "1 b",
+            "description": "fied0,write only."
+          },
+          {
+            "key": 8,
+            "name": "field5",
+            "size": "1 b",
+            "description": "fied0,read write."
+          }
+        ]
+      },
+      {
+        "key": 9,
+        "type": "reg",
+        "name": "reg1",
+        "start_addr": 1,
+        "end_addr": 1,
+        "size": "4 B",
+        "fields": [
+          {
+            "key": 10,
+            "name": "field0",
+            "size": "1 b",
+            "description": "fied0,ext read only."
+          },
+          {
+            "key": 11,
+            "name": "field1",
+            "size": "1 b",
+            "description": "fied0,ext write only."
+          },
+          {
+            "key": 12,
+            "name": "field2",
+            "size": "1 b",
+            "description": "fied0,ext read write."
+          },
+          {
+            "key": 13,
+            "name": "field3",
+            "size": "1 b",
+            "description": "fied0,read only."
+          },
+          {
+            "key": 14,
+            "name": "field4",
+            "size": "1 b",
+            "description": "fied0,write only."
+          },
+          {
+            "key": 15,
+            "name": "field5",
+            "size": "1 b",
+            "description": "fied0,read write."
+          }
+        ]
+      }
+    ]
+  }
+]
