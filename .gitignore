@@ -5,3 +5,5 @@ cov.xml
 example_build
 coverage.xml
 reactdemo2/node_modules
+UHDL.log
+address_planner_reg_rtl
