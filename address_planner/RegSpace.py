@@ -45,7 +45,7 @@ class RegSpace(AddressSpace):
             vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
     
-    def report_json(self):
+    def report_json(self, output_dir=''):
         json_list=[]
         json_dict={}
         json_dict["key"] = ADD_KEY()
@@ -61,12 +61,14 @@ class RegSpace(AddressSpace):
         json_dict["children"] = child_list
         json_list.append(json_dict)
         jtext = json.dumps(json_list,ensure_ascii=False, indent=2)
-        with open(self.module_name+'.json', 'w') as f:
+        json_name = self.module_name+'.json'
+        with open(output_dir+'/'+json_name, 'w') as f:
             f.write(jtext)
 
 
     def report_rtl(self):
         component = RegSpaceRTL(self).u
+        component.output_dir = "address_planner_reg_rtl"
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()

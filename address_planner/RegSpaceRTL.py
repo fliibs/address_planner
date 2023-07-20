@@ -6,9 +6,9 @@ from .address_planner_rtl.APBInterface import APB
 from .address_planner_rtl.Common import *
 
 
-class RegSpaceRTL(Component):
+class RegSpaceRTL():
     def __init__(self, cfg):
-        super().__init__()
+        # super().__init__()
         self._cfg = cfg
         if "apb" in self._cfg.external_interface:
             self.u = RegSpaceAPB(cfg=cfg)
