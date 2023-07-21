@@ -59,7 +59,6 @@ class AddressSpace(AddressLogicRoot):
         sub_space_copy.offset = offset
         sub_space_copy.father = self
         sub_space_copy.module_name = name
-
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
@@ -68,8 +67,10 @@ class AddressSpace(AddressLogicRoot):
                 raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
                     % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
+        
+        self._next_offset = offset + sub_space.size
+        # print(self.start_address, self.end_address, self._next_offset, sub_space_copy.size)
 
-        self._next_offset = offset + sub_space_copy.bit
 
     def add_incr(self,sub_space,name):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
@@ -156,6 +157,17 @@ class AddressSpace(AddressLogicRoot):
         # template.globals['builtins'] = builtins
         # text = template.render(space=self)
 
+    def regbank(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
+        from .RegSpace import RegSpace
+
+        u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
+        u_ss.father = self 
+        return u_ss
+    
+    def add_regbank(self, sub_space):
+        # sub_space.father = self 
+        self.add_incr(sub_space, sub_space.module_name)
+        return self
 
     def report_json_core(self):
         json_dict={}
@@ -171,6 +183,15 @@ class AddressSpace(AddressLogicRoot):
 
     def report_json(self):
         json_list= [self.report_json_core()]
+        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        with open(self.json_path, 'w') as f:
+            f.write(jtext)
+
+    @property
+    def generate(self):
+        for sub_space in self.sub_space_list:
+            sub_space.report_rtl()
+        json_list =[sub_space.report_json_core() for sub_space in self.sub_space_list]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
         with open(self.json_path, 'w') as f:
             f.write(jtext)

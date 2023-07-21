@@ -1,7 +1,7 @@
 import json
 from .GlobalValues  import *
 from .AddressSpace  import AddressSpace
-
+from copy               import deepcopy
 from .RegSpaceRTL import *
 
 class RegSpace(AddressSpace):
@@ -14,6 +14,25 @@ class RegSpace(AddressSpace):
 
     def __str__(self) -> str:
         return self.module_name
+
+
+
+
+    def add(self,sub_space,offset,name):
+        sub_space_copy = deepcopy(sub_space)
+        sub_space_copy.offset = offset
+        sub_space_copy.father = self
+        sub_space_copy.module_name = name
+        if not self.inclusion_detect(sub_space_copy):
+            raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
+
+        for exist_space in self.sub_space_list:
+            if self.collision_detect(exist_space,sub_space_copy):
+                raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
+                    % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+        self.sub_space_list.append(sub_space_copy)
+        
+        self._next_offset = offset + sub_space.bit
 
 
     #########################################################################################
@@ -81,6 +100,11 @@ class RegSpace(AddressSpace):
         u_reg.father = self
         return u_reg
     
+    @property
+    def end(self):
+        self.father.add_incr(self, self.module_name)
+        return self.father
+
     @property
     def generate(self):
         self.report_rtl()

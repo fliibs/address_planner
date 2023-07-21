@@ -150,6 +150,7 @@ class RegSpaceBase(Component):
                                     
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat += Combine(*rdat_list)
+                
        
         ##########################################################################################################
 
