@@ -10,7 +10,7 @@ class RegSpaceRTL():
     def __init__(self, cfg):
         # super().__init__()
         self._cfg = cfg
-        if "apb" in self._cfg.external_interface:
+        if "apb" in self._cfg.software_interface:
             self.u = RegSpaceAPB(cfg=cfg)
         else:
             self.u = RegSpaceBase(cfg=cfg)
@@ -222,13 +222,15 @@ class RegSpaceAPB(Component):
         self.p_ready_r += ready_ff
         self.p.ready   += self.p_ready_r
 
-
-        # Internal Hardware Field
-        self.expose_io(self.rs.get_io(r'reg[0-9]_field'))
-
-        # Software External Field
-        self.expose_io(self.rs.get_io(r'reg[0-9]_sw_field'))
-            
+        for sub_space in cfg.sub_space_list:
+            for field in sub_space.filled_field_list:
+                 if isinstance(field, FilledField):
+                    pass
+                 else:
+                    # Internal Hardware Field
+                    self.expose_io(self.rs.get_io("%s_%s"% (sub_space.module_name, field.name)))
+                    # Software External Field
+                    self.expose_io(self.rs.get_io("%s_sw_%s"% (sub_space.module_name, field.name)))
                     
 
 

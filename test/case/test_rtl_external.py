@@ -6,7 +6,7 @@ from address_planner import * # pylint: disable=unused-wildcard-import
 
 def test_external_apb():
 
-    reg_bank_C = RegSpace(name='external',size=1*KB,description='reg_bank_B,contain many regs.', external_interface='apb')
+    reg_bank_C = RegSpace(name='external',size=1*KB,description='reg_bank_B,contain many regs.', software_interface='apb')
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
 
     reg_B.add_incr(ExternalField(name='field1',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,ext write only.'))
@@ -20,7 +20,7 @@ def test_external_apb():
 
 def test_external_vr():
 
-    reg_bank_C = RegSpace(name='external',size=1*KB,description='reg_bank_B,contain many regs.', external_interface='vr')
+    reg_bank_C = RegSpace(name='external',size=1*KB,description='reg_bank_B,contain many regs.', software_interface='vr')
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
 
     reg_B.add_incr(ExternalField(name='field1',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied0,ext write only.'))

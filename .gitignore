@@ -3,7 +3,6 @@ __pycache__
 .coverage
 cov.xml
 address_planner_reg_rtl
-example_build
 coverage.xml
 reactdemo2/node_modules
 UHDL.log

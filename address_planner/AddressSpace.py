@@ -69,7 +69,7 @@ class AddressSpace(AddressLogicRoot):
                     % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
 
-        self._next_offset = offset + sub_space_copy.size
+        self._next_offset = offset + sub_space_copy.bit
 
     def add_incr(self,sub_space,name):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
@@ -165,12 +165,12 @@ class AddressSpace(AddressLogicRoot):
         json_dict["start_addr"] = self.start_address
         json_dict["end_addr"]   = self.end_address
         json_dict["size"]       = ConvertSize(self.size)
+        json_dict["description"]= self.description
         json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
         return json_dict
 
     def report_json(self):
         json_list= [self.report_json_core()]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        
         with open(self.json_path, 'w') as f:
             f.write(jtext)

@@ -6,26 +6,26 @@
   },
   {
     "title": "Position",
-    "dataIndex": "sw_access",
-    "key": "sw_access",
+    "dataIndex": "Position",
+    "key": "Position",
     "width": "10%"
   },
   {
     "title": "External",
-    "dataIndex": "sw_access",
-    "key": "sw_access",
+    "dataIndex": "External",
+    "key": "External",
     "width": "10%"
   },
   {
     "title": "Software Access",
-    "dataIndex": "sw_access",
-    "key": "sw_access",
+    "dataIndex": "Software Access",
+    "key": "Software Access",
     "width": "10%"
   },
   {
     "title": "Hardware Access",
-    "dataIndex": "sw_access",
-    "key": "sw_access",
+    "dataIndex": "Hardware Access",
+    "key": "Hardware Access",
     "width": "10%"
   },
   {

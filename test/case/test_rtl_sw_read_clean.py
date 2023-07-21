@@ -6,7 +6,7 @@ from address_planner import * # pylint: disable=unused-wildcard-import
 
 
 def test_sw_read_clean_apb():
-    reg_bank_D = RegSpace(name='sw_read_clean',size=1*KB,description='reg_bank_B,contain many regs.', external_interface='apb')
+    reg_bank_D = RegSpace(name='sw_read_clean',size=1*KB,description='reg_bank_B,contain many regs.', software_interface='apb')
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
 
     reg_B.add_incr(FilledField(bit=2))
@@ -21,7 +21,7 @@ def test_sw_read_clean_apb():
 
 
 def test_sw_read_clean_vr():
-    reg_bank_D = RegSpace(name='sw_read_clean',size=1*KB,description='reg_bank_B,contain many regs.', external_interface='vr')
+    reg_bank_D = RegSpace(name='sw_read_clean',size=1*KB,description='reg_bank_B,contain many regs.', software_interface='vr')
     reg_B = Register(name='regB',bit=32,description='contain many fields.')
 
     reg_B.add_incr(FilledField(bit=2))

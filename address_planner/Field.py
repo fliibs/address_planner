@@ -85,11 +85,17 @@ class FieldRoot(AddressLogicRoot):
 
 
     def report_json_core(self):
+        if isinstance(self, FilledField):
+            return Null
         field_dict = {}
-        field_dict["key"]           = ADD_KEY()
-        field_dict["name"]          = self._name 
-        field_dict["size"]          = ConvertSize(self.bit)
-        field_dict["description"]   = self.description
+        field_dict["key"]               = ADD_KEY()
+        field_dict["name"]              = self._name 
+        field_dict["size"]              = "%d bit"% self.bit
+        field_dict["Position"]          = "[%d:%d]"% (self.end_bit, self.start_bit)
+        field_dict["External"]          = "%s" % self.is_external
+        field_dict["Software Access"]   = self.sw_access.name
+        field_dict["Hardware Access"]   = self.hw_access.name
+        field_dict["description"]       = self.description
         return field_dict 
 
 

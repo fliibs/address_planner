@@ -51,6 +51,13 @@ class Register(RegSpace):
     def end_bit(self):
         return self.bit - 1
 
+    @property
+    def start_address(self):
+        return super().start_address
+    
+    @property
+    def end_address(self):
+        return self.start_address + self.end_bit
 
     @property
     def module_name_until_regbank(self):
@@ -124,6 +131,7 @@ class Register(RegSpace):
         json_dict["start_addr"] = self.start_address
         json_dict["end_addr"]   = self.end_address
         json_dict["size"]       = ConvertSize(self.bit)
-        json_dict["fields"]     = [c.report_json_core() for c in self.field_list]
+        json_dict["description"]= self.description
+        json_dict["fields"]     = [c.report_json_core() for c in self.field_list if c.report_json_core() is not Null]
         return json_dict
 
