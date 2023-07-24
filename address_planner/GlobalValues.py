@@ -131,7 +131,7 @@ def import_inst(file_path, var_list=None):
         file_name = split_list[-1].rsplit(".")[0]
     
     if var_list is not None: pattern = ','.join(var_list)
-    exec('from %s import *'% file_name) if var_list is None else exec('from %s import %s'% (file_name, pattern))
+    # exec('from %s import *'% file_name) if var_list is None else exec('from %s import %s'% (file_name, pattern))
     if var_list is None:
         print("[package import execute]: from %s import *"% file_name)
         exec('from %s import *'% file_name, GlobalValue.globals)
