@@ -157,16 +157,16 @@ class AddressSpace(AddressLogicRoot):
         # template.globals['builtins'] = builtins
         # text = template.render(space=self)
 
-    def regbank(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
+    def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
         from .RegSpace import RegSpace
 
         u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
         u_ss.father = self 
         return u_ss
     
-    def add_regbank(self, sub_space):
+    def addrspace(self, sub_space, offset, name):
         # sub_space.father = self 
-        self.add_incr(sub_space, sub_space.module_name)
+        self.add(sub_space, offset, name)
         return self
 
     def report_json_core(self):

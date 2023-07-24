@@ -1,6 +1,6 @@
 import os
 import sys
-
+sys.path.append('/home/stevenhuang/Desktop/addressplanner_workplace/address_planner/')
 from address_planner import * # pylint: disable=unused-wildcard-import
 
 
@@ -162,4 +162,11 @@ RS_1 = RegSpace             (name='reg_bank_tables_1',size=1*KB,description='reg
             .field          (name='field3',bit=3,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=5)\
             .field          (name='field4',bit=4,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=9)\
         .end \
-        
+
+
+RS_2 = RegSpace             (name='reg_bank_tables_2',size=1*KB,description='reg_bank_B,contain few reg.', software_interface="apb")  \
+        .register           (name='internal_reg',       bit=32,description='contain many fields.') \
+            .field          (name='field0',     bit=1,sw_access=ReadOnly, hw_access=ReadWrite,description='fied0, software read only.') \
+            .field          (name='field1',     bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied1, software write only.', offset=3) \
+            .field          (name='field2',     bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied2, software read write.', offset=5)\
+        .end

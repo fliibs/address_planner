@@ -56,7 +56,6 @@ class RegSpaceBase(Component):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
-
                 reg_rrdy += UInt(1,1)
                 reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address)))
                 rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address))).then(reg_rdat)

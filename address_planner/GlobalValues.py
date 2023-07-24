@@ -1,3 +1,4 @@
+import os,sys
 from enum   import Enum,unique
 
 APG_BUS_WIDTH = 32
@@ -103,7 +104,15 @@ def ConvertSize(size):
 # WriteOnce   = FieldEffect.WriteOnce
 # ReadClean   = FieldEffect.ReadClean
 
+@unique
+class GlobalValue(Enum):
+    globals: None
+    locals:  None
 
+
+def add_scope(**kwargs):
+    for k,v in kwargs.items():
+        setattr(GlobalValue,k,v)
 
 
 def ADD_TO_GLOBAL_VALUES(**kwargs):
@@ -111,6 +120,33 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
     for k,v in kwargs.items():
         gbl[k] = v
 
+
+def import_inst(file_path, var_list=None):
+    split_list = file_path.rsplit("/",1)
+    if len(split_list) > 1:
+        dir_path = split_list[0]
+        file_name = split_list[-1].rsplit(".")[0]
+        sys.path.append(dir_path)
+    else:
+        file_name = split_list[-1].rsplit(".")[0]
+    
+    if var_list is not None: pattern = ','.join(var_list)
+    exec('from %s import *'% file_name) if var_list is None else exec('from %s import %s'% (file_name, pattern))
+    if var_list is None:
+        print("[package import execute]: from %s import *"% file_name)
+        exec('from %s import *'% file_name, GlobalValue.globals)
+    else:
+        print("[package import execute]: from %s import %s"% (file_name, pattern))
+        exec('from %s import %s'% (file_name, pattern), GlobalValue.globals)
+    
+
+
 # def ADD_TO_FIELD_HARDWARE_TYPE(**kwargs):
 #     for k,v in kwargs.items():
 #         setattr(FieldHardwareType,k,v)
+
+
+if __name__=="__main__":
+    import_inst('address_planner')
+    import_inst('/home/stevenhuang/Desktop/addressplanner_workplace/address_planner/example/ip1/regspace_demo_1.py',['RS_1', 'RS_2'])
+    
