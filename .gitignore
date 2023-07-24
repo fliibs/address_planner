@@ -1,9 +1,9 @@
+address_planner_reg_rtl
+example_build
 __pycache__
 .pytest_cache
 .coverage
 cov.xml
-address_planner_reg_rtl
 coverage.xml
 reactdemo2/node_modules
-example_build
 UHDL.log
