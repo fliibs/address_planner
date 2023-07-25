@@ -56,16 +56,32 @@ class FieldAccess(Enum):
     WriteClean      = 'Write Clean'
     Write1Clean     = 'Write 1 Clean'
     Write0Clean     = 'Write 0 Clean'
+    WriteSet        = 'Write Set'
+    Write1Set       = 'Write 1 Set'
+    Write0Set       = 'Write 0 Set'
     Write1Toggle    = 'Write 1 Toggle'
+    Write0Toggle    = 'Write 0 Toggle'
     
     
-Null       = FieldAccess.Null
-ReadWrite  = FieldAccess.ReadWrite
-ReadOnly   = FieldAccess.ReadOnly
-ReadClean  = FieldAccess.ReadClean
+Null            = FieldAccess.Null
+ReadWrite       = FieldAccess.ReadWrite
+ReadOnly        = FieldAccess.ReadOnly
+ReadClean       = FieldAccess.ReadClean
+ReadCleanWrite  = FieldAccess.ReadCleanWrite
+ReadSet         = FieldAccess.ReadSet
+ReadSetWrite    = FieldAccess.ReadSetWrite
 
-WriteOnly  = FieldAccess.WriteOnly
-WriteClean = FieldAccess.WriteClean
+WriteOnly       = FieldAccess.WriteOnly
+WriteClean      = FieldAccess.WriteClean
+Write1Clean     = FieldAccess.Write1Clean  
+Write0Clean     = FieldAccess.Write0Clean
+WriteSet        = FieldAccess.WriteSet
+Write1Set       = FieldAccess.Write1Set
+Write0Set       = FieldAccess.Write0Set
+Write1Toggle    = FieldAccess.Write1Toggle
+Write0Toggle    = FieldAccess.Write0Toggle
+
+
 
 key = 0
 

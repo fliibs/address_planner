@@ -49,17 +49,79 @@ class FieldRoot(AddressLogicRoot):
     def sw_readable(self):
         return self.sw_access == ReadOnly or \
                self.sw_access == ReadWrite or \
-               self.sw_access == ReadClean
+               self.sw_access == ReadClean or \
+               self.sw_access == ReadCleanWrite or \
+               self.sw_access == ReadSet or \
+               self.sw_access == ReadSetWrite or \
+               self.sw_access == WriteClean or \
+               self.sw_access == Write1Clean or \
+               self.sw_access == Write0Clean or \
+               self.sw_access == WriteSet or \
+               self.sw_access == Write1Set or \
+               self.sw_access == Write0Set or \
+               self.sw_access == Write1Toggle or \
+               self.sw_access == Write0Toggle
 
     @property
     def sw_writeable(self):
         return self.sw_access == WriteOnly or \
-               self.sw_access == ReadWrite
+               self.sw_access == ReadWrite or \
+               self.sw_access == ReadCleanWrite or \
+               self.sw_access == ReadSetWrite or \
+               self.sw_access == WriteClean or \
+               self.sw_access == Write1Clean or \
+               self.sw_access == Write0Clean or \
+               self.sw_access == WriteSet or \
+               self.sw_access == Write1Set or \
+               self.sw_access == Write0Set or \
+               self.sw_access == Write1Toggle or \
+               self.sw_access == Write0Toggle
+
+    @property
+    def sw_read_clean(self):
+        return self.sw_access == ReadClean or \
+               self.sw_access == ReadCleanWrite
+    @property
+    def sw_read_set(self):
+        return self.sw_access == ReadSet or \
+               self.sw_access == ReadSetWrite
+    
+    @property
+    def sw_write_clean(self):
+        return self.sw_access == WriteClean
+
+    @property 
+    def sw_write_one_to_clean(self):
+        return self.sw_access == Write1Clean
+    
+    @property
+    def sw_write_zero_to_clean(self):
+        return self.sw_access == Write0Clean
+
+    @property 
+    def sw_write_set(self):
+        return self.sw_access == WriteSet
+
+    @property 
+    def sw_write_one_to_set(self):
+        return self.sw_access == Write1Set
+
+    @property 
+    def sw_write_zero_to_set(self):
+        return self.sw_access == Write0Set
+    
+    @property
+    def sw_write_one_to_toggle(self):
+        return self.sw_access == Write1Toggle
+    
+    @property
+    def sw_write_zero_to_toggle(self):
+        return self.sw_access == Write0Toggle
 
     @property
     def hw_readable(self):
         return self.hw_access == ReadOnly or \
-               self.hw_access == ReadWrite
+               self.hw_access == ReadWrite 
 
     @property
     def hw_writeable(self):
@@ -67,21 +129,20 @@ class FieldRoot(AddressLogicRoot):
                self.hw_access == ReadWrite
 
     @property
-    def sw_read_clean(self):
-        return self.sw_access == ReadClean
-    
-    @property
-    def sw_write_clean(self):
-        pass
-
-    @property 
-    def sw_write_one_to_set(self):
-        pass
-
-    
-    @property
     def hw_read_clean(self):
         return False
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     def report_json_core(self):

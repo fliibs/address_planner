@@ -6,6 +6,7 @@ from .GlobalValues      import *
 import os
 import builtins
 import json
+import shutil
 
 class AddressSpace(AddressLogicRoot):
 
@@ -186,6 +187,7 @@ class AddressSpace(AddressLogicRoot):
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
         with open(self.json_path, 'w') as f:
             f.write(jtext)
+        shutil.copy(self.json_path, "./reactdemo2/src/data.json")
 
     @property
     def generate(self):
@@ -195,3 +197,4 @@ class AddressSpace(AddressLogicRoot):
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
         with open(self.json_path, 'w') as f:
             f.write(jtext)
+        shutil.copy(self.json_path, "./reactdemo2/src/data.json")

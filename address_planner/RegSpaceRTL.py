@@ -108,6 +108,7 @@ class RegSpaceBase(Component):
                 # Internal Register    
                 else:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
+                    field_reg = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
                     reg_val = EmptyWhen()
 
                     if field.hw_writeable:
@@ -119,12 +120,24 @@ class RegSpaceBase(Component):
                         reg_val.when(field_hw_wvld).then(field_hw_wdat)
 
                     if field.sw_writeable:
-                        if field.sw_write_one_to_set:
-                            pass
+                        if field.sw_write_clean:
+                            reg_val.when(reg_wvld).then(UInt(field.bit,0))
+                        elif field.sw_write_one_to_clean:
+                            reg_val.when(reg_wvld).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                        elif field.sw_write_zero_to_clean:
+                            reg_val.when(reg_wvld).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                        elif field.sw_write_set:
+                            reg_val.when(reg_wvld).then(UInt(field.bit,2**(field.bit)-1))
+                        elif field.sw_write_one_to_set:
+                            reg_val.when(reg_wvld).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                        elif field.sw_write_zero_to_set:
+                            reg_val.when(reg_wvld).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                        elif field.sw_write_one_to_toggle:
+                            reg_val.when(reg_wvld).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                        elif field.sw_write_zero_to_toggle:
+                            reg_val.when(reg_wvld).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         else:
                             reg_val.when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit])
-
-                    field_reg = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
@@ -139,7 +152,9 @@ class RegSpaceBase(Component):
                         
                     if field.sw_readable:
                         if field.sw_read_clean:
-                            reg_val.when(reg_rvld).then(UInt(field.bit,0))                   
+                            reg_val.when(reg_rvld).then(UInt(field.bit,0))
+                        elif field.sw_read_set:
+                            reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))                  
                         rdat_list.append(field_reg)
                     else:
                         rdat_list.append(UInt(field.bit,0))
