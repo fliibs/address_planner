@@ -99,9 +99,10 @@ Parameter:
     offset    
 
 Access type for sw_access and hw_access:
-![Access_type](https://github.com/fliibs/address_planner/assets/66581448/514aff41-6353-4409-8156-818d686e1b97)
+
 
 ```
+![Access_type](https://github.com/fliibs/address_planner/assets/66581448/514aff41-6353-4409-8156-818d686e1b97)
 
 ### 3. Run python file and generate rtl
 ```python
