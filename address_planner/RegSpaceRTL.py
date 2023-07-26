@@ -117,25 +117,51 @@ class RegSpaceBase(Component):
                         field_hw_wrdy = self.set("%s_wrdy" % field_name , Output(UInt(1)))
 
                         field_hw_wrdy += UInt(1,1)
-                        reg_val.when(field_hw_wvld).then(field_hw_wdat)
+
+                        if field.hw_write_clean:
+                            reg_val.when(field_hw_wvld).then(UInt(field.bit,0))
+                        elif field.hw_write_one_to_clean:
+                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                        elif field.hw_write_zero_to_clean:
+                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                        elif field.hw_write_set:
+                            reg_val.when(field_hw_wvld).then(UInt(field.bit,2**(field.bit)-1))
+                        elif field.hw_write_one_to_set:
+                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                        elif field.hw_write_zero_to_set:
+                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                        elif field.hw_write_one_to_toggle:
+                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                        elif field.hw_write_zero_to_toggle:
+                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                        elif field.hw_write_once:
+                            hw_flag = self.set("%s_hw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
+                            hw_flag += when(field_hw_wvld).then(UInt(1,1))
+                            reg_val.when(And(field_hw_wvld, Not(hw_flag))).then(field_hw_wdat)
+                        else:
+                            reg_val.when(field_hw_wvld).then(field_hw_wdat)
 
                     if field.sw_writeable:
                         if field.sw_write_clean:
                             reg_val.when(reg_wvld).then(UInt(field.bit,0))
                         elif field.sw_write_one_to_clean:
-                            reg_val.when(reg_wvld).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit, 0))
                         elif field.sw_write_zero_to_clean:
-                            reg_val.when(reg_wvld).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit, 0))
                         elif field.sw_write_set:
                             reg_val.when(reg_wvld).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_one_to_set:
-                            reg_val.when(reg_wvld).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_zero_to_set:
-                            reg_val.when(reg_wvld).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_one_to_toggle:
-                            reg_val.when(reg_wvld).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(Inverse(field_reg))
                         elif field.sw_write_zero_to_toggle:
-                            reg_val.when(reg_wvld).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(Inverse(field_reg))
+                        elif field.sw_write_once:
+                            sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
+                            sw_flag += when(reg_wvld).then(UInt(1,1))
+                            reg_val.when(And(reg_wvld, Not(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
                         else:
                             reg_val.when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit])
 
@@ -146,9 +172,11 @@ class RegSpaceBase(Component):
                         
                         field_hw_rvld += UInt(1,1)
                         if field.hw_read_clean:
-                            field_hw_rdat += UInt(field.bit,0)
-                        else:
-                            field_hw_rdat += field_reg
+                            reg_val.when(field_hw_rrdy).then(UInt(field.bit,0))
+                        elif field.hw_read_set:
+                            reg_val.when(field_hw_rrdy).then(UInt(field.bit,2**(field.bit)-1))
+                        
+                        field_hw_rdat += field_reg
                         
                     if field.sw_readable:
                         if field.sw_read_clean:

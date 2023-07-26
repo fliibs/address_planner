@@ -44,71 +44,104 @@ class FieldRoot(AddressLogicRoot):
     def module_name_until_regbank(self):
         return self.father.module_name_until_regbank + '_' + self.module_name
 
-
+    ############## Software Type ###############
     @property
     def sw_readable(self):
         return self.sw_access == ReadOnly or \
                self.sw_access == ReadWrite or \
                self.sw_access == ReadClean or \
-               self.sw_access == ReadCleanWrite or \
+               self.sw_access == WriteReadClean or \
                self.sw_access == ReadSet or \
-               self.sw_access == ReadSetWrite or \
+               self.sw_access == WriteReadSet or \
                self.sw_access == WriteClean or \
+               self.sw_access == WriteCleanReadSet or \
                self.sw_access == Write1Clean or \
+               self.sw_access == Write1CleanReadSet or \
                self.sw_access == Write0Clean or \
+               self.sw_access == Write0CleanReadSet or \
                self.sw_access == WriteSet or \
+               self.sw_access == WriteSetReadClean or \
                self.sw_access == Write1Set or \
+               self.sw_access == Write1SetReadClean or \
                self.sw_access == Write0Set or \
+               self.sw_access == Write0SetReadClean or \
                self.sw_access == Write1Toggle or \
-               self.sw_access == Write0Toggle
+               self.sw_access == Write0Toggle or \
+               self.sw_access == WriteOnce
+               
 
     @property
     def sw_writeable(self):
         return self.sw_access == WriteOnly or \
+               self.sw_access == WriteOnlyClean or \
+               self.sw_access == WriteOnlySet or \
                self.sw_access == ReadWrite or \
-               self.sw_access == ReadCleanWrite or \
-               self.sw_access == ReadSetWrite or \
+               self.sw_access == WriteReadClean or \
+               self.sw_access == WriteReadSet or \
                self.sw_access == WriteClean or \
+               self.sw_access == WriteCleanReadSet or \
                self.sw_access == Write1Clean or \
+               self.sw_access == Write1CleanReadSet or \
                self.sw_access == Write0Clean or \
+               self.sw_access == Write0CleanReadSet or \
                self.sw_access == WriteSet or \
+               self.sw_access == WriteSetReadClean or \
                self.sw_access == Write1Set or \
+               self.sw_access == Write1SetReadClean or \
                self.sw_access == Write0Set or \
+               self.sw_access == Write0SetReadClean or \
                self.sw_access == Write1Toggle or \
-               self.sw_access == Write0Toggle
+               self.sw_access == Write0Toggle or \
+               self.sw_access == WriteOnce or \
+               self.sw_access == WriteOnlyOnce
 
     @property
     def sw_read_clean(self):
         return self.sw_access == ReadClean or \
-               self.sw_access == ReadCleanWrite
+               self.sw_access == WriteReadClean or \
+               self.sw_access == WriteSetReadClean or \
+               self.sw_access == Write1SetReadClean or \
+               self.sw_access == Write0SetReadClean
     @property
     def sw_read_set(self):
         return self.sw_access == ReadSet or \
-               self.sw_access == ReadSetWrite
+               self.sw_access == WriteReadSet or \
+               self.sw_access == WriteCleanReadSet or \
+               self.sw_access == Write1CleanReadSet or \
+               self.sw_access == Write0CleanReadSet
     
     @property
     def sw_write_clean(self):
-        return self.sw_access == WriteClean
+        return self.sw_access == WriteClean or \
+               self.sw_access == WriteOnlyClean or \
+               self.sw_access == WriteCleanReadSet
 
     @property 
     def sw_write_one_to_clean(self):
-        return self.sw_access == Write1Clean
+        return self.sw_access == Write1Clean or \
+               self.sw_access == Write1CleanReadSet
     
     @property
     def sw_write_zero_to_clean(self):
-        return self.sw_access == Write0Clean
+        return self.sw_access == Write0Clean or \
+               self.sw_access == Write0CleanReadSet
 
     @property 
     def sw_write_set(self):
-        return self.sw_access == WriteSet
+        return self.sw_access == WriteSet or \
+               self.sw_access == WriteOnlySet or \
+               self.sw_access == WriteSetReadClean 
+               
 
     @property 
     def sw_write_one_to_set(self):
-        return self.sw_access == Write1Set
+        return self.sw_access == Write1Set or \
+               self.sw_access == Write1SetReadClean
 
     @property 
     def sw_write_zero_to_set(self):
-        return self.sw_access == Write0Set
+        return self.sw_access == Write0Set or \
+               self.sw_access == Write0SetReadClean
     
     @property
     def sw_write_one_to_toggle(self):
@@ -117,20 +150,124 @@ class FieldRoot(AddressLogicRoot):
     @property
     def sw_write_zero_to_toggle(self):
         return self.sw_access == Write0Toggle
+    
+    @property
+    def sw_write_once(self):
+        return self.sw_access == WriteOnce or \
+               self.sw_access == WriteOnlyOnce
 
+
+    ############## Hardware Type ##############
     @property
     def hw_readable(self):
         return self.hw_access == ReadOnly or \
-               self.hw_access == ReadWrite 
+               self.hw_access == ReadWrite or \
+               self.hw_access == ReadClean or \
+               self.hw_access == WriteReadClean or \
+               self.hw_access == ReadSet or \
+               self.hw_access == WriteReadSet or \
+               self.hw_access == WriteClean or \
+               self.hw_access == WriteCleanReadSet or \
+               self.hw_access == Write1Clean or \
+               self.hw_access == Write1CleanReadSet or \
+               self.hw_access == Write0Clean or \
+               self.hw_access == Write0CleanReadSet or \
+               self.hw_access == WriteSet or \
+               self.hw_access == WriteSetReadClean or \
+               self.hw_access == Write1Set or \
+               self.hw_access == Write1SetReadClean or \
+               self.hw_access == Write0Set or \
+               self.hw_access == Write0SetReadClean or \
+               self.hw_access == Write1Toggle or \
+               self.hw_access == Write0Toggle or \
+               self.hw_access == WriteOnce
 
     @property
     def hw_writeable(self):
         return self.hw_access == WriteOnly or \
-               self.hw_access == ReadWrite
+               self.hw_access == WriteOnlyClean or \
+               self.hw_access == WriteOnlySet or \
+               self.hw_access == ReadWrite or \
+               self.hw_access == WriteReadClean or \
+               self.hw_access == WriteReadSet or \
+               self.hw_access == WriteClean or \
+               self.hw_access == WriteCleanReadSet or \
+               self.hw_access == Write1Clean or \
+               self.hw_access == Write1CleanReadSet or \
+               self.hw_access == Write0Clean or \
+               self.hw_access == Write0CleanReadSet or \
+               self.hw_access == WriteSet or \
+               self.hw_access == WriteSetReadClean or \
+               self.hw_access == Write1Set or \
+               self.hw_access == Write1SetReadClean or \
+               self.hw_access == Write0Set or \
+               self.hw_access == Write0SetReadClean or \
+               self.hw_access == Write1Toggle or \
+               self.hw_access == Write0Toggle or \
+               self.hw_access == WriteOnce or \
+               self.hw_access == WriteOnlyOnce
 
     @property
     def hw_read_clean(self):
-        return False
+        return self.hw_access == ReadClean or \
+               self.hw_access == WriteReadClean or \
+               self.hw_access == WriteSetReadClean or \
+               self.hw_access == Write1SetReadClean or \
+               self.hw_access == Write0SetReadClean
+    @property
+    def hw_read_set(self):
+        return self.hw_access == ReadSet or \
+               self.hw_access == WriteReadSet or \
+               self.hw_access == WriteCleanReadSet or \
+               self.hw_access == Write1CleanReadSet or \
+               self.hw_access == Write0CleanReadSet
+    
+    @property
+    def hw_write_clean(self):
+        return self.hw_access == WriteClean or \
+               self.hw_access == WriteOnlyClean or \
+               self.hw_access == WriteCleanReadSet
+
+    @property 
+    def hw_write_one_to_clean(self):
+        return self.hw_access == Write1Clean or \
+               self.hw_access == Write1CleanReadSet
+    
+    @property
+    def hw_write_zero_to_clean(self):
+        return self.hw_access == Write0Clean or \
+               self.hw_access == Write0CleanReadSet
+
+    @property 
+    def hw_write_set(self):
+        return self.hw_access == WriteSet or \
+               self.hw_access == WriteOnlySet or \
+               self.hw_access == WriteSetReadClean 
+               
+
+    @property 
+    def hw_write_one_to_set(self):
+        return self.hw_access == Write1Set or \
+               self.hw_access == Write1SetReadClean
+
+    @property 
+    def hw_write_zero_to_set(self):
+        return self.hw_access == Write0Set or \
+               self.hw_access == Write0SetReadClean
+    
+    @property
+    def hw_write_one_to_toggle(self):
+        return self.hw_access == Write1Toggle
+    
+    @property
+    def hw_write_zero_to_toggle(self):
+        return self.hw_access == Write0Toggle
+    
+    @property
+    def hw_write_once(self):
+        return self.hw_access == WriteOnce or \
+               self.hw_access == WriteOnlyOnce
+
 
 
 

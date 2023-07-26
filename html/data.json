@@ -2,7 +2,7 @@
   {
     "key": 1,
     "type": "sys",
-    "name": "reg_bank_tables",
+    "name": "all_kinds",
     "start_addr": 0,
     "end_addr": 1023,
     "size": "128B",
@@ -11,11 +11,11 @@
       {
         "key": 2,
         "type": "reg",
-        "name": "internal_reg",
+        "name": "reg0",
         "start_addr": 0,
         "end_addr": 31,
         "size": "4B",
-        "description": "contain many fields.",
+        "description": "test for software, contain many fields.",
         "fields": [
           {
             "key": 4,
@@ -25,88 +25,530 @@
             "External": "False",
             "Software Access": "ReadOnly",
             "Hardware Access": "ReadWrite",
-            "description": "fied0, software read only."
+            "description": "sw read only."
           },
           {
             "key": 6,
             "name": "field1",
             "size": "2 bit",
-            "Position": "[4:3]",
+            "Position": "[2:1]",
             "External": "False",
-            "Software Access": "WriteOnly",
+            "Software Access": "ReadSet",
             "Hardware Access": "ReadWrite",
-            "description": "fied1, software write only."
+            "description": "sw read set."
           },
           {
             "key": 8,
             "name": "field2",
             "size": "1 bit",
-            "Position": "[5:5]",
+            "Position": "[3:3]",
             "External": "False",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadWrite",
-            "description": "fied2, software read write."
+            "description": "sw read write."
           },
           {
             "key": 10,
             "name": "field3",
-            "size": "3 bit",
-            "Position": "[9:7]",
+            "size": "1 bit",
+            "Position": "[4:4]",
             "External": "False",
-            "Software Access": "ReadWrite",
-            "Hardware Access": "ReadOnly",
-            "description": "fied3, hardware read only."
+            "Software Access": "ReadClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw read clean."
+          },
+          {
+            "key": 12,
+            "name": "field4",
+            "size": "1 bit",
+            "Position": "[5:5]",
+            "External": "False",
+            "Software Access": "WriteOnly",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write only."
+          },
+          {
+            "key": 14,
+            "name": "field5",
+            "size": "1 bit",
+            "Position": "[6:6]",
+            "External": "False",
+            "Software Access": "WriteReadClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw read clean write."
+          },
+          {
+            "key": 16,
+            "name": "field6",
+            "size": "1 bit",
+            "Position": "[7:7]",
+            "External": "False",
+            "Software Access": "WriteClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write clean."
+          },
+          {
+            "key": 18,
+            "name": "field7",
+            "size": "2 bit",
+            "Position": "[9:8]",
+            "External": "False",
+            "Software Access": "Write1Clean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write one clean."
+          },
+          {
+            "key": 20,
+            "name": "field8",
+            "size": "2 bit",
+            "Position": "[11:10]",
+            "External": "False",
+            "Software Access": "WriteReadSet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw read set write."
+          },
+          {
+            "key": 22,
+            "name": "field9",
+            "size": "2 bit",
+            "Position": "[13:12]",
+            "External": "False",
+            "Software Access": "Write0Clean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write zero clean."
+          },
+          {
+            "key": 24,
+            "name": "field10",
+            "size": "2 bit",
+            "Position": "[15:14]",
+            "External": "False",
+            "Software Access": "WriteSet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write set."
+          },
+          {
+            "key": 26,
+            "name": "field11",
+            "size": "2 bit",
+            "Position": "[17:16]",
+            "External": "False",
+            "Software Access": "Write1Set",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write one set."
+          },
+          {
+            "key": 28,
+            "name": "field12",
+            "size": "2 bit",
+            "Position": "[19:18]",
+            "External": "False",
+            "Software Access": "Write0Set",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write zero set."
+          },
+          {
+            "key": 30,
+            "name": "field13",
+            "size": "2 bit",
+            "Position": "[21:20]",
+            "External": "False",
+            "Software Access": "Write1Toggle",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write one toggle."
+          },
+          {
+            "key": 32,
+            "name": "field14",
+            "size": "2 bit",
+            "Position": "[23:22]",
+            "External": "False",
+            "Software Access": "Write0Toggle",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write zero toggle."
           }
         ]
       },
       {
-        "key": 11,
+        "key": 33,
         "type": "reg",
-        "name": "external_reg",
+        "name": "reg1",
         "start_addr": 32,
         "end_addr": 63,
         "size": "4B",
-        "description": "contain many fields.",
+        "description": "test for software, contain many regs.",
         "fields": [
           {
-            "key": 13,
-            "name": "field0",
+            "key": 35,
+            "name": "field15",
+            "size": "2 bit",
+            "Position": "[1:0]",
+            "External": "False",
+            "Software Access": "WriteOnlyClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write only clean."
+          },
+          {
+            "key": 37,
+            "name": "field16",
+            "size": "2 bit",
+            "Position": "[3:2]",
+            "External": "False",
+            "Software Access": "WriteOnlySet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write only set."
+          },
+          {
+            "key": 39,
+            "name": "field17",
+            "size": "2 bit",
+            "Position": "[5:4]",
+            "External": "False",
+            "Software Access": "WriteCleanReadSet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write clean read set."
+          },
+          {
+            "key": 41,
+            "name": "field18",
+            "size": "2 bit",
+            "Position": "[7:6]",
+            "External": "False",
+            "Software Access": "Write1CleanReadSet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write 1 clean read set."
+          },
+          {
+            "key": 43,
+            "name": "field19",
+            "size": "2 bit",
+            "Position": "[9:8]",
+            "External": "False",
+            "Software Access": "Write0CleanReadSet",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write 0 clean read set."
+          },
+          {
+            "key": 45,
+            "name": "field20",
+            "size": "2 bit",
+            "Position": "[11:10]",
+            "External": "False",
+            "Software Access": "WriteSetReadClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write set read clean."
+          },
+          {
+            "key": 47,
+            "name": "field21",
+            "size": "2 bit",
+            "Position": "[13:12]",
+            "External": "False",
+            "Software Access": "Write1SetReadClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write 1 set read clean."
+          },
+          {
+            "key": 49,
+            "name": "field22",
+            "size": "2 bit",
+            "Position": "[15:14]",
+            "External": "False",
+            "Software Access": "Write0SetReadClean",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write 0 set read clean."
+          },
+          {
+            "key": 51,
+            "name": "field23",
+            "size": "2 bit",
+            "Position": "[17:16]",
+            "External": "False",
+            "Software Access": "WriteOnce",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write once."
+          },
+          {
+            "key": 53,
+            "name": "field24",
+            "size": "2 bit",
+            "Position": "[19:18]",
+            "External": "False",
+            "Software Access": "WriteOnlyOnce",
+            "Hardware Access": "ReadWrite",
+            "description": "sw write only once."
+          }
+        ]
+      },
+      {
+        "key": 54,
+        "type": "reg",
+        "name": "reg0",
+        "start_addr": 64,
+        "end_addr": 95,
+        "size": "4B",
+        "description": "test for software, contain many fields.",
+        "fields": [
+          {
+            "key": 56,
+            "name": "h_field0",
             "size": "1 bit",
             "Position": "[0:0]",
-            "External": "True",
+            "External": "False",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadOnly",
-            "description": "fied0, external hardware read only."
+            "description": "hw read only."
           },
           {
-            "key": 15,
-            "name": "field1",
+            "key": 58,
+            "name": "h_field1",
+            "size": "2 bit",
+            "Position": "[2:1]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "ReadSet",
+            "description": "hw read set."
+          },
+          {
+            "key": 60,
+            "name": "h_field2",
             "size": "1 bit",
             "Position": "[3:3]",
-            "External": "True",
-            "Software Access": "ReadWrite",
-            "Hardware Access": "ReadOnly",
-            "description": "fied1, external hardware write only."
-          },
-          {
-            "key": 17,
-            "name": "field2",
-            "size": "3 bit",
-            "Position": "[7:5]",
-            "External": "True",
+            "External": "False",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadWrite",
-            "description": "fied2, external hardware read write."
+            "description": "hw read write."
           },
           {
-            "key": 19,
-            "name": "field3",
-            "size": "4 bit",
-            "Position": "[11:8]",
-            "External": "True",
+            "key": 62,
+            "name": "h_field3",
+            "size": "1 bit",
+            "Position": "[4:4]",
+            "External": "False",
             "Software Access": "ReadWrite",
-            "Hardware Access": "ReadOnly",
-            "description": "fied3, external hardware read only."
+            "Hardware Access": "ReadClean",
+            "description": "hw read clean."
+          },
+          {
+            "key": 64,
+            "name": "h_field4",
+            "size": "1 bit",
+            "Position": "[5:5]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnly",
+            "description": "hw write only."
+          },
+          {
+            "key": 66,
+            "name": "h_field5",
+            "size": "1 bit",
+            "Position": "[6:6]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteReadClean",
+            "description": "hw read clean write."
+          },
+          {
+            "key": 68,
+            "name": "h_field6",
+            "size": "1 bit",
+            "Position": "[7:7]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteClean",
+            "description": "hw write clean."
+          },
+          {
+            "key": 70,
+            "name": "h_field7",
+            "size": "2 bit",
+            "Position": "[9:8]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write1Clean",
+            "description": "hw write one clean."
+          },
+          {
+            "key": 72,
+            "name": "h_field8",
+            "size": "2 bit",
+            "Position": "[11:10]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteReadSet",
+            "description": "hw read set write."
+          },
+          {
+            "key": 74,
+            "name": "h_field9",
+            "size": "2 bit",
+            "Position": "[13:12]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write0Clean",
+            "description": "hw write zero clean."
+          },
+          {
+            "key": 76,
+            "name": "h_field10",
+            "size": "2 bit",
+            "Position": "[15:14]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteSet",
+            "description": "hw write set."
+          },
+          {
+            "key": 78,
+            "name": "h_field11",
+            "size": "2 bit",
+            "Position": "[17:16]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write1Set",
+            "description": "hw write one set."
+          },
+          {
+            "key": 80,
+            "name": "h_field12",
+            "size": "2 bit",
+            "Position": "[19:18]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write0Set",
+            "description": "hw write zero set."
+          },
+          {
+            "key": 82,
+            "name": "h_field13",
+            "size": "2 bit",
+            "Position": "[21:20]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write1Toggle",
+            "description": "hw write one toggle."
+          },
+          {
+            "key": 84,
+            "name": "h_field14",
+            "size": "2 bit",
+            "Position": "[23:22]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write0Toggle",
+            "description": "hw write zero toggle."
+          }
+        ]
+      },
+      {
+        "key": 85,
+        "type": "reg",
+        "name": "reg1",
+        "start_addr": 96,
+        "end_addr": 127,
+        "size": "4B",
+        "description": "test for hardware, contain many regs.",
+        "fields": [
+          {
+            "key": 87,
+            "name": "h_field15",
+            "size": "2 bit",
+            "Position": "[1:0]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnlyClean",
+            "description": "hw write only clean."
+          },
+          {
+            "key": 89,
+            "name": "h_field16",
+            "size": "2 bit",
+            "Position": "[3:2]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnlySet",
+            "description": "hw write only set."
+          },
+          {
+            "key": 91,
+            "name": "h_field17",
+            "size": "2 bit",
+            "Position": "[5:4]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteCleanReadSet",
+            "description": "hw write clean read set."
+          },
+          {
+            "key": 93,
+            "name": "h_field18",
+            "size": "2 bit",
+            "Position": "[7:6]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write1CleanReadSet",
+            "description": "hw write 1 clean read set."
+          },
+          {
+            "key": 95,
+            "name": "h_field19",
+            "size": "2 bit",
+            "Position": "[9:8]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write0CleanReadSet",
+            "description": "hw write 0 clean read set."
+          },
+          {
+            "key": 97,
+            "name": "h_field20",
+            "size": "2 bit",
+            "Position": "[11:10]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteSetReadClean",
+            "description": "hw write set read clean."
+          },
+          {
+            "key": 99,
+            "name": "h_field21",
+            "size": "2 bit",
+            "Position": "[13:12]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write1SetReadClean",
+            "description": "hw write 1 set read clean."
+          },
+          {
+            "key": 101,
+            "name": "h_field22",
+            "size": "2 bit",
+            "Position": "[15:14]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "Write0SetReadClean",
+            "description": "hw write 0 set read clean."
+          },
+          {
+            "key": 103,
+            "name": "h_field23",
+            "size": "2 bit",
+            "Position": "[17:16]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnce",
+            "description": "hw write once."
+          },
+          {
+            "key": 105,
+            "name": "h_field24",
+            "size": "2 bit",
+            "Position": "[19:18]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnlyOnce",
+            "description": "hw write only once."
           }
         ]
       }

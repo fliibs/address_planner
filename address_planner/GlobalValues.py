@@ -43,43 +43,63 @@ GB = 1024 * 1024 * 1024
 
 @unique
 class FieldAccess(Enum):
-    Null            = 'Null'
-    ReadWrite       = 'Read Write'
-    ReadCleanWrite  = 'ReadClean Write'
-    ReadSetWrite    = 'ReadSet Write'
+    Null                 = 'Null'
+    ReadWrite            = 'Read Write'
+    ReadOnly             = 'Read Only'
+    ReadClean            = 'Read Clean'
+    ReadSet              = 'Read Set'
 
-    ReadOnly        = 'Read Only'
-    ReadClean       = 'Read Clean'
-    ReadSet         = 'Read Set'
-
-    WriteOnly       = 'Write Only'
-    WriteClean      = 'Write Clean'
-    Write1Clean     = 'Write 1 Clean'
-    Write0Clean     = 'Write 0 Clean'
-    WriteSet        = 'Write Set'
-    Write1Set       = 'Write 1 Set'
-    Write0Set       = 'Write 0 Set'
-    Write1Toggle    = 'Write 1 Toggle'
-    Write0Toggle    = 'Write 0 Toggle'
+    WriteReadClean       = 'Write Read Clean'
+    WriteReadSet         = 'Write Read Set'
+    WriteOnly            = 'Write Only'
+    WriteOnlyClean       = 'Write Only Clean'
+    WriteOnlySet         = 'Write Only Set'
+    WriteClean           = 'Write Clean'
+    WriteCleanReadSet    = 'Write Clean Read Set'
+    Write1Clean          = 'Write 1 Clean'
+    Write1CleanReadSet   = 'Write 1 Clean Read Set'
+    Write0Clean          = 'Write 0 Clean'
+    Write0CleanReadSet   = 'Write 0 Clean Read Set'
+    WriteSet             = 'Write Set'
+    WriteSetReadClean    = "Write Set Read Clean"
+    Write1Set            = 'Write 1 Set'
+    Write1SetReadClean   = 'Write 1 Set Read Clean'
+    Write0Set            = 'Write 0 Set'
+    Write0SetReadClean   = 'Write 0 Set Read Clean'
+    Write1Toggle         = 'Write 1 Toggle'
+    Write0Toggle         = 'Write 0 Toggle'
+    WriteOnce            = 'Write Once'
+    WriteOnlyOnce        = 'Write Only Once'
     
     
-Null            = FieldAccess.Null
-ReadWrite       = FieldAccess.ReadWrite
-ReadOnly        = FieldAccess.ReadOnly
-ReadClean       = FieldAccess.ReadClean
-ReadCleanWrite  = FieldAccess.ReadCleanWrite
-ReadSet         = FieldAccess.ReadSet
-ReadSetWrite    = FieldAccess.ReadSetWrite
+    
+Null                 = FieldAccess.Null
+ReadWrite            = FieldAccess.ReadWrite
+ReadOnly             = FieldAccess.ReadOnly
+ReadClean            = FieldAccess.ReadClean
+ReadSet              = FieldAccess.ReadSet
 
-WriteOnly       = FieldAccess.WriteOnly
-WriteClean      = FieldAccess.WriteClean
-Write1Clean     = FieldAccess.Write1Clean  
-Write0Clean     = FieldAccess.Write0Clean
-WriteSet        = FieldAccess.WriteSet
-Write1Set       = FieldAccess.Write1Set
-Write0Set       = FieldAccess.Write0Set
-Write1Toggle    = FieldAccess.Write1Toggle
-Write0Toggle    = FieldAccess.Write0Toggle
+WriteReadSet         = FieldAccess.WriteReadSet
+WriteReadClean       = FieldAccess.WriteReadClean
+WriteOnly            = FieldAccess.WriteOnly
+WriteOnlyClean       = FieldAccess.WriteOnlyClean
+WriteOnlySet         = FieldAccess.WriteOnlySet
+WriteClean           = FieldAccess.WriteClean
+WriteCleanReadSet    = FieldAccess.WriteCleanReadSet
+Write1Clean          = FieldAccess.Write1Clean 
+Write1CleanReadSet   = FieldAccess.Write1CleanReadSet 
+Write0Clean          = FieldAccess.Write0Clean
+Write0CleanReadSet   = FieldAccess.Write0CleanReadSet
+WriteSet             = FieldAccess.WriteSet
+WriteSetReadClean    = FieldAccess.WriteSetReadClean
+Write1Set            = FieldAccess.Write1Set
+Write1SetReadClean   = FieldAccess.Write1SetReadClean
+Write0Set            = FieldAccess.Write0Set
+Write0SetReadClean   = FieldAccess.Write0SetReadClean
+Write1Toggle         = FieldAccess.Write1Toggle
+Write0Toggle         = FieldAccess.Write0Toggle
+WriteOnce            = FieldAccess.WriteOnce
+WriteOnlyOnce        = FieldAccess.WriteOnlyOnce
 
 
 
