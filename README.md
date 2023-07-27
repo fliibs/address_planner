@@ -113,8 +113,10 @@ Access type for sw_access and hw_access:
 ```
 
 ## 4. Use HTML to view related information
+
 [nodejs installation](https://nodejs.org/en/download)
 (Detail in ./reactdemo2/README.md)
+
 ```python
 1. install the latest npm and nodejs (version >= 12)
 
