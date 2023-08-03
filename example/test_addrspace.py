@@ -47,6 +47,7 @@ u = AddressSpace                (name="Address Space Test", size=10*KB) \
         .add_register       (R_1, offset=32, name='Reg1')\
         .add_register       (R_3, offset=64, name='Reg3')\
     .end\
+    .addrspace(RS_0, 3*KB, 'demo_0')\
     .generate
 
 
