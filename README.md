@@ -33,7 +33,7 @@ git submodule update --init --recursive
     
 ```
 
-**Architecture of regbank**
+_**Architecture of regbank**
 
 ```text
 
