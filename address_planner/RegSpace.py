@@ -100,7 +100,7 @@ class RegSpace(AddressSpace):
         u_reg.offset = offset
         
         u_reg.father = self
-        print(u_reg.offset, self.offset)
+        # print(u_reg.offset, self.offset)
         return u_reg
     
     def add_register(self, sub_space, offset, name):
