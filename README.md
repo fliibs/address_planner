@@ -112,7 +112,7 @@ Access type for sw_access and hw_access:
 (json location: html/data.json)
 ```
 
-## 4. Use HTML to view related information
+### 4. Use HTML to view related information
 
 [nodejs installation](https://nodejs.org/en/download)
 
