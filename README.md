@@ -114,8 +114,9 @@ Access type for sw_access and hw_access:
 
 ### 4. Use HTML to view related information
 
-[nodejs installation](https://nodejs.org/en/download)
+[Nodejs Installation](https://nodejs.org/en/download)
 
+[Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
 
 ```python
 1. install the latest npm and nodejs (version >= 12)
