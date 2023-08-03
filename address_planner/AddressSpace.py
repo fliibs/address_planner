@@ -158,15 +158,15 @@ class AddressSpace(AddressLogicRoot):
         # template.globals['builtins'] = builtins
         # text = template.render(space=self)
 
-    def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
+    def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace
 
         u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
+        u_ss.offset = offset
         u_ss.father = self 
         return u_ss
     
     def addrspace(self, sub_space, offset, name):
-        # sub_space.father = self 
         self.add(sub_space, offset, name)
         return self
 

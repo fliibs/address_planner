@@ -120,7 +120,8 @@ class Register(RegSpace):
     
     @property
     def end(self):
-        self.father.add_incr(self, self.module_name)
+        self.father.add(self, self.father.offset+self.offset, self.module_name)
+        # print(self.father.offset, self.offset)
         return self.father
     
     def report_json_core(self):

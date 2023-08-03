@@ -3,7 +3,7 @@ from enum   import Enum,unique
 
 APG_BUS_WIDTH = 32
 APG_DATA_WIDTH = APG_BUS_WIDTH
-APG_ADDR_WIDTH = 16
+APG_ADDR_WIDTH = 32
 APG_HTML_FILE_ADDR_SPACE    = 'addr_space_html.j2'
 APG_HTML_FILE_REG_SPACE     = 'reg_space_html.j2'
 APG_VHEAD_FILE_ADDR_SPACE   = 'addr_space_head.j2'

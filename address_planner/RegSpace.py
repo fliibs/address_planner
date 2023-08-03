@@ -93,16 +93,23 @@ class RegSpace(AddressSpace):
         component.run_lint()
         # component.run_slang_compile()
 
-    def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH):
+    def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH, offset=0):
         from .Reg import Register
 
         u_reg = Register(name, bit, description, bus_width)
+        u_reg.offset = offset
+        
         u_reg.father = self
+        print(u_reg.offset, self.offset)
         return u_reg
+    
+    def add_register(self, sub_space, offset, name):
+        self.add(sub_space, offset+self.offset, name)
+        return self
     
     @property
     def end(self):
-        self.father.add_incr(self, self.module_name)
+        self.father.add(self, self.offset, self.module_name)
         return self.father
 
     @property

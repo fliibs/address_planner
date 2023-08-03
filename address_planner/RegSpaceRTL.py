@@ -52,14 +52,16 @@ class RegSpaceBase(Component):
         #   Reg box
         #########################################################################################################
         for sub_space in self._cfg.sub_space_list:
+            start_address = sub_space.start_address - sub_space.offset
+            # print("address:",start_address, sub_space.start_address, sub_space.offset)
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
                 reg_rrdy += UInt(1,1)
-                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address)))
-                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address))).then(reg_rdat)
-                rack_read_mux.when(Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address))).then(reg_rrdy)
+                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,start_address)))
+                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,start_address))).then(reg_rdat)
+                rack_read_mux.when(Equal(self.rreq_addr,UInt(APG_ADDR_WIDTH,start_address))).then(reg_rrdy)
             
             if get_sw_writeable(self._cfg.sub_space_list):
                 
@@ -69,8 +71,8 @@ class RegSpaceBase(Component):
 
                 reg_wrdy += UInt(1,1)
                 reg_wdat += self.wreq_data[sub_space.bit-1:0]
-                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(APG_ADDR_WIDTH,sub_space.start_address)))
-                wack_rdy_mux.when(Equal(self.wreq_addr, UInt(APG_ADDR_WIDTH,sub_space.start_address))).then(reg_wrdy)
+                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(APG_ADDR_WIDTH,start_address)))
+                wack_rdy_mux.when(Equal(self.wreq_addr, UInt(APG_ADDR_WIDTH,start_address))).then(reg_wrdy)
            
 
             ##########################################################################################################
