@@ -54,7 +54,7 @@ git submodule update --init --recursive
 [Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
 
 ```shell
-1. install the latest npm and nodejs (version >= 12)
+1. install the latest npm and nodejs (version of nodejs >= 12)
     # check version of npm and nodejs
     npm -v
     nodejs -v
