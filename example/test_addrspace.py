@@ -42,12 +42,6 @@ AddressSpace                (name="Address Space Test", size=10*KB) \
             .field          (name='field2',     bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied2, software read write.', offset=5)\
         .end \
     .end\
-    .regspace               (name='reg_multifile_test',size=1*KB,description='reg_bank_B,contain few reg.', software_interface="apb", offset=5*KB)\
-        .add_register       (R_0, offset=0, name='Reg0')\
-        .add_register       (R_1, offset=32, name='Reg1')\
-        .add_register       (R_3, offset=64, name='Reg3')\
-    .end\
-    .addrspace              (RS_0, 3*KB, 'demo_0')\
     .generate
 
 
