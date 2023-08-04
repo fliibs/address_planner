@@ -13,5 +13,3 @@ R_3 = Register(name='sw_no_write_reg_5',bit=32,description='contain many fields.
             .field          (name='field6',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=14)\
             .field          (name='field7',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=16)\
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)
-
-print(R_3.father)

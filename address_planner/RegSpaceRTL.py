@@ -52,7 +52,10 @@ class RegSpaceBase(Component):
         #   Reg box
         #########################################################################################################
         for sub_space in self._cfg.sub_space_list:
-            start_address = sub_space.start_address - sub_space.father.offset
+            if sub_space.start_address >= sub_space.father.offset:
+                start_address = sub_space.start_address - sub_space.father.offset
+            else:
+                start_address = sub_space.start_address
             # print("address:",start_address, sub_space.start_address, sub_space.offset)
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))

@@ -151,4 +151,3 @@ RS_0 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)\
         .end 
     
-RS_0.offset = 3*KB

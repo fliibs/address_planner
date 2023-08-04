@@ -17,7 +17,7 @@ import_inst(file_path='example/ip0/regspace_demo_0.py')
 
 
 
-u = AddressSpace                (name="Address Space Test", size=10*KB) \
+AddressSpace                (name="Address Space Test", size=10*KB) \
     .regspace               (name='reg_bank_tables_3',size=1*KB,description='reg_bank_B,contain few reg.', software_interface="apb", offset=1*KB)\
         .register           (name='internal_reg',       bit=32,description='contain many fields.', offset=32) \
             .field          (name='field0',     bit=1,sw_access=ReadOnly, hw_access=ReadWrite,description='fied0, software read only.', offset=0) \
@@ -47,7 +47,7 @@ u = AddressSpace                (name="Address Space Test", size=10*KB) \
         .add_register       (R_1, offset=32, name='Reg1')\
         .add_register       (R_3, offset=64, name='Reg3')\
     .end\
-    .addrspace(RS_0, 3*KB, 'demo_0')\
+    .addrspace              (RS_0, 3*KB, 'demo_0')\
     .generate
 
 

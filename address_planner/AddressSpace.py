@@ -70,7 +70,6 @@ class AddressSpace(AddressLogicRoot):
         self.sub_space_list.append(sub_space_copy)
         
         self._next_offset = offset + sub_space.size
-        # print(self.start_address, self.end_address, self._next_offset, sub_space_copy.size)
 
 
     def add_incr(self,sub_space,name):

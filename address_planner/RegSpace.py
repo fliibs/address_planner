@@ -23,7 +23,6 @@ class RegSpace(AddressSpace):
         sub_space_copy.offset = offset
         sub_space_copy.father = self
         sub_space_copy.module_name = name
-        print(sub_space, sub_space.start_address, sub_space.end_address)
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
