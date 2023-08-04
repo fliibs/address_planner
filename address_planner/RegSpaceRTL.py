@@ -113,7 +113,7 @@ class RegSpaceBase(Component):
                 # Internal Register    
                 else:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                    field_reg = self.set(field_name, Reg(UInt(field.bit,0),self.clk,self.rst_n))
+                    field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,self.rst_n))
                     reg_val = EmptyWhen()
 
                     if field.hw_writeable:

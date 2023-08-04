@@ -19,7 +19,7 @@
         "fields": [
           {
             "key": 4,
-            "name": "inte",
+            "name": "field0",
             "size": "1 bit",
             "Position": "[0:0]",
             "External": "False",
@@ -72,7 +72,7 @@
             "key": 13,
             "name": "field0",
             "size": "1 bit",
-            "Position": "[0:0]",
+            "Position": "[1:1]",
             "External": "True",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadOnly",
@@ -85,7 +85,7 @@
             "Position": "[3:3]",
             "External": "True",
             "Software Access": "ReadWrite",
-            "Hardware Access": "ReadOnly",
+            "Hardware Access": "WriteOnly",
             "description": "fied1, external hardware write only."
           },
           {
