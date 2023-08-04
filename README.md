@@ -33,7 +33,7 @@ git submodule update --init --recursive
     from address_planner import *
     
 3. add regbank like filling in the form 
-(reference example in ./example/addrspace.py) 
+(reference example in ./example/test_addrspace.py) 
     
 ```
 
@@ -122,9 +122,11 @@ Access type for sw_access and hw_access:
 
 [Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
 
-```python
+```shell
 1. install the latest npm and nodejs (version >= 12)
-
+    # check version of npm and nodejs
+    npm -v
+    nodejs -v
 2.  install node_modules and start npm 
     cd reactdemo2
     npm install
