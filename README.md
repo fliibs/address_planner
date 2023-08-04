@@ -37,7 +37,36 @@ git submodule update --init --recursive
     
 ```
 
-**Architecture of regbank**
+### 3. Run python file and generate rtl
+```python
+1. run python file in the main directory
+    python <path-to-file>/<my_file_name>.py
+
+2. get the result
+(rtl location : address_planner_reg_rtl)
+(json location: html/data.json)
+```
+
+### 4. Use HTML to view related information
+
+[Nodejs Installation](https://nodejs.org/en/download)
+
+[Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
+
+```shell
+1. install the latest npm and nodejs (version >= 12)
+    # check version of npm and nodejs
+    npm -v
+    nodejs -v
+2.  install node_modules and start npm 
+    cd reactdemo2
+    npm install
+    npm start
+
+(Detail in ./reactdemo2/README.md)
+```
+
+###Architecture of regbank
 
 ```text
 
@@ -105,32 +134,3 @@ Parameter:
 Access type for sw_access and hw_access:
 ```
 ![Access_type](https://github.com/fliibs/address_planner/assets/66581448/514aff41-6353-4409-8156-818d686e1b97)
-
-### 3. Run python file and generate rtl
-```python
-1. run python file in the main directory
-    python <path-to-file>/<my_file_name>.py
-
-2. get the result
-(rtl location : address_planner_reg_rtl)
-(json location: html/data.json)
-```
-
-### 4. Use HTML to view related information
-
-[Nodejs Installation](https://nodejs.org/en/download)
-
-[Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
-
-```shell
-1. install the latest npm and nodejs (version >= 12)
-    # check version of npm and nodejs
-    npm -v
-    nodejs -v
-2.  install node_modules and start npm 
-    cd reactdemo2
-    npm install
-    npm start
-
-(Detail in ./reactdemo2/README.md)
-```
