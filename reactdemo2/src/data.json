@@ -72,7 +72,7 @@
             "key": 13,
             "name": "field0",
             "size": "1 bit",
-            "Position": "[0:0]",
+            "Position": "[1:1]",
             "External": "True",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadOnly",

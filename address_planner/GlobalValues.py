@@ -47,7 +47,7 @@ GB = 1024 * 1024 * 1024
 
 @unique
 class FieldAccess(Enum):
-    Null                 = 'Null'
+    Null                 = 'reserved'
     ReadWrite            = 'RW'
     ReadOnly             = 'RO'
     ReadClean            = 'RC'

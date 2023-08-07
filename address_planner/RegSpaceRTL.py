@@ -83,10 +83,10 @@ class RegSpaceBase(Component):
             ##########################################################################################################
             rdat_list = []
 
+
             for field in sub_space.filled_field_list:
                 if isinstance(field, FilledField):
                     rdat_list.append(UInt(field.bit,0))
-
                 # External Register Software Access
                 elif field.is_external:
                     field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)

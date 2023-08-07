@@ -38,7 +38,13 @@ class FieldRoot(AddressLogicRoot):
         integer = int(bin_str,2)
         return hex(integer)
 
-
+    @property
+    def hex_value(self):
+        hex_value = hex(self.init_value)
+        if hex_value == '0x0':
+            return '%d\'h0'%(self.bit)
+        else:
+            return '%d\'h'%(self.bit)+hex_value.lstrip('0x')
 
     @property
     def module_name_until_regbank(self):
