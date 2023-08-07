@@ -20,7 +20,9 @@ class uvm_reg_{{ss.module_name}} extends uvm_reg;
             this.{{field.name}}.configure(this, {{field.bit}}, {{field.bit_offset}}, {{field.sw_access.value}}, 0, {{field.init_value}}, 1, 0, 1);
         {% endfor -%}
     endfunction : build 
+
 endclass : uvm_{{ss.module_name}}
+
 {% endfor %}
 
 class ral_block_{{space.module_name}} extends uvm_reg_block;
