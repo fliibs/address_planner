@@ -11,6 +11,9 @@ APG_VHEAD_FILE_ADDR_SPACE   = 'addr_space_head.j2'
 APG_VHEAD_FILE_REG_SPACE    = 'reg_space_head.j2'
 APG_CHEAD_FILE_ADDR_SPACE   = 'addr_space_head.j2'
 APG_CHEAD_FILE_REG_SPACE    = 'reg_space_head.j2'
+APG_RMODEL_FILE_REG_SPACE   = 'ral_model.j2'
+APG_RMDEFINE_FILE_REG_SPACE = 'ral_model_define.j2'
+APG_RMCSV_FILE_REG_SPACE    = 'ral_model_csv.j2'
 
 KB = 1024
 MB = 1024 * 1024
@@ -45,35 +48,35 @@ GB = 1024 * 1024 * 1024
 @unique
 class FieldAccess(Enum):
     Null                 = 'Null'
-    ReadWrite            = 'Read Write'
-    ReadOnly             = 'Read Only'
-    ReadClean            = 'Read Clean'
-    ReadSet              = 'Read Set'
+    ReadWrite            = 'RW'
+    ReadOnly             = 'RO'
+    ReadClean            = 'RC'
+    ReadSet              = 'RS'
 
-    WriteReadClean       = 'Write Read Clean'
-    WriteReadSet         = 'Write Read Set'
-    WriteOnly            = 'Write Only'
-    WriteOnlyClean       = 'Write Only Clean'
-    WriteOnlySet         = 'Write Only Set'
-    WriteClean           = 'Write Clean'
-    WriteCleanReadSet    = 'Write Clean Read Set'
-    Write1Clean          = 'Write 1 Clean'
-    Write1CleanReadSet   = 'Write 1 Clean Read Set'
-    Write0Clean          = 'Write 0 Clean'
-    Write0CleanReadSet   = 'Write 0 Clean Read Set'
-    WriteSet             = 'Write Set'
-    WriteSetReadClean    = "Write Set Read Clean"
-    Write1Set            = 'Write 1 Set'
-    Write1SetReadClean   = 'Write 1 Set Read Clean'
-    Write0Set            = 'Write 0 Set'
-    Write0SetReadClean   = 'Write 0 Set Read Clean'
-    Write1Toggle         = 'Write 1 Toggle'
-    Write0Toggle         = 'Write 0 Toggle'
-    WriteOnce            = 'Write Once'
-    WriteOnlyOnce        = 'Write Only Once'
+    WriteReadClean       = 'WRC'
+    WriteReadSet         = 'WRS'
+    WriteOnly            = 'WO'
+    WriteOnlyClean       = 'WOC'
+    WriteOnlySet         = 'WOS'
+    WriteClean           = 'WC'
+    WriteCleanReadSet    = 'WCRS'
+    Write1Clean          = 'W1C'
+    Write1CleanReadSet   = 'W1CRS'
+    Write0Clean          = 'W0C'
+    Write0CleanReadSet   = 'W0CRS'
+    WriteSet             = 'WS'
+    WriteSetReadClean    = "WSRC"
+    Write1Set            = 'W1S'
+    Write1SetReadClean   = 'W1SRC'
+    Write0Set            = 'W0S'
+    Write0SetReadClean   = 'W0SRC'
+    Write1Toggle         = 'W1T'
+    Write0Toggle         = 'W0T'
+    WriteOnce            = 'W1'
+    WriteOnlyOnce        = 'WO1'
     
     
-    
+
 Null                 = FieldAccess.Null
 ReadWrite            = FieldAccess.ReadWrite
 ReadOnly             = FieldAccess.ReadOnly

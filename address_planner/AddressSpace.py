@@ -109,6 +109,11 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
+    def report_ral_model(self):
+        self.report_ral_model_core()
+        self.report_ral_model_define_core()
+        self.report_ral_model_csv_core()
+
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
         if os.system('gcc -include stdint.h %s' % file_path) !=0:
@@ -146,6 +151,37 @@ class AddressSpace(AddressLogicRoot):
             for ss in self.sub_space_list:
                 vhead_name_list += ss.report_vhead_core()
             return vhead_name_list
+        
+    def report_ral_model_core(self):
+        if self.sub_space_list == []:
+            return []
+        else:
+            file_name = 'ral_block'+self.module_name+'.sv'
+            path = 'example_build/ral_model/'
+            text = self.report_from_template(APG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
+            with open(path+file_name,'w') as f:
+                f.write(text)
+    
+    def report_ral_model_define_core(self):
+        if self.sub_space_list == []:
+            return []
+        else:
+            file_name = 'ral_block'+self.module_name+'_define.v'
+            path = 'example_build/ral_model/'
+            text = self.report_from_template(APG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
+            with open(path+file_name,'w') as f:
+                f.write(text)
+
+    def report_ral_model_csv_core(self):
+        if self.sub_space_list == []:
+            return []
+        else:
+            file_name = self.module_name+'.csv'
+            path = 'example_build/ral_model/'
+            text = self.report_from_template(APG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
+            with open(path+file_name,'w') as f:
+                f.write(text)
+
 
         # env = Environment(loader=PackageLoader('address_planner','report_template'))
         # template = env.get_template('mem_space.html')

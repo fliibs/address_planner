@@ -1,0 +1,7 @@
+OffsetAddress,RegName,Width,Bits,FieldName,Access,DefaultValue,Description
+{% for ss in space.sub_space_list -%}
+{{builtins.hex(ss.offset)}},{{ss.module_name}},{{ss.size}},[{{ss.field_list[0].bit_offset+ss.field_list[0].bit}}:{{ss.field_list[0].bit_offset}}],{{ss.field_list[0].name}},{{ss.field_list[0].sw_access}},{{ss.field_list[0].init_value}}
+{% for field in ss.field_list[1:] -%}
+,,,[{{field.bit_offset+field.bit}}:{{field.bit_offset}}],{{field.name}},{{field.sw_access.value}},{{field.init_value}}
+{% endfor -%}
+{% endfor -%}

@@ -1,0 +1,51 @@
+`ifndef RAL_BLOCK_{{space.module_name | upper()}}_SV
+`define RAL_BLOCK_{{space.module_name | upper()}}_SV
+
+{% for ss in space.sub_space_list -%}
+class uvm_reg_{{ss.module_name}} extends uvm_reg;
+
+    `uvm_object_utils(uvm_{{ss.module_name}})
+
+    {% for field in ss.field_list -%}
+        rand uvm_reg_field {{field.name}};
+    {% endfor -%}
+
+    function new(string name = "{{ss.module_name}}");
+        super.new(name, ss.bit, UVM_NO_COVERAGE);
+    endfunction : new 
+
+    virtual function void build();
+        {% for field in ss.field_list -%}
+            this.{{field.name}}=uvm_reg_field::type_id::create("{{field.name}}",,get_full_name());
+            this.{{field.name}}.configure(this, {{field.bit}}, {{field.bit_offset}}, {{field.sw_access.value}}, 0, {{field.init_value}}, 1, 0, 1);
+        {% endfor -%}
+    endfunction : build 
+endclass : uvm_{{ss.module_name}}
+{% endfor %}
+
+class ral_block_{{space.module_name}} extends uvm_reg_block;
+
+    `uvm_object_untils(ral_block_{{space.module_name}})
+
+    {% for ss in space.sub_space_list -%}
+    rand uvm_reg_{{ss.module_name}} {{ss.module_name}};
+    {% endfor %}
+
+    function new(string name="ral_block_{{space.module_name}}");
+        super.new(name, build_coverage(UVM_NO_COVERAGE));
+    endfunction : new
+
+    virtual function void build();
+        this.default_map = create_map("", space.offset, 4, UVM_LITTLE_ENDIAN, 0);
+        {% for ss in space.sub_space_list -%}
+        {{ss.module_name}} = uvm_reg_{{ss.module_name}}::type_id::create("{{ss.module_name}}",,get_full_name());
+        {{ss.module_name}}.configure(this, null, "");
+        {{ss.module_name}}.build();
+        {{ss.module_name}}.add_hdl_path_slice("{{ss.module_name}}",{{ss.offset}},{{ss.bit}});
+        default_map.add_reg({{ss.module_name}},`UVM_REG_{{ss.module_name | upper()}})
+        {% endfor -%}
+    endfunction : build 
+
+endclass : ral_block_{{space.module_name}}
+
+`endif //RAL_BLOCK_{{space.module_name | upper()}}_SV

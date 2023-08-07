@@ -116,6 +116,7 @@ class RegSpace(AddressSpace):
     def generate(self):
         self.report_rtl()
         self.report_json()
+        self.report_ral_model()
 
 
     
