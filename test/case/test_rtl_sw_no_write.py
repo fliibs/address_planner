@@ -31,6 +31,7 @@ def test_sw_no_write_vr():
 
     reg_bank_D.add_incr(reg_B,'reg0')
     reg_bank_D.add(reg_B,32,'reg1')
+    # reg_bank_D.path = ('build/test/')
     reg_bank_D.report_rtl()
 
 

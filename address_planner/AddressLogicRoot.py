@@ -56,15 +56,15 @@ class AddressLogicRoot(object):
 
     @property
     def _vhead_dir(self):
-        return os.path.join(self.global_path,'vhead')
+        return os.path.join(self.global_path,'build/vhead')
 
     @property
     def _chead_dir(self):
-        return os.path.join(self.global_path,'chead')
+        return os.path.join(self.global_path,'build/chead')
 
     @property
     def _html_dir(self):
-        return os.path.join(self.global_path,'html')
+        return os.path.join(self.global_path,'build/html')
 
 
 

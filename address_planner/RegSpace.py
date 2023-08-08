@@ -65,39 +65,39 @@ class RegSpace(AddressSpace):
         return vhead_name_list
     
     
-    def report_ral_model(self):
-        self.report_ral_model_core()
-        self.report_ral_model_define_core()
-        self.report_ral_model_csv_core()
+    def report_ral_model(self, output_dir='build/ral_model/'):
+        self.report_ral_model_core(output_dir='build/ral_model/')
+        self.report_ral_model_define_core(output_dir='build/ral_model/')
+        self.report_ral_model_csv_core(output_dir='build/ral_model/')
 
-    def report_ral_model_core(self):
+    def report_ral_model_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'.sv'
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
             with open(path+file_name,'w') as f:
                 f.write(text)
     
-    def report_ral_model_define_core(self):
+    def report_ral_model_define_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
                 f.write(text)
 
-    def report_ral_model_csv_core(self):
+    def report_ral_model_csv_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             with open(path+file_name,'w') as f:
@@ -126,7 +126,7 @@ class RegSpace(AddressSpace):
 
     def report_rtl(self):
         component = RegSpaceRTL(self).u
-        component.output_dir = "address_planner_reg_rtl"
+        component.output_dir = "build/address_planner_rtl"
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()
@@ -137,9 +137,7 @@ class RegSpace(AddressSpace):
 
         u_reg = Register(name, bit, description, bus_width)
         u_reg.offset = offset
-        
         u_reg.father = self
-        # print(u_reg.offset, self.offset)
         return u_reg
     
     def add_register(self, sub_space, offset, name):

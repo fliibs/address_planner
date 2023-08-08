@@ -29,6 +29,7 @@ def test_external_vr():
 
     reg_bank_C.add_incr(reg_B,'reg0')
     reg_bank_C.add(reg_B,32,'reg1')
+    # reg_bank_C.path = ('build/test/')
     reg_bank_C.report_rtl()
 
 

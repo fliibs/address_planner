@@ -166,6 +166,7 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
 
 def import_inst(file_path, module_name):
     dir_path, file_name = os.path.split(file_path)
+    file_name = file_name.rstrip('.py')
     try:
         res = importlib.import_module('.'+file_name, dir_path)
         print("[package import execute]: from %s.%s import %s"% (dir_path, file_name, module_name))

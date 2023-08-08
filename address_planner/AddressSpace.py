@@ -112,14 +112,14 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
-    def report_ral_model(self):
+    def report_ral_model(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         # for ss in self.sub_space_list:
         #     ss.report_ral_model_core()
-        self.report_ral_model_core()
-        self.report_ral_model_define_core()
-        self.report_ral_model_csv_core()
+        self.report_ral_model_core(output_dir='build/ral_model/')
+        self.report_ral_model_define_core(output_dir='build/ral_model/')
+        self.report_ral_model_csv_core(output_dir='build/ral_model/')
 
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
@@ -159,11 +159,11 @@ class AddressSpace(AddressLogicRoot):
                 vhead_name_list += ss.report_vhead_core()
             return vhead_name_list
         
-    def report_ral_model_core(self):
+    def report_ral_model_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             for ss in self.sub_space_list:
                 file_name = 'ral_block_'+ss.module_name+'.sv'
                 os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -171,23 +171,23 @@ class AddressSpace(AddressLogicRoot):
                 with open(path+file_name,'w') as f:
                     f.write(text)
     
-    def report_ral_model_define_core(self):
+    def report_ral_model_define_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
                 f.write(text)
 
-    def report_ral_model_csv_core(self):
+    def report_ral_model_csv_core(self, output_dir='build/ral_model/'):
         if self.sub_space_list == []:
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = 'example_build/'+self.module_name+'/'
+            path = output_dir+self.module_name+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             
@@ -232,6 +232,7 @@ class AddressSpace(AddressLogicRoot):
     def report_json(self):
         json_list= [self.report_json_core()]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         shutil.copy(self.json_path, "./reactdemo2/src/data.json")
@@ -242,6 +243,7 @@ class AddressSpace(AddressLogicRoot):
             sub_space.report_rtl()
         json_list =[sub_space.report_json_core() for sub_space in self.sub_space_list]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         shutil.copy(self.json_path, "./reactdemo2/src/data.json")
