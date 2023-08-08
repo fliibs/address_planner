@@ -1,0 +1,9 @@
+OffsetAddress,RegName,Width,Bits,FieldName,Access,DefaultValue,Description
+0x20,internal_reg,1,[1:0],field0,FieldAccess.ReadOnly,1'h0
+,,,[5:3],field1,WO,2'h0
+,,,[6:5],field2,RW,1'h0
+,,,[10:7],field3,RW,3'h0
+0x60,external_reg,1,[2:1],field0,FieldAccess.ReadWrite,1'h0
+,,,[4:3],field1,RW,1'h0
+,,,[8:5],field2,RW,3'h0
+,,,[12:8],field3,RW,4'h0
