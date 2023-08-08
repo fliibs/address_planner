@@ -115,8 +115,9 @@ class AddressSpace(AddressLogicRoot):
     def report_ral_model(self):
         if self.sub_space_list == []:
             return []
-        for ss in self.sub_space_list:
-            ss.report_ral_model_core()
+        # for ss in self.sub_space_list:
+        #     ss.report_ral_model_core()
+        self.report_ral_model_core()
         self.report_ral_model_define_core()
         self.report_ral_model_csv_core()
 
@@ -162,18 +163,21 @@ class AddressSpace(AddressLogicRoot):
         if self.sub_space_list == []:
             return []
         else:
-            file_name = 'ral_block_'+self.module_name+'.sv'
-            path = 'example_build/ral_model/'
-            text = self.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
+            path = 'example_build/'+self.module_name+'/'
+            for ss in self.sub_space_list:
+                file_name = 'ral_block_'+ss.module_name+'.sv'
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                text = ss.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
+                with open(path+file_name,'w') as f:
+                    f.write(text)
     
     def report_ral_model_define_core(self):
         if self.sub_space_list == []:
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = 'example_build/ral_model/'
+            path = 'example_build/'+self.module_name+'/'
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
                 f.write(text)
@@ -183,8 +187,10 @@ class AddressSpace(AddressLogicRoot):
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = 'example_build/ral_model/'
+            path = 'example_build/'+self.module_name+'/'
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
+            
             with open(path+file_name,'w') as f:
                 f.write(text)
 

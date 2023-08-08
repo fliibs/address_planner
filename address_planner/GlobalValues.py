@@ -165,12 +165,7 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
 
 
 def import_inst(file_path, module_name):
-    split_list = file_path.rsplit("/",1)
-    if len(split_list) > 1:
-        dir_path = split_list[0]
-        file_name = split_list[-1].rsplit(".")[0]
-    else:
-        file_name = split_list[-1].rsplit(".")[0]
+    dir_path, file_name = os.path.split(file_path)
     try:
         res = importlib.import_module('.'+file_name, dir_path)
         print("[package import execute]: from %s.%s import %s"% (dir_path, file_name, module_name))
