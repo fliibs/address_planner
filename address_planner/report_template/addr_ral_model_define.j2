@@ -1,0 +1,6 @@
+{% for subs in space.sub_space_list -%}
+`define BASE_ADDR_{{subs.module_name | upper()}}   {{subs.hex_offset}}
+{% for ss in subs.sub_space_list -%}
+`define UVM_{{subs.module_name | upper()}}_{{ss.module_name | upper()}}   `BASE_ADDR_{{subs.module_name | upper()}}+{{ss.hex_offset}}
+{% endfor -%}
+{% endfor -%}

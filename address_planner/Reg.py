@@ -88,6 +88,14 @@ class Register(RegSpace):
 
 
         return res
+    
+    @property
+    def hex_offset(self):
+        hex_value = hex(self.offset-self.father.offset)
+        if hex_value == '0x0':
+            return '%d\'h0'%(self.bit)
+        else:
+            return '\'h'+hex_value.lstrip('0x')
 
 
     #########################################################################################

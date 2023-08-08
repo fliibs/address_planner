@@ -48,10 +48,13 @@ class AddressSpace(AddressLogicRoot):
     def end_address(self):
         return self.offset + self.size - 1
 
-
-
-
-
+    @property
+    def hex_offset(self):
+        hex_value = hex(self.offset)
+        if hex_value == '0x0':
+            return '\'h0'
+        else:
+            return '\'h'+hex_value.lstrip('0x')
 
 
 
@@ -110,7 +113,10 @@ class AddressSpace(AddressLogicRoot):
                 f.write("#include \"%s\"\n" % chead_name)
 
     def report_ral_model(self):
-        self.report_ral_model_core()
+        if self.sub_space_list == []:
+            return []
+        for ss in self.sub_space_list:
+            ss.report_ral_model_core()
         self.report_ral_model_define_core()
         self.report_ral_model_csv_core()
 
@@ -156,9 +162,9 @@ class AddressSpace(AddressLogicRoot):
         if self.sub_space_list == []:
             return []
         else:
-            file_name = 'ral_block'+self.module_name+'.sv'
+            file_name = 'ral_block_'+self.module_name+'.sv'
             path = 'example_build/ral_model/'
-            text = self.report_from_template(APG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
+            text = self.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
             with open(path+file_name,'w') as f:
                 f.write(text)
     
@@ -166,9 +172,9 @@ class AddressSpace(AddressLogicRoot):
         if self.sub_space_list == []:
             return []
         else:
-            file_name = 'ral_block'+self.module_name+'_define.v'
+            file_name = 'ral_block_'+self.module_name+'_define.v'
             path = 'example_build/ral_model/'
-            text = self.report_from_template(APG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
+            text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
                 f.write(text)
 
@@ -178,7 +184,7 @@ class AddressSpace(AddressLogicRoot):
         else:
             file_name = self.module_name+'.csv'
             path = 'example_build/ral_model/'
-            text = self.report_from_template(APG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
+            text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             with open(path+file_name,'w') as f:
                 f.write(text)
 
@@ -233,3 +239,4 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         shutil.copy(self.json_path, "./reactdemo2/src/data.json")
+        self.report_ral_model()

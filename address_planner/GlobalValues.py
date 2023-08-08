@@ -5,15 +5,18 @@ from enum   import Enum,unique
 APG_BUS_WIDTH = 32
 APG_DATA_WIDTH = APG_BUS_WIDTH
 APG_ADDR_WIDTH = 16
-APG_HTML_FILE_ADDR_SPACE    = 'addr_space_html.j2'
-APG_HTML_FILE_REG_SPACE     = 'reg_space_html.j2'
-APG_VHEAD_FILE_ADDR_SPACE   = 'addr_space_head.j2'
-APG_VHEAD_FILE_REG_SPACE    = 'reg_space_head.j2'
-APG_CHEAD_FILE_ADDR_SPACE   = 'addr_space_head.j2'
-APG_CHEAD_FILE_REG_SPACE    = 'reg_space_head.j2'
-APG_RMODEL_FILE_REG_SPACE   = 'ral_model.j2'
-APG_RMDEFINE_FILE_REG_SPACE = 'ral_model_define.j2'
-APG_RMCSV_FILE_REG_SPACE    = 'ral_model_csv.j2'
+APG_HTML_FILE_ADDR_SPACE            = 'addr_space_html.j2'
+APG_HTML_FILE_REG_SPACE             = 'reg_space_html.j2'
+APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_head.j2'
+APG_VHEAD_FILE_REG_SPACE            = 'reg_space_head.j2'
+APG_CHEAD_FILE_ADDR_SPACE           = 'addr_space_head.j2'
+APG_CHEAD_FILE_REG_SPACE            = 'reg_space_head.j2'
+APG_ADDR_RMODEL_FILE_REG_SPACE      = 'ral_model.j2'
+APG_ADDR_RMDEFINE_FILE_REG_SPACE    = 'addr_ral_model_define.j2'
+APG_ADDR_RMCSV_FILE_REG_SPACE       = 'addr_ral_model_csv.j2'
+APG_REG_RMODEL_FILE_REG_SPACE       = 'ral_model.j2'
+APG_REG_RMDEFINE_FILE_REG_SPACE     = 'reg_ral_model_define.j2'
+APG_REG_RMCSV_FILE_REG_SPACE        = 'reg_ral_model_csv.j2'
 
 KB = 1024
 MB = 1024 * 1024
