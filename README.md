@@ -39,7 +39,7 @@ git submodule update --init --recursive
 
 ### 3. Run python file and generate rtl
 ```python
-1. run python file in the main directory
+1. run python file in the main directory (root of address planner project)
     python <path-to-file>/<my_file_name>.py
 
 2. get the result
