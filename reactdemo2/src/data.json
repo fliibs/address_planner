@@ -1,15 +1,15 @@
 [
   {
-    "key": 1,
+    "key": 31,
     "type": "sys",
-    "name": "reg_bank_tables_3",
-    "start_addr": 1024,
-    "end_addr": 2047,
+    "name": "reg_bank_tables",
+    "start_addr": 0,
+    "end_addr": 1023,
     "size": "128B",
-    "description": "reg_bank_B,contain few reg.",
+    "description": "reg_bank_B,contain many regs zhouying.",
     "children": [
       {
-        "key": 2,
+        "key": 32,
         "type": "reg",
         "name": "internal_reg",
         "start_addr": 32,
@@ -18,7 +18,7 @@
         "description": "contain many fields.",
         "fields": [
           {
-            "key": 4,
+            "key": 34,
             "name": "field0",
             "size": "1 bit",
             "Position": "[0:0]",
@@ -28,7 +28,7 @@
             "description": "fied0, software read only."
           },
           {
-            "key": 6,
+            "key": 36,
             "name": "field1",
             "size": "2 bit",
             "Position": "[4:3]",
@@ -38,7 +38,7 @@
             "description": "fied1, software write only."
           },
           {
-            "key": 8,
+            "key": 38,
             "name": "field2",
             "size": "1 bit",
             "Position": "[5:5]",
@@ -46,140 +46,67 @@
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadWrite",
             "description": "fied2, software read write."
+          },
+          {
+            "key": 40,
+            "name": "field3",
+            "size": "3 bit",
+            "Position": "[9:7]",
+            "External": "False",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "ReadOnly",
+            "description": "fied3, hardware read only."
           }
         ]
       },
       {
-        "key": 9,
+        "key": 41,
         "type": "reg",
-        "name": "internal_reg_2",
+        "name": "external_reg",
         "start_addr": 96,
         "end_addr": 127,
         "size": "4B",
         "description": "contain many fields.",
         "fields": [
           {
-            "key": 11,
+            "key": 43,
             "name": "field0",
             "size": "1 bit",
-            "Position": "[0:0]",
-            "External": "False",
-            "Software Access": "ReadOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied0, software read only."
+            "Position": "[1:1]",
+            "External": "True",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "ReadOnly",
+            "description": "fied0, external hardware read only."
           },
           {
-            "key": 13,
+            "key": 45,
             "name": "field1",
-            "size": "2 bit",
-            "Position": "[4:3]",
-            "External": "False",
-            "Software Access": "WriteOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied1, software write only."
+            "size": "1 bit",
+            "Position": "[3:3]",
+            "External": "True",
+            "Software Access": "ReadWrite",
+            "Hardware Access": "WriteOnly",
+            "description": "fied1, external hardware write only."
           },
           {
-            "key": 15,
+            "key": 47,
             "name": "field2",
-            "size": "1 bit",
-            "Position": "[5:5]",
-            "External": "False",
+            "size": "3 bit",
+            "Position": "[7:5]",
+            "External": "True",
             "Software Access": "ReadWrite",
             "Hardware Access": "ReadWrite",
-            "description": "fied2, software read write."
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "key": 16,
-    "type": "sys",
-    "name": "reg_bank_tables_4",
-    "start_addr": 2048,
-    "end_addr": 3071,
-    "size": "128B",
-    "description": "reg_bank_B,contain few reg.",
-    "children": [
-      {
-        "key": 17,
-        "type": "reg",
-        "name": "internal_reg",
-        "start_addr": 32,
-        "end_addr": 63,
-        "size": "4B",
-        "description": "contain many fields.",
-        "fields": [
-          {
-            "key": 19,
-            "name": "field0",
-            "size": "1 bit",
-            "Position": "[0:0]",
-            "External": "False",
-            "Software Access": "ReadOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied0, software read only."
+            "description": "fied2, external hardware read write."
           },
           {
-            "key": 21,
-            "name": "field1",
-            "size": "2 bit",
-            "Position": "[4:3]",
-            "External": "False",
-            "Software Access": "WriteOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied1, software write only."
-          },
-          {
-            "key": 23,
-            "name": "field2",
-            "size": "1 bit",
-            "Position": "[5:5]",
-            "External": "False",
+            "key": 49,
+            "name": "field3",
+            "size": "4 bit",
+            "Position": "[11:8]",
+            "External": "True",
             "Software Access": "ReadWrite",
-            "Hardware Access": "ReadWrite",
-            "description": "fied2, software read write."
-          }
-        ]
-      },
-      {
-        "key": 24,
-        "type": "reg",
-        "name": "internal_reg_2",
-        "start_addr": 96,
-        "end_addr": 127,
-        "size": "4B",
-        "description": "contain many fields.",
-        "fields": [
-          {
-            "key": 26,
-            "name": "field0",
-            "size": "1 bit",
-            "Position": "[0:0]",
-            "External": "False",
-            "Software Access": "ReadOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied0, software read only."
-          },
-          {
-            "key": 28,
-            "name": "field1",
-            "size": "2 bit",
-            "Position": "[4:3]",
-            "External": "False",
-            "Software Access": "WriteOnly",
-            "Hardware Access": "ReadWrite",
-            "description": "fied1, software write only."
-          },
-          {
-            "key": 30,
-            "name": "field2",
-            "size": "1 bit",
-            "Position": "[5:5]",
-            "External": "False",
-            "Software Access": "ReadWrite",
-            "Hardware Access": "ReadWrite",
-            "description": "fied2, software read write."
+            "Hardware Access": "ReadOnly",
+            "description": "fied3, external hardware read only."
           }
         ]
       }

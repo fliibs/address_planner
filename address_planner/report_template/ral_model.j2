@@ -38,7 +38,7 @@ class ral_block_{{space.module_name}} extends uvm_reg_block;
     endfunction : new
 
     virtual function void build();
-        this.default_map = create_map("", space.offset, 4, UVM_LITTLE_ENDIAN, 0);
+        this.default_map = create_map("", {{space.offset}}, 4, UVM_LITTLE_ENDIAN, 0);
         {% for ss in space.sub_space_list -%}
         {{ss.module_name}} = uvm_reg_{{ss.module_name}}::type_id::create("{{ss.module_name}}",,get_full_name());
         {{ss.module_name}}.configure(this, null, "");
