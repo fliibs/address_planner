@@ -66,11 +66,11 @@ class RegSpace(AddressSpace):
     
     
     def report_ral_model(self, output_dir='build/ral_model/'):
-        self.report_ral_model_core(output_dir='build/ral_model/')
-        self.report_ral_model_define_core(output_dir='build/ral_model/')
-        self.report_ral_model_csv_core(output_dir='build/ral_model/')
+        self.report_ral_model_core(output_dir)
+        self.report_ral_model_define_core(output_dir)
+        self.report_ral_model_csv_core(output_dir)
 
-    def report_ral_model_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
@@ -81,7 +81,7 @@ class RegSpace(AddressSpace):
             with open(path+file_name,'w') as f:
                 f.write(text)
     
-    def report_ral_model_define_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_define_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
@@ -92,7 +92,7 @@ class RegSpace(AddressSpace):
             with open(path+file_name,'w') as f:
                 f.write(text)
 
-    def report_ral_model_csv_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_csv_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:

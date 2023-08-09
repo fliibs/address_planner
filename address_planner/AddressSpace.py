@@ -117,9 +117,9 @@ class AddressSpace(AddressLogicRoot):
             return []
         # for ss in self.sub_space_list:
         #     ss.report_ral_model_core()
-        self.report_ral_model_core(output_dir='build/ral_model/')
-        self.report_ral_model_define_core(output_dir='build/ral_model/')
-        self.report_ral_model_csv_core(output_dir='build/ral_model/')
+        self.report_ral_model_core(output_dir)
+        self.report_ral_model_define_core(output_dir)
+        self.report_ral_model_csv_core(output_dir)
 
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
@@ -159,7 +159,7 @@ class AddressSpace(AddressLogicRoot):
                 vhead_name_list += ss.report_vhead_core()
             return vhead_name_list
         
-    def report_ral_model_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
@@ -171,7 +171,7 @@ class AddressSpace(AddressLogicRoot):
                 with open(path+file_name,'w') as f:
                     f.write(text)
     
-    def report_ral_model_define_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_define_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
@@ -182,7 +182,7 @@ class AddressSpace(AddressLogicRoot):
             with open(path+file_name,'w') as f:
                 f.write(text)
 
-    def report_ral_model_csv_core(self, output_dir='build/ral_model/'):
+    def report_ral_model_csv_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
