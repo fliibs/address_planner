@@ -43,8 +43,7 @@ git submodule update --init --recursive
     python <path-to-file>/<my_file_name>.py
 
 2. get the result
-(rtl location : build/address_planner_rtl)
-(json location: build/html/data.json)
+(output is in ./build directory)
 ```
 
 ### 4. Use HTML to view related information
