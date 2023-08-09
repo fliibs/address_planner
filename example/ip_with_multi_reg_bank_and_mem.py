@@ -37,8 +37,6 @@ ip_B.add(reg_bank_B,name='rb0',offset=2*KB)
 ip_B.add(reg_bank_B,name='rb1',offset=3*KB)
 
 
-ip_B.path = ('build/example/%s' % ip_B.module_name)
-ip_B.clean_dir()
 ip_B.build_dir()
 ip_B.report_html()
 ip_B.report_chead()

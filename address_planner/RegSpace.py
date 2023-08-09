@@ -126,7 +126,7 @@ class RegSpace(AddressSpace):
 
     def report_rtl(self):
         component = RegSpaceRTL(self).u
-        component.output_dir = "build/address_planner_rtl"
+        component.output_dir = "build/rtl"
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()
