@@ -7,8 +7,4 @@ cov.xml
 coverage.xml
 reactdemo2/node_modules
 UHDL.log
-build/chead
-build/html
-build/ral_model
-build/rtl 
-build/vhead
+build

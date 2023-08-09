@@ -101,6 +101,7 @@ class AddressSpace(AddressLogicRoot):
 
     def report_html(self):
         text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
+        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
         with open(self.html_path,'w') as f:
             f.write(text)
         for ss in self.sub_space_list:
@@ -112,14 +113,15 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
-    def report_ral_model(self, output_dir='build/ral_model/'):
+    def report_ral_model(self, output_dir='ral_model'):
         if self.sub_space_list == []:
             return []
         # for ss in self.sub_space_list:
         #     ss.report_ral_model_core()
-        self.report_ral_model_core(output_dir)
-        self.report_ral_model_define_core(output_dir)
-        self.report_ral_model_csv_core(output_dir)
+        output_path = self.output_path+'/'+output_dir 
+        self.report_ral_model_core(output_path)
+        self.report_ral_model_define_core(output_path)
+        self.report_ral_model_csv_core(output_path)
 
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
@@ -140,6 +142,7 @@ class AddressSpace(AddressLogicRoot):
         else:
             chead_name_list = [self.chead_name]
             text = self.report_from_template(APG_CHEAD_FILE_ADDR_SPACE,{'head_type':'c'})
+            os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
             with open(self.chead_path,'w') as f:
                 f.write(text)
             for ss in self.sub_space_list:
@@ -153,6 +156,7 @@ class AddressSpace(AddressLogicRoot):
         else:
             vhead_name_list = [self.vhead_name]
             text = self.report_from_template(APG_VHEAD_FILE_ADDR_SPACE,{'head_type':'v'})
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
             with open(self.vhead_path,'w') as f:
                 f.write(text)
             for ss in self.sub_space_list:
@@ -195,15 +199,11 @@ class AddressSpace(AddressLogicRoot):
                 f.write(text)
 
 
-        # env = Environment(loader=PackageLoader('address_planner','report_template'))
-        # template = env.get_template('mem_space.html')
-        # template.globals['builtins'] = builtins
-        # text = template.render(space=self)
 
-        # env = Environment(loader=PackageLoader('address_planner','report_template'))
-        # template = env.get_template('chead_space.h')
-        # template.globals['builtins'] = builtins
-        # text = template.render(space=self)
+
+
+
+
 
     def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace
@@ -236,6 +236,8 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         shutil.copy(self.json_path, "./reactdemo2/src/data.json")
+
+
 
     @property
     def generate(self):

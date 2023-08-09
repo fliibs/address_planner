@@ -41,6 +41,7 @@ class RegSpace(AddressSpace):
 
     def report_html(self):
         text = self.report_from_template(APG_HTML_FILE_REG_SPACE)
+        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
         with open(self.html_path,'w') as f:
             f.write(text)
         for ss in self.sub_space_list:
@@ -49,6 +50,7 @@ class RegSpace(AddressSpace):
     def report_chead_core(self):
         chead_name_list = [self.chead_name]
         text = self.report_from_template(APG_CHEAD_FILE_REG_SPACE)
+        os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
         with open(self.chead_path,'w') as f:
             f.write(text)
         for ss in self.sub_space_list:
@@ -58,6 +60,7 @@ class RegSpace(AddressSpace):
     def report_vhead_core(self):
         vhead_name_list = [self.vhead_name]
         text = self.report_from_template(APG_VHEAD_FILE_REG_SPACE)
+        os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
         with open(self.vhead_path,'w') as f:
             f.write(text)
         for ss in self.sub_space_list:
@@ -65,17 +68,18 @@ class RegSpace(AddressSpace):
         return vhead_name_list
     
     
-    def report_ral_model(self, output_dir='build/ral_model/'):
-        self.report_ral_model_core(output_dir)
-        self.report_ral_model_define_core(output_dir)
-        self.report_ral_model_csv_core(output_dir)
+    def report_ral_model(self, output_dir='ral_model'):
+        output_path = self.output_path+'/'+output_dir 
+        self.report_ral_model_core(output_path)
+        self.report_ral_model_define_core(output_path)
+        self.report_ral_model_csv_core(output_path)
 
     def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'.sv'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
             with open(path+file_name,'w') as f:
@@ -86,7 +90,7 @@ class RegSpace(AddressSpace):
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
@@ -97,7 +101,7 @@ class RegSpace(AddressSpace):
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             with open(path+file_name,'w') as f:
@@ -126,7 +130,7 @@ class RegSpace(AddressSpace):
 
     def report_rtl(self):
         component = RegSpaceRTL(self).u
-        component.output_dir = "build/rtl"
+        component.output_dir = self.output_path+"/rtl"
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()
@@ -144,6 +148,7 @@ class RegSpace(AddressSpace):
         self.add(sub_space, offset+self.offset, name)
         return self
     
+
     @property
     def end(self):
         self.father.add(self, self.offset, self.module_name)

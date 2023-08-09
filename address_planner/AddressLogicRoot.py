@@ -49,22 +49,28 @@ class AddressLogicRoot(object):
     @property
     def global_path(self):
         return self.path if self.father == None else self.father.global_path
-
+    
+    @property
+    def output_path(self):
+        if self.father is not None:
+            return self.father.output_path
+        else:
+            return os.path.join(self.global_path,'build/'+self.module_name)
     #########################################################################################
     # file path definition
     #########################################################################################
 
     @property
     def _vhead_dir(self):
-        return os.path.join(self.global_path,'build/vhead')
+        return os.path.join(self.output_path+'/vhead')
 
     @property
     def _chead_dir(self):
-        return os.path.join(self.global_path,'build/chead')
+        return os.path.join(self.output_path+'/chead')
 
     @property
     def _html_dir(self):
-        return os.path.join(self.global_path,'build/html')
+        return os.path.join(self.output_path+'/html')
 
 
 
