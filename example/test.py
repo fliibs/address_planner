@@ -112,7 +112,7 @@ top.add_incr(sys0,name='sys0')
 top.add_incr(sys1,name='sys1')
 
 top.build_dir()
-top.report_html()
+#top.report_html()
 top.report_chead()
 top.report_vhead()
 top.check_chead()

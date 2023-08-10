@@ -105,7 +105,48 @@ class AddressSpace(AddressLogicRoot):
     #     #for ss in self.sub_space_list:
     #     #    ss.report_html()
 
+<<<<<<< HEAD
     # report C header file.==========================================
+=======
+
+    def report_html(self):
+        text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
+        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
+        with open(self.html_path,'w') as f:
+            f.write(text)
+        for ss in self.sub_space_list:
+            ss.report_html()
+
+    def report_chead(self):
+        chead_name_list = self.report_chead_core()
+        with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
+            for chead_name in chead_name_list:
+                f.write("#include \"%s\"\n" % chead_name)
+
+    def report_ral_model(self):
+        if self.sub_space_list == []:
+            return []
+        # for ss in self.sub_space_list:
+        #     ss.report_ral_model_core()
+        output_path = self._ral_model_dir+'/' 
+        self.report_ral_model_core(output_path)
+        self.report_ral_model_define_core(output_path)
+        self.report_ral_model_csv_core(output_path)
+
+    def check_chead(self):
+        file_path = os.path.join(self._chead_dir,'all.h')
+        if os.system('gcc -include stdint.h %s' % file_path) !=0:
+            raise Exception('c head compile error.')
+
+
+    def report_vhead(self):
+        vhead_name_list = self.report_vhead_core()
+        with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
+            for vhead_name in vhead_name_list:
+                f.write("`include \"%s\"\n" % vhead_name)
+
+
+>>>>>>> d24ede7856abadd8fc1ffb9f1a8a43daa23f6e7a
     def report_chead_core(self):
         if self.sub_space_list == []:
             return []
@@ -145,7 +186,7 @@ class AddressSpace(AddressLogicRoot):
         if self.sub_space_list == []:
             return []
         else:
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             for ss in self.sub_space_list:
                 file_name = 'ral_block_'+ss.module_name+'.sv'
                 os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -158,7 +199,7 @@ class AddressSpace(AddressLogicRoot):
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
@@ -169,7 +210,7 @@ class AddressSpace(AddressLogicRoot):
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             

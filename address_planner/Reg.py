@@ -105,8 +105,8 @@ class Register(RegSpace):
     #  so all of Reg's related functions need to be modified to empty functions.
     #########################################################################################
 
-    def report_html(self):
-        return []
+    #def report_html(self):
+    #    return []
 
     def report_chead_core(self):
         return []
