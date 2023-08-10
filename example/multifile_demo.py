@@ -9,6 +9,6 @@ RS_2 = import_inst('ip1/regspace_demo_1.py','RS_2')
 u_ap = AddressSpace(name='mem_B',size=5*KB,description='mem_B,size 2KB.')\
     .addrspace(RS_0, 1*KB, 'demo_0')\
     .addrspace(RS_1, 2*KB, 'demo_1')\
-    .addrspace(RS_2, 3*KB, 'demo_2')\
-    .generate
+    .addrspace(RS_2, 3*KB, 'demo_2')
 
+u_ap.generate('build/example')

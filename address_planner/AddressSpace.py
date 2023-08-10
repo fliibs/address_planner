@@ -12,19 +12,19 @@ class AddressSpace(AddressLogicRoot):
 
     def __init__(self,name,size,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
+        self.size           = size
+        self.sub_space_list = []
+        self.offset         = 0
+        self._next_offset   = 0
         #self.module_name    = name
         #self.module_name      = ''
         #self.name           = name
         #self.start_address  = start_address
-        self.size           = size
         #self.end_address    = self.start_address + self.size - 1
-        self.sub_space_list = []
         #self.description    = description
         #self.path           = path
         #self.father         = None
-        self.offset         = 0
 
-        self._next_offset   = 0
 
 
 
@@ -105,17 +105,6 @@ class AddressSpace(AddressLogicRoot):
     #     #for ss in self.sub_space_list:
     #     #    ss.report_html()
 
-<<<<<<< HEAD
-    # report C header file.==========================================
-=======
-
-    def report_html(self):
-        text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
-        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
-        with open(self.html_path,'w') as f:
-            f.write(text)
-        for ss in self.sub_space_list:
-            ss.report_html()
 
     def report_chead(self):
         chead_name_list = self.report_chead_core()
@@ -130,8 +119,8 @@ class AddressSpace(AddressLogicRoot):
         #     ss.report_ral_model_core()
         output_path = self._ral_model_dir+'/' 
         self.report_ral_model_core(output_path)
-        self.report_ral_model_define_core(output_path)
-        self.report_ral_model_csv_core(output_path)
+        # self.report_ral_model_define_core(output_path)
+        # self.report_ral_model_csv_core(output_path)
 
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
@@ -146,7 +135,6 @@ class AddressSpace(AddressLogicRoot):
                 f.write("`include \"%s\"\n" % vhead_name)
 
 
->>>>>>> d24ede7856abadd8fc1ffb9f1a8a43daa23f6e7a
     def report_chead_core(self):
         if self.sub_space_list == []:
             return []
@@ -194,44 +182,37 @@ class AddressSpace(AddressLogicRoot):
                 with open(path+file_name,'w') as f:
                     f.write(text)
     
-    def report_ral_model_define_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = output_dir+'/'
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
+    # def report_ral_model_define_core(self, output_dir):
+    #     if self.sub_space_list == []:
+    #         return []
+    #     else:
+    #         file_name = 'ral_block_'+self.module_name+'_define.v'
+    #         path = output_dir+'/'
+    #         os.makedirs(os.path.dirname(path), exist_ok=True)
+    #         text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
+    #         with open(path+file_name,'w') as f:
+    #             f.write(text)
 
-    def report_ral_model_csv_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = self.module_name+'.csv'
-            path = output_dir+'/'
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
-            
-            with open(path+file_name,'w') as f:
-                f.write(text)
-
-
+    # def report_ral_model_csv_core(self, output_dir):
+    #     if self.sub_space_list == []:
+    #         return []
+    #     else:
+    #         file_name = self.module_name+'.csv'
+    #         path = output_dir+'/'
+    #         os.makedirs(os.path.dirname(path), exist_ok=True)
+    #         text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
+    #         
+    #         with open(path+file_name,'w') as f:
+    #             f.write(text)
 
 
-    # report ral model.==============================================
-
-
+    # report v head.==============================================
 
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % vhead_name)
-
-
-
 
 
     def report_vhead_core(self):
@@ -253,18 +234,10 @@ class AddressSpace(AddressLogicRoot):
 
 
 
-    def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
-        from .RegSpace import RegSpace
 
-        u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
-        u_ss.offset = offset
-        u_ss.father = self 
-        return u_ss
-    
-    def addrspace(self, sub_space, offset, name):
-        self.add(sub_space, offset, name)
-        return self
 
+
+    # report json ==========================================
     def report_json_core(self):
         json_dict={}
         json_dict["key"]        = ADD_KEY()
@@ -286,10 +259,29 @@ class AddressSpace(AddressLogicRoot):
 
 
 
-    def generate(self):
+    def generate(self,path=None):
+        if path != None:
+            self.path = path
         #for sub_space in self.sub_space_list:
         #    sub_space.report_rtl()
         self.report_ral_model()
         self.report_chead()
         self.report_vhead()
         self.report_json()
+
+
+
+
+
+    def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
+        from .RegSpace import RegSpace
+
+        u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
+        u_ss.offset = offset
+        u_ss.father = self 
+        return u_ss
+    
+    def addrspace(self, sub_space, offset, name):
+        self.add(sub_space, offset, name)
+        return self
+

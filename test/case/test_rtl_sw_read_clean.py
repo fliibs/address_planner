@@ -17,7 +17,7 @@ def test_sw_read_clean_apb():
 
     reg_bank_D.add_incr(reg_B,'reg0')
     reg_bank_D.add(reg_B,32,'reg1')
-    reg_bank_D.report_rtl()
+    reg_bank_D.generate('build/test')
 
 
 def test_sw_read_clean_vr():
@@ -33,7 +33,7 @@ def test_sw_read_clean_vr():
     reg_bank_D.add_incr(reg_B,'reg0')
     reg_bank_D.add(reg_B,32,'reg1')
     # reg_bank_D.path = ('build/test/')
-    reg_bank_D.report_rtl()
+    reg_bank_D.generate('build/test')
 
 
 if __file__ == '__main__':

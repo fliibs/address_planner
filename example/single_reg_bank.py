@@ -80,8 +80,8 @@ reg_bank_B.add_incr(reg_E,'reg1')
 
 
 # reg_bank_B.path = ('example_build/%s' % reg_bank_B.module_name)
-reg_bank_B.report_json()
-reg_bank_B.report_rtl()
+
+reg_bank_B.generate('build/example')
 # reg_bank_C.path = ('example_build/%s' % reg_bank_C.module_name)
 # reg_bank_C.report_json()
 # reg_bank_C.report_rtl()

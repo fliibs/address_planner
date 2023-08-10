@@ -15,9 +15,6 @@ class RegSpace(AddressSpace):
     def __str__(self) -> str:
         return self.module_name
 
-
-
-
     def add(self,sub_space,offset,name):
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = offset
@@ -71,8 +68,8 @@ class RegSpace(AddressSpace):
     def report_ral_model(self):
         output_path = self._ral_model_dir+'/'
         self.report_ral_model_core(output_path)
-        self.report_ral_model_define_core(output_path)
-        self.report_ral_model_csv_core(output_path)
+        #self.report_ral_model_define_core(output_path)
+        #self.report_ral_model_csv_core(output_path)
 
     def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
@@ -85,27 +82,27 @@ class RegSpace(AddressSpace):
             with open(path+file_name,'w') as f:
                 f.write(text)
     
-    def report_ral_model_define_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = output_dir+'/'
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_REG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
+    # def report_ral_model_define_core(self, output_dir):
+    #     if self.sub_space_list == []:
+    #         return []
+    #     else:
+    #         file_name = 'ral_block_'+self.module_name+'_define.v'
+    #         path = output_dir+'/'
+    #         os.makedirs(os.path.dirname(path), exist_ok=True)
+    #         text = self.report_from_template(APG_REG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
+    #         with open(path+file_name,'w') as f:
+    #             f.write(text)
 
-    def report_ral_model_csv_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = self.module_name+'.csv'
-            path = output_dir+'/'
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_REG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
+    # def report_ral_model_csv_core(self, output_dir):
+    #     if self.sub_space_list == []:
+    #         return []
+    #     else:
+    #         file_name = self.module_name+'.csv'
+    #         path = output_dir+'/'
+    #         os.makedirs(os.path.dirname(path), exist_ok=True)
+    #         text = self.report_from_template(APG_REG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
+    #         with open(path+file_name,'w') as f:
+    #             f.write(text)
     
     # def report_json_core(self, output_dir='.'):
     #     json_list=[]
@@ -154,8 +151,8 @@ class RegSpace(AddressSpace):
         self.father.add(self, self.offset, self.module_name)
         return self.father
 
-    def generate(self):
-        super.generate()
+    def generate(self, path=None):
+        super().generate(path)
         self.report_rtl()
 
 

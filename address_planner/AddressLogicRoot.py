@@ -55,7 +55,7 @@ class AddressLogicRoot(object):
         if self.father is not None:
             return self.father.output_path
         else:
-            return os.path.join(self.global_path,'build/'+self.module_name)
+            return os.path.join(self.global_path,self.module_name)
     #########################################################################################
     # file path definition
     #########################################################################################

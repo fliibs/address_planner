@@ -24,8 +24,7 @@ def test_regbank():
     #add reg0 and reg1(inst from reg_B) to reg_bank_B
     reg_bank_B.add_incr(reg_B,'reg0')
     reg_bank_B.add_incr(reg_B,'reg1')
-    # reg_bank_B.path = ('build/test/')
-    reg_bank_B.report_rtl()
+    reg_bank_B.generate('build/test')
 
 
 if __file__ == '__main__':
