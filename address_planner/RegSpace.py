@@ -39,13 +39,13 @@ class RegSpace(AddressSpace):
     # output generate
     #########################################################################################
 
-    def report_html(self):
-        text = self.report_from_template(APG_HTML_FILE_REG_SPACE)
-        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
-        with open(self.html_path,'w') as f:
-            f.write(text)
-        for ss in self.sub_space_list:
-            ss.report_html()
+    # def report_html(self):
+    #     text = self.report_from_template(APG_HTML_FILE_REG_SPACE)
+    #     os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
+    #     with open(self.html_path,'w') as f:
+    #         f.write(text)
+    #     for ss in self.sub_space_list:
+    #         ss.report_html()
 
     def report_chead_core(self):
         chead_name_list = [self.chead_name]
@@ -154,11 +154,9 @@ class RegSpace(AddressSpace):
         self.father.add(self, self.offset, self.module_name)
         return self.father
 
-    @property
     def generate(self):
+        super.generate()
         self.report_rtl()
-        self.report_json()
-        self.report_ral_model()
 
 
     

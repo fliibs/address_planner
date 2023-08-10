@@ -97,45 +97,15 @@ class AddressSpace(AddressLogicRoot):
     # output generate
     #########################################################################################
 
+    # def report_html(self):
+    #     text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
+    #     os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
+    #     with open(self.html_path,'w') as f:
+    #         f.write(text)
+    #     #for ss in self.sub_space_list:
+    #     #    ss.report_html()
 
-
-    def report_html(self):
-        text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
-        os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
-        with open(self.html_path,'w') as f:
-            f.write(text)
-        for ss in self.sub_space_list:
-            ss.report_html()
-
-    def report_chead(self):
-        chead_name_list = self.report_chead_core()
-        with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
-            for chead_name in chead_name_list:
-                f.write("#include \"%s\"\n" % chead_name)
-
-    def report_ral_model(self, output_dir='ral_model'):
-        if self.sub_space_list == []:
-            return []
-        # for ss in self.sub_space_list:
-        #     ss.report_ral_model_core()
-        output_path = self.output_path+'/'+output_dir 
-        self.report_ral_model_core(output_path)
-        self.report_ral_model_define_core(output_path)
-        self.report_ral_model_csv_core(output_path)
-
-    def check_chead(self):
-        file_path = os.path.join(self._chead_dir,'all.h')
-        if os.system('gcc -include stdint.h %s' % file_path) !=0:
-            raise Exception('c head compile error.')
-
-
-    def report_vhead(self):
-        vhead_name_list = self.report_vhead_core()
-        with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
-            for vhead_name in vhead_name_list:
-                f.write("`include \"%s\"\n" % vhead_name)
-
-
+    # report C header file.==========================================
     def report_chead_core(self):
         if self.sub_space_list == []:
             return []
@@ -149,20 +119,28 @@ class AddressSpace(AddressLogicRoot):
                 chead_name_list += ss.report_chead_core()
             return chead_name_list
 
+    def report_chead(self):
+        chead_name_list = self.report_chead_core()
+        with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
+            for chead_name in chead_name_list:
+                f.write("#include \"%s\"\n" % chead_name)
 
-    def report_vhead_core(self):
-        if self.sub_space_list == []:
-            return []
-        else:
-            vhead_name_list = [self.vhead_name]
-            text = self.report_from_template(APG_VHEAD_FILE_ADDR_SPACE,{'head_type':'v'})
-            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
-            with open(self.vhead_path,'w') as f:
-                f.write(text)
-            for ss in self.sub_space_list:
-                vhead_name_list += ss.report_vhead_core()
-            return vhead_name_list
-        
+    def check_chead(self):
+        file_path = os.path.join(self._chead_dir,'all.h')
+        if os.system('gcc -include stdint.h %s' % file_path) !=0:
+            raise Exception('c head compile error.')
+
+    # report ral model.==============================================
+    def report_ral_model(self, output_dir='ral_model'):
+        #if self.sub_space_list == []:
+        #    return []
+        # for ss in self.sub_space_list:
+        #     ss.report_ral_model_core()
+        output_path = self.output_path+'/'+output_dir 
+        self.report_ral_model_core(output_path)
+        #self.report_ral_model_define_core(output_path)
+        #self.report_ral_model_csv_core(output_path)
+
     def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
             return []
@@ -201,6 +179,35 @@ class AddressSpace(AddressLogicRoot):
 
 
 
+    # report ral model.==============================================
+
+
+
+    def report_vhead(self):
+        vhead_name_list = self.report_vhead_core()
+        with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
+            for vhead_name in vhead_name_list:
+                f.write("`include \"%s\"\n" % vhead_name)
+
+
+
+
+
+    def report_vhead_core(self):
+        if self.sub_space_list == []:
+            return []
+        else:
+            vhead_name_list = [self.vhead_name]
+            text = self.report_from_template(APG_VHEAD_FILE_ADDR_SPACE,{'head_type':'v'})
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            with open(self.vhead_path,'w') as f:
+                f.write(text)
+            for ss in self.sub_space_list:
+                vhead_name_list += ss.report_vhead_core()
+            return vhead_name_list
+        
+
+
 
 
 
@@ -235,18 +242,13 @@ class AddressSpace(AddressLogicRoot):
         if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
         with open(self.json_path, 'w') as f:
             f.write(jtext)
-        shutil.copy(self.json_path, "./reactdemo2/src/data.json")
 
 
 
-    @property
     def generate(self):
-        for sub_space in self.sub_space_list:
-            sub_space.report_rtl()
-        json_list =[sub_space.report_json_core() for sub_space in self.sub_space_list]
-        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
-        with open(self.json_path, 'w') as f:
-            f.write(jtext)
-        shutil.copy(self.json_path, "./reactdemo2/src/data.json")
+        #for sub_space in self.sub_space_list:
+        #    sub_space.report_rtl()
         self.report_ral_model()
+        self.report_chead()
+        self.report_vhead()
+        self.report_json()
