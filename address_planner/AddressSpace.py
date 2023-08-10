@@ -113,12 +113,12 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
-    def report_ral_model(self, output_dir='ral_model'):
+    def report_ral_model(self):
         if self.sub_space_list == []:
             return []
         # for ss in self.sub_space_list:
         #     ss.report_ral_model_core()
-        output_path = self.output_path+'/'+output_dir 
+        output_path = self._ral_model_dir+'/' 
         self.report_ral_model_core(output_path)
         self.report_ral_model_define_core(output_path)
         self.report_ral_model_csv_core(output_path)
@@ -167,7 +167,7 @@ class AddressSpace(AddressLogicRoot):
         if self.sub_space_list == []:
             return []
         else:
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             for ss in self.sub_space_list:
                 file_name = 'ral_block_'+ss.module_name+'.sv'
                 os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -180,7 +180,7 @@ class AddressSpace(AddressLogicRoot):
             return []
         else:
             file_name = 'ral_block_'+self.module_name+'_define.v'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
             with open(path+file_name,'w') as f:
@@ -191,7 +191,7 @@ class AddressSpace(AddressLogicRoot):
             return []
         else:
             file_name = self.module_name+'.csv'
-            path = output_dir+self.module_name+'/'
+            path = output_dir+'/'
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
             

@@ -68,8 +68,8 @@ class RegSpace(AddressSpace):
         return vhead_name_list
     
     
-    def report_ral_model(self, output_dir='ral_model'):
-        output_path = self.output_path+'/'+output_dir 
+    def report_ral_model(self):
+        output_path = self._ral_model_dir+'/'
         self.report_ral_model_core(output_path)
         self.report_ral_model_define_core(output_path)
         self.report_ral_model_csv_core(output_path)
@@ -130,7 +130,7 @@ class RegSpace(AddressSpace):
 
     def report_rtl(self):
         component = RegSpaceRTL(self).u
-        component.output_dir = self.output_path+"/rtl"
+        component.output_dir = self._rtl_dir
         component.generate_verilog(iteration=True)
         component.generate_filelist()
         component.run_lint()

@@ -71,7 +71,14 @@ class AddressLogicRoot(object):
     @property
     def _html_dir(self):
         return os.path.join(self.output_path+'/html')
-
+    
+    @property
+    def _rtl_dir(self):
+        return os.path.join(self.output_path+'/rtl')
+    
+    @property
+    def _ral_model_dir(self):
+        return os.path.join(self.output_path+'/ral_model')
 
 
     @property
@@ -113,10 +120,12 @@ class AddressLogicRoot(object):
         if os.path.exists(self.path):       shutil.rmtree(self.path)
 
     def build_dir(self):
-        if not os.path.exists(self.path):       os.makedirs(self.path)
-        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
-        if not os.path.exists(self._chead_dir): os.makedirs(self._chead_dir) 
-        if not os.path.exists(self._vhead_dir): os.makedirs(self._vhead_dir) 
+        # if not os.path.exists(self.path):       os.makedirs(self.path)
+        if not os.path.exists(self._html_dir):          os.makedirs(self._html_dir) 
+        if not os.path.exists(self._chead_dir):         os.makedirs(self._chead_dir) 
+        if not os.path.exists(self._vhead_dir):         os.makedirs(self._vhead_dir) 
+        if not os.path.exists(self._rtl_dir):           os.makedirs(self._rtl_dir)
+        if not os.path.exists(self._ral_model_dir):     os.makedirs(self._ral_model_dir)    
 
     def report_from_template(self,template,extra_in_namespace={}):
         env = Environment(loader=PackageLoader('address_planner','report_template'))
