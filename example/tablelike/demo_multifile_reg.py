@@ -3,6 +3,8 @@ import os,sys
 sys.path.append(os.getcwd())
 from address_planner import * # pylint: disable=unused-wildcard-import
 
+sys.path.append(os.getcwd()+'/example/tablelike')
+
 # use "import_inst" to import register instance.
 # file_path   : file path of ip.
 # module_name : register instance list which will import to python file.
