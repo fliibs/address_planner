@@ -33,7 +33,7 @@ git submodule update --init --recursive
     from address_planner import *
     
 3. add regbank like filling in the form 
-(reference example in ./example/test_addrspace.py) 
+(reference example in ./example/demo_addrspace.py) 
     
 ```
 
