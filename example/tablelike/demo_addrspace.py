@@ -27,8 +27,7 @@ AddressSpace                (name="address_space_test", size=10*KB) \
             .field          (name='field1',     bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied1, software write only.', offset=3) \
             .field          (name='field2',     bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied2, software read write.', offset=5)\
         .end \
-    .end
-
-res.generate('build/example')
+    .end \
+    .generate('build/example')
 
 

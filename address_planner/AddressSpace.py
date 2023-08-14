@@ -161,26 +161,32 @@ class AddressSpace(AddressLogicRoot):
 
     # report ral model.==============================================
     def report_ral_model(self, output_dir='ral_model'):
-        #if self.sub_space_list == []:
-        #    return []
-        # for ss in self.sub_space_list:
-        #     ss.report_ral_model_core()
-        output_path = self.output_path+'/'+output_dir 
-        self.report_ral_model_core(output_path)
+
+        output_path = self.output_path+'/'+output_dir
+        self.recursive_report_ral_model_core(output_path)
+        # self.report_ral_model_core(output_path)
         #self.report_ral_model_define_core(output_path)
         #self.report_ral_model_csv_core(output_path)
 
-    def report_ral_model_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            path = output_dir+'/'
-            for ss in self.sub_space_list:
-                file_name = 'ral_block_'+ss.module_name+'.sv'
-                os.makedirs(os.path.dirname(path), exist_ok=True)
-                text = ss.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
-                with open(path+file_name,'w') as f:
-                    f.write(text)
+    def recursive_report_ral_model_core(self, output_dir):
+        for ss in self.sub_space_list:
+            if hasattr(ss,'report_ral_model_core'):
+                ss.report_ral_model_core(output_dir)
+            else:
+                ss.recursive_report_ral_model_core(output_dir)
+
+
+    # def report_ral_model_core(self, output_dir):
+    #     if self.sub_space_list == []:
+    #         return []
+    #     else:
+    #         path = output_dir+'/'
+    #         for ss in self.sub_space_list:
+    #             file_name = 'ral_block_'+ss.module_name+'.sv'
+    #             os.makedirs(os.path.dirname(path), exist_ok=True)
+    #             text = ss.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
+    #             with open(path+file_name,'w') as f:
+    #                 f.write(text)
     
     # def report_ral_model_define_core(self, output_dir):
     #     if self.sub_space_list == []:
@@ -229,10 +235,18 @@ class AddressSpace(AddressLogicRoot):
             return vhead_name_list
         
 
+    # report ralf ==============================================
+    def report_ralf(self, output_dir='ral_model'):
+        output_path = self._ralf_dir+'/'+output_dir
+        self.recursive_report_ralf_core(output_path)
 
 
-
-
+    def recursive_report_ralf_core(self, output_dir):
+        for ss in self.sub_space_list:
+            if hasattr(ss,'report_ralf_core'):
+                ss.report_ralf_core(output_dir)
+            else:
+                ss.recursive_report_ralf_core(output_dir)
 
 
 
@@ -268,6 +282,7 @@ class AddressSpace(AddressLogicRoot):
         self.report_chead()
         self.report_vhead()
         self.report_json()
+        self.report_ralf()
 
 
 

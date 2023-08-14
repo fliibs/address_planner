@@ -71,6 +71,23 @@ class RegSpace(AddressSpace):
         #self.report_ral_model_define_core(output_path)
         #self.report_ral_model_csv_core(output_path)
 
+    def report_ralf(self):
+        output_path = self._ralf_dir+'/'
+        self.report_ralf_core(output_path)
+
+
+    def report_ralf_core(self, output_dir):
+        if self.sub_space_list == []:
+            return []
+        else:
+            file_name = 'ralf_'+self.module_name+'.ralf'
+            path = output_dir+'/'
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            text = self.report_from_template(APG_REG_RALF_FILE_REG_SPACE, {'head_type':'ralf'})
+            with open(path+file_name,'w') as f:
+                f.write(text)
+
+
     def report_ral_model_core(self, output_dir):
         if self.sub_space_list == []:
             return []
@@ -81,6 +98,7 @@ class RegSpace(AddressSpace):
             text = self.report_from_template(APG_REG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
             with open(path+file_name,'w') as f:
                 f.write(text)
+
     
     # def report_ral_model_define_core(self, output_dir):
     #     if self.sub_space_list == []:
@@ -123,6 +141,7 @@ class RegSpace(AddressSpace):
     #     json_name = self.module_name+'.json'
     #     with open(output_dir+'/'+json_name, 'w') as f:
     #         f.write(jtext)
+
 
 
     def report_rtl(self):

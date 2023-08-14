@@ -5,12 +5,13 @@ import math
 
 class Register(RegSpace):
 
-    def __init__(self,name,bit=32,description='',bus_width=APG_BUS_WIDTH):
+    def __init__(self,name,bit=32,description='',bus_width=APG_BUS_WIDTH,reg_type=Normal):
         size = math.ceil(bit/bus_width)
         super().__init__(name=name, size=size, description=description, path='./', bus_width=bus_width)
         self.bit            = bit
         self._next_offset   = 0
         self.field_list     = []
+        self.reg_type       = Normal
 
     def add(self,field,offset=0,name=None):
         field.bit_offset    = offset
@@ -91,12 +92,19 @@ class Register(RegSpace):
     
     @property
     def hex_offset(self):
-        hex_value = hex(self.offset-self.father.offset)
+        hex_value = hex(self.reg_offset)
+        print(self.father.module_name, self.offset, self.father.offset)
         if hex_value == '0x0':
             return '%d\'h0'%(self.bit)
         else:
             return '\'h'+hex_value.lstrip('0x')
 
+    @property
+    def reg_offset(self):
+        if self.start_address < self.father.offset:
+            return self.start_address
+        else:
+            return self.start_address - self.father.offset
 
     #########################################################################################
     # output generate

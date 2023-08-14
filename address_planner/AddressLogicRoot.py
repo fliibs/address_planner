@@ -80,6 +80,9 @@ class AddressLogicRoot(object):
     def _ral_model_dir(self):
         return os.path.join(self.output_path+'/ral_model')
 
+    @property
+    def _ralf_dir(self):
+        return os.path.join(self.output_path+'/ralf')
 
     @property
     def html_path(self):
