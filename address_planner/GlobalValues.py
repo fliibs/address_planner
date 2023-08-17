@@ -21,7 +21,7 @@ APG_REG_RALF_FILE_REG_SPACE         = 'ralf.j2'
 
 KB = 1024 * 8
 MB = 1024 * 1024 * 8
-GB = 1024 * 1024 * 1024
+GB = 1024 * 1024 * 1024 * 8
 
 # @unique
 # class FieldSoftwareAccess(Enum):
