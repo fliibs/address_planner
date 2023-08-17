@@ -88,6 +88,11 @@ class RegSpaceBase(Component):
                 if isinstance(field, FilledField):
                     rdat_list.append(UInt(field.bit,0))
                 # External Register Software Access
+                elif field.reserved:
+                    rdat_list.append(UInt(field.bit,0))
+                elif not (field.field_reg_read or field.field_reg_write):
+                    rdat_list.append(UInt(field.bit,field.init_value))
+
                 elif field.is_external:
                     field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
                     if get_sw_readable(self._cfg.sub_space_list):
@@ -183,16 +188,17 @@ class RegSpaceBase(Component):
                         
                         field_hw_rdat += field_reg
                         
+                    
                     if field.sw_readable:
                         if field.sw_read_clean:
                             reg_val.when(reg_rvld).then(UInt(field.bit,0))
                         elif field.sw_read_set:
-                            reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))                  
+                            reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))   
                         rdat_list.append(field_reg)
                     else:
                         rdat_list.append(UInt(field.bit,0))
 
-                    # if (field.sw_writeable and field.is_external) or field.hw_writeable:
+
                     field_reg += reg_val
                                     
             if get_sw_readable(self._cfg.sub_space_list):

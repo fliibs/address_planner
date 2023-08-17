@@ -275,9 +275,24 @@ class FieldRoot(AddressLogicRoot):
                self.hw_access == WriteOnlyOnce
 
 
+    ############## Hardware Type ##############
 
+    @property
+    def reserved(self):
+        return self.hw_access == Null and \
+               self.sw_access == Null
 
-
+    @property
+    def field_reg_read(self):
+        return  self.sw_read_clean or \
+                self.sw_read_set or \
+                self.hw_read_clean or \
+                self.hw_read_set
+    
+    @property
+    def field_reg_write(self):
+        return  self.hw_writeable or \
+                self.sw_writeable
 
 
 

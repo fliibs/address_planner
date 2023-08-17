@@ -43,7 +43,7 @@ class ral_block_{{space.module_name}} extends uvm_reg_block;
         {{ss.module_name}} = uvm_reg_{{ss.module_name}}::type_id::create("{{ss.module_name}}",,get_full_name());
         {{ss.module_name}}.configure(this, null, "");
         {{ss.module_name}}.build();
-        {{ss.module_name}}.add_hdl_path_slice("{{ss.module_name}}",{{ss.offset-space.offset}},{{ss.bit}});
+        {{ss.module_name}}.add_hdl_path_slice("{{ss.module_name}}",{{ss.reg_offset}},{{ss.bit}});
         default_map.add_reg({{ss.module_name}},`UVM_REG_{{ss.module_name | upper()}})
         {% endfor -%}
     endfunction : build 
