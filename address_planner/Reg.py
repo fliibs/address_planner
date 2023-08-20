@@ -93,7 +93,6 @@ class Register(RegSpace):
     @property
     def hex_offset(self):
         hex_value = hex(self.reg_offset)
-        print(self.father.module_name, self.offset, self.father.offset)
         if hex_value == '0x0':
             return '%d\'h0'%(self.bit)
         else:
