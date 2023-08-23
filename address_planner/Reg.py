@@ -68,11 +68,13 @@ class Register(RegSpace):
     def filled_field_list(self):
         res = []
         previous_field = None
-        if self.field_list[0].bit_offset != 0:
-                filled_field = FilledField(bit=self.field_list[0].bit_offset)
+        sorted_field_list = sorted(self.field_list, key=lambda x: x.bit_offset)
+
+        if sorted_field_list[0].bit_offset != 0:
+                filled_field = FilledField(bit=sorted_field_list[0].bit_offset)
                 res.append(filled_field)
 
-        for field in self.field_list:
+        for field in sorted_field_list:
             if previous_field != None and field.start_bit > previous_field.end_bit + 1:
 
                 filled_field = FilledField(bit=field.start_bit - previous_field.end_bit - 1)
@@ -82,7 +84,7 @@ class Register(RegSpace):
             res.append(field)
             previous_field = field
         
-        if self.field_list[-1].end_bit < 31:
+        if sorted_field_list[-1].end_bit < 31:
             filled_field = FilledField(32 - previous_field.end_bit - 1)
             filled_field.bit_offset = previous_field.end_bit + 1
             res.append(filled_field)
@@ -158,3 +160,9 @@ class Register(RegSpace):
         json_dict["fields"]     = [c.report_json_core() for c in self.field_list if c.report_json_core() is not Null]
         return json_dict
 
+
+
+field0 = [1]
+field1 = [4]
+field2 = [2]
+field_list = [field0, field1,field2]
