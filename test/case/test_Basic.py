@@ -1,9 +1,7 @@
-
-
-from address_planner import * # pylint: disable=unused-wildcard-import
-import address_planner
 import sys
-sys.path.append('./submodules')
+sys.path.append('.')
+from address_planner import * # pylint: disable=unused-wildcard-import
+
 
 def test_smoke():
     assert True
@@ -121,3 +119,6 @@ def test_Top():
     top = AddressSpace(name='top',size=4*MB,description='demo top.')
     top.add_incr(sys0,name='sys0')
     top.add_incr(sys1,name='sys1')
+
+
+test_Top()

@@ -20,7 +20,7 @@ reg_C.add(ExternalField(name='field1',bit=1,sw_access=ReadWrite,hw_access=ReadOn
 reg_C.add(ExternalField(name='field2',bit=3,sw_access=ReadWrite,hw_access=ReadOnly,init_value=0,description='fied2, external hardware read write.'),offset=7)
 reg_C.add(ExternalField(name='field3',bit=4,sw_access=ReadWrite,hw_access=ReadOnly,init_value=0,description='fied3, external hardware read only.' ),offset=11)
 
-reg_bank_B.add(reg_B,32,'internal_reg')
-reg_bank_B.add(reg_C,96,'external_reg')
+reg_bank_B.add(reg_B,0x4,'internal_reg')
+reg_bank_B.add(reg_C,0xc,'external_reg')
 
 reg_bank_B.generate('build/example')
