@@ -19,9 +19,10 @@ APG_REG_RMDEFINE_FILE_REG_SPACE     = 'reg_ral_model_define.j2'
 APG_REG_RMCSV_FILE_REG_SPACE        = 'reg_ral_model_csv.j2'
 APG_REG_RALF_FILE_REG_SPACE         = 'ralf.j2'
 
-KB = 1024 * 8
-MB = 1024 * 1024 * 8
-GB = 1024 * 1024 * 1024 * 8
+B  = 1
+KB = 1024 * B
+MB = 1024 * KB
+GB = 1024 * MB
 
 # @unique
 # class FieldSoftwareAccess(Enum):

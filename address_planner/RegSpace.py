@@ -16,8 +16,12 @@ class RegSpace(AddressSpace):
         return self.module_name
 
     def add(self,sub_space,offset,name):
+        
+        bit_offset = offset*8
         sub_space_copy = deepcopy(sub_space)
-        sub_space_copy.offset = offset
+        print(offset, bit_offset, sub_space_copy.offset)
+        
+        sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
         sub_space_copy.module_name = name
         if not self.inclusion_detect(sub_space_copy):
@@ -29,7 +33,7 @@ class RegSpace(AddressSpace):
                     % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
         
-        self._next_offset = offset + sub_space.bit
+        self._next_offset = bit_offset + sub_space.bit
 
 
     #########################################################################################
@@ -154,20 +158,20 @@ class RegSpace(AddressSpace):
 
     def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH, offset=0):
         from .Reg import Register
-
+        bit_offset = offset*8
         u_reg = Register(name, bit, description, bus_width)
-        u_reg.offset = offset
+        u_reg.offset = bit_offset
         u_reg.father = self
         return u_reg
     
     def add_register(self, sub_space, offset, name):
-        self.add(sub_space, offset+self.offset, name)
+        self.add(sub_space, offset+int(self.offset/8), name)
         return self
     
 
     @property
     def end(self):
-        self.father.add(self, self.offset, self.module_name)
+        self.father.add(self, int(self.offset/8), self.module_name)
         return self.father
 
     def generate(self, path=None):

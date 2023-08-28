@@ -46,7 +46,7 @@ class AddressSpace(AddressLogicRoot):
 
     @property
     def end_address(self):
-        return self.offset + self.size - 1
+        return self.offset + self.size*8 - 1
 
     @property
     def hex_offset(self):
@@ -59,8 +59,9 @@ class AddressSpace(AddressLogicRoot):
 
 
     def add(self,sub_space,offset,name):
+        bit_offset = offset*8
         sub_space_copy = deepcopy(sub_space)
-        sub_space_copy.offset = offset
+        sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
         sub_space_copy.module_name = name
         if not self.inclusion_detect(sub_space_copy):
@@ -72,7 +73,7 @@ class AddressSpace(AddressLogicRoot):
                     % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
         
-        self._next_offset = offset + sub_space.size
+        self._next_offset = bit_offset + sub_space.size
 
 
     def add_incr(self,sub_space,name):
@@ -291,8 +292,9 @@ class AddressSpace(AddressLogicRoot):
     def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace
 
+        bit_offset = offset*8
         u_ss = RegSpace(name=name, size=size, description=description, path=path, bus_width=bus_width, software_interface=software_interface)
-        u_ss.offset = offset
+        u_ss.offset = bit_offset
         u_ss.father = self 
         return u_ss
     

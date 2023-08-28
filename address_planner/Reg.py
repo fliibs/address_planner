@@ -141,7 +141,7 @@ class Register(RegSpace):
     
     @property
     def end(self):
-        self.father.add(self, self.father.offset+self.offset, self.module_name)
+        self.father.add(self, int((self.father.offset+self.offset)/8), self.module_name)
         return self.father
     
     def report_json_core(self):
@@ -161,8 +161,3 @@ class Register(RegSpace):
         return json_dict
 
 
-
-field0 = [1]
-field1 = [4]
-field2 = [2]
-field_list = [field0, field1,field2]
