@@ -109,11 +109,11 @@ Parameter:
 
 1. AddressSpace
     name: name of AddressSpace
-    size: boundry of regbanks
+    size: boundry of regbanks(Byte)
 
 2. regSpace:
     name:               name of regbank and also the rtl file name
-    size:               boundry of a regbank
+    size:               boundry of a regbank(Byte)
     description
     software_interface: "vr" for valid ready interface and "apb" for apb interface
 
