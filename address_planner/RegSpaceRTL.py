@@ -276,15 +276,17 @@ class RegSpaceAPB(Component):
         self.p_ready_r += ready_ff
         self.p.ready   += self.p_ready_r
 
+
+        io_1 = self.rs.get_io("reg0_field10_wdat")
         for sub_space in cfg.sub_space_list:
             for field in sub_space.filled_field_list:
                  if isinstance(field, FilledField):
                     pass
                  else:
                     # Internal Hardware Field
-                    self.expose_io(self.rs.get_io("%s_%s"% (sub_space.module_name, field.name)))
+                    self.expose_io(self.rs.get_io("%s_%s_"% (sub_space.module_name, field.name)))
                     # Software External Field
-                    self.expose_io(self.rs.get_io("%s_sw_%s"% (sub_space.module_name, field.name)))
+                    self.expose_io(self.rs.get_io("%s_sw_%s_"% (sub_space.module_name, field.name)))
                     
 
 
