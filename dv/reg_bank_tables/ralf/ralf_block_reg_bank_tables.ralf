@@ -1,0 +1,52 @@
+block reg_bank_tables {
+    bytes 1024;
+    register internal_reg @'h20 {
+        bytes 4;
+        field field0 @0 {
+            bits 1;
+            access ro;
+            reset 0;
+        }
+        field field1 @1 {
+            bits 2;
+            access wo;
+            reset 0;
+        }
+        field field2 @3 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+        field field3 @6 {
+            bits 3;
+            access rw;
+            reset 0;
+        }
+        
+    }
+    register external_reg @'h60 {
+        bytes 4;
+        field field0 @1 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+        field field1 @3 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+        field field2 @7 {
+            bits 3;
+            access rw;
+            reset 0;
+        }
+        field field3 @11 {
+            bits 4;
+            access rw;
+            reset 0;
+        }
+        
+    }
+    
+}

@@ -1,0 +1,3 @@
+Command Line: /home/liuyunqi/software/vcs_2016/linux64/bin/elabcom -logdir simv.daidir/elabcomLog -simvdaidir simv.daidir -lib simv.daidir/work -elab simv.daidir/kdb -simflow -top tb_top  -Lf work
+uname(Linux YunqiLaptop 5.15.90.1-microsoft-standard-WSL2 #1 SMP Fri Jan 27 02:56:13 UTC 2023 x86_64)
+au time 0.366467 0.195250 0.078761 delta 246587392 246587392 total 304844800 304844800

@@ -1,0 +1,67 @@
+{
+    "yuu_apb_slave_interface": [
+        "yuu_apb_slave_interface",
+        "uCIdM",
+        "module"
+    ],
+    "_vcs_unit__2407097312": [
+        "_vcs_unit__2407097312",
+        "s3iwn",
+        "module"
+    ],
+    "yuu_apb_interface_0000": [
+        "yuu_apb_interface_0000",
+        "m67s2",
+        "module"
+    ],
+    "_vcs_DPI_package": [
+        "_vcs_DPI_package",
+        "uM9F1",
+        "module"
+    ],
+    "yuu_apb_master_interface": [
+        "yuu_apb_master_interface",
+        "G2ZyA",
+        "module"
+    ],
+    "vcs_paramclassrepository": [
+        "vcs_paramclassrepository",
+        "hEeZs",
+        "module"
+    ],
+    "std": [
+        "std",
+        "reYIK",
+        "module"
+    ],
+    "yuu_amba_pkg": [
+        "yuu_amba_pkg",
+        "J9Vcb",
+        "module"
+    ],
+    "yuu_apb_pkg": [
+        "yuu_apb_pkg",
+        "nUJTZ",
+        "module"
+    ],
+    "uvm_pkg": [
+        "uvm_pkg",
+        "zr7M1",
+        "module"
+    ],
+    "yuu_common_pkg": [
+        "yuu_common_pkg",
+        "Z3CIs",
+        "module"
+    ],
+    "tb_top": [
+        "tb_top",
+        "jdPWL",
+        "module"
+    ],
+    "...MASTER...": [
+        "SIM",
+        "amcQw",
+        "module"
+    ]
+}
