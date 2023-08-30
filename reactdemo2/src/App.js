@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {Layout, Space, Switch, Table } from 'antd';
-let bank_data_json = require('./reg_data.json');
+let bank_data_json = require('./data.json');
 let bank_column_json = require('./bank_column.json');
 let field_column_json = require('./field_column.json');
 

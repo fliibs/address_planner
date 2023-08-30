@@ -268,7 +268,7 @@ class RegSpaceAPB(Component):
 
         self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
 
-        self.p_wready       += self.rs.wreq_rdy
+        self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
        
             
         ready_ff = EmptyWhen()

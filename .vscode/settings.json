@@ -10,5 +10,36 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestArgs": [
         "test"
-    ]
+    ],
+    "files.associations": {
+        "*.vams": "systemverilog",
+        "*.o": "so",
+        "*.pslvhdl": "vhdl",
+        "*.v": "systemverilog",
+        "*.so": "so",
+        "*.vsh": "systemverilog",
+        "*.cc": "cpp",
+        "*.sv": "systemverilog",
+        "*.sln": "sln",
+        "*.vhd": "vhdl",
+        "*.vhdl": "vhdl",
+        "*.sdl": "sdl",
+        "*.vh": "systemverilog",
+        "*.svh": "systemverilog",
+        "*.cpp": "cpp",
+        "*.cxx": "cpp",
+        "*.sva": "systemverilog",
+        "*.vp": "systemverilog",
+        "*.svp": "systemverilog",
+        "*.vs": "systemverilog",
+        "*.hpp": "cpp",
+        "*.svi": "systemverilog",
+        "*.v95": "systemverilog",
+        "*.v95p": "systemverilog",
+        "*.a": "so",
+        "*.pss": "pss",
+        "*.c": "cpp",
+        "*.e": "elang",
+        "*.h": "cpp"
+    }
 }

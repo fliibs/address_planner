@@ -1,0 +1,287 @@
+{
+    "CompileStatus": "Successful",
+    "MlibObjs": {},
+    "PEModules": [],
+    "PrevCompiledModules": {
+        "tb_top": {
+            "jdPWL_d": {
+                "mode": 4,
+                "bytes": 51101,
+                "mod": "tb_top",
+                "out": "jdPWL_d.o",
+                "archive": "archive.4/_24386_archive_1.a",
+                "checksum": 0
+            }
+        },
+        "yuu_apb_interface_0000": {
+            "m67s2_d": {
+                "mode": 4,
+                "bytes": 45006,
+                "mod": "yuu_apb_interface_0000",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "m67s2_d.o"
+            }
+        },
+        "uvm_pkg": {
+            "zr7M1_d": {
+                "mode": 4,
+                "bytes": 4507195,
+                "mod": "uvm_pkg",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "zr7M1_d.o"
+            }
+        },
+        "vcs_paramclassrepository": {
+            "hEeZs_d": {
+                "mode": 4,
+                "bytes": 5745979,
+                "mod": "vcs_paramclassrepository",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "hEeZs_d.o"
+            }
+        },
+        "yuu_apb_pkg": {
+            "nUJTZ_d": {
+                "mode": 4,
+                "bytes": 1081500,
+                "mod": "yuu_apb_pkg",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "nUJTZ_d.o"
+            }
+        },
+        "std": {
+            "reYIK_d": {
+                "mode": 4,
+                "bytes": 34323,
+                "mod": "std",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "reYIK_d.o"
+            }
+        },
+        "_vcs_DPI_package": {
+            "uM9F1_d": {
+                "mode": 4,
+                "bytes": 9232,
+                "mod": "_vcs_DPI_package",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "uM9F1_d.o"
+            }
+        },
+        "yuu_amba_pkg": {
+            "J9Vcb_d": {
+                "mode": 4,
+                "bytes": 295695,
+                "mod": "yuu_amba_pkg",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "J9Vcb_d.o"
+            }
+        },
+        "_vcs_unit__2407097312": {
+            "s3iwn_d": {
+                "mode": 4,
+                "bytes": 181398,
+                "mod": "_vcs_unit__2407097312",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "s3iwn_d.o"
+            }
+        },
+        "yuu_common_pkg": {
+            "Z3CIs_d": {
+                "mode": 4,
+                "bytes": 61311,
+                "mod": "yuu_common_pkg",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "Z3CIs_d.o"
+            }
+        },
+        "...MASTER...": {
+            "amcQw_d": {
+                "mode": 4,
+                "bytes": 8681,
+                "mod": "...MASTER...",
+                "checksum": 0,
+                "out": "objs/amcQw_d.o"
+            }
+        },
+        "yuu_apb_master_interface": {
+            "G2ZyA_d": {
+                "mode": 4,
+                "bytes": 60591,
+                "mod": "yuu_apb_master_interface",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "G2ZyA_d.o"
+            }
+        },
+        "yuu_apb_slave_interface": {
+            "uCIdM_d": {
+                "mode": 4,
+                "bytes": 48498,
+                "mod": "yuu_apb_slave_interface",
+                "archive": "archive.4/_prev_archive_1.a",
+                "checksum": 0,
+                "out": "uCIdM_d.o"
+            }
+        }
+    },
+    "CurCompileUdps": {},
+    "CurCompileModules": [
+        "...MASTER...",
+        "vcs_paramclassrepository",
+        "_vcs_DPI_package",
+        "_vcs_unit__2407097312",
+        "std",
+        "uvm_pkg",
+        "yuu_common_pkg",
+        "yuu_amba_pkg",
+        "yuu_apb_master_interface",
+        "yuu_apb_slave_interface",
+        "yuu_apb_interface_0000",
+        "yuu_apb_pkg",
+        "tb_top",
+        "tb_top"
+    ],
+    "NameTable": {
+        "_vcs_DPI_package": [
+            "_vcs_DPI_package",
+            "uM9F1",
+            "module"
+        ],
+        "yuu_amba_pkg": [
+            "yuu_amba_pkg",
+            "J9Vcb",
+            "module"
+        ],
+        "vcs_paramclassrepository": [
+            "vcs_paramclassrepository",
+            "hEeZs",
+            "module"
+        ],
+        "_vcs_unit__2407097312": [
+            "_vcs_unit__2407097312",
+            "s3iwn",
+            "module"
+        ],
+        "yuu_apb_pkg": [
+            "yuu_apb_pkg",
+            "nUJTZ",
+            "module"
+        ],
+        "std": [
+            "std",
+            "reYIK",
+            "module"
+        ],
+        "yuu_apb_interface_0000": [
+            "yuu_apb_interface_0000",
+            "m67s2",
+            "module"
+        ],
+        "uvm_pkg": [
+            "uvm_pkg",
+            "zr7M1",
+            "module"
+        ],
+        "...MASTER...": [
+            "SIM",
+            "amcQw",
+            "module"
+        ],
+        "yuu_apb_master_interface": [
+            "yuu_apb_master_interface",
+            "G2ZyA",
+            "module"
+        ],
+        "yuu_common_pkg": [
+            "yuu_common_pkg",
+            "Z3CIs",
+            "module"
+        ],
+        "yuu_apb_slave_interface": [
+            "yuu_apb_slave_interface",
+            "uCIdM",
+            "module"
+        ],
+        "tb_top": [
+            "tb_top",
+            "jdPWL",
+            "module"
+        ]
+    },
+    "CompileStrategy": "fullobj",
+    "stat": {
+        "Frontend(%)": 88.690910193129767,
+        "ru_childs_cgstart": {
+            "ru_utime_sec": 0.25579299999999999,
+            "ru_stime_sec": 0.062212999999999997,
+            "ru_maxrss_kb": 145008,
+            "ru_minflt": 10415,
+            "ru_nvcsw": 646,
+            "ru_majflt": 379,
+            "ru_nivcsw": 2
+        },
+        "ru_self_cgstart": {
+            "ru_utime_sec": 5.8813079999999998,
+            "ru_stime_sec": 0.35584300000000002,
+            "ru_maxrss_kb": 225524,
+            "ru_minflt": 66457,
+            "ru_nvcsw": 1981,
+            "ru_majflt": 1146,
+            "ru_nivcsw": 26
+        },
+        "nQuads": 129844,
+        "ru_childs_end": {
+            "ru_utime_sec": 0.25834600000000002,
+            "ru_stime_sec": 0.062212999999999997,
+            "ru_maxrss_kb": 225524,
+            "ru_minflt": 10633,
+            "ru_nvcsw": 650,
+            "ru_majflt": 383,
+            "ru_nivcsw": 2
+        },
+        "quadSpeed": 173140.80057818489,
+        "nMops": 352390,
+        "ru_self_end": {
+            "ru_utime_sec": 6.6312410000000002,
+            "ru_stime_sec": 0.39530500000000002,
+            "ru_maxrss_kb": 227440,
+            "ru_minflt": 67280,
+            "ru_nvcsw": 2041,
+            "ru_majflt": 1232,
+            "ru_nivcsw": 27
+        },
+        "totalObjSize": 407766,
+        "mopSpeed": 469895.31064775097,
+        "mop/quad": 2.7139490465481657,
+        "CodeGen(%)": 11.309089806870242,
+        "outputSizePerQuad": 3.0
+    },
+    "SIMBData": {
+        "out": "amcQwB.o",
+        "bytes": 356433
+    },
+    "Misc": {
+        "cwd": "/home/liuyunqi/huangtao/ap/dv",
+        "csrc": "csrc",
+        "daidir_abs": "/home/liuyunqi/huangtao/ap/dv/simv.daidir",
+        "csrc_abs": "/home/liuyunqi/huangtao/ap/dv/csrc",
+        "daidir": "simv.daidir",
+        "default_output_dir": "csrc",
+        "archive_dir": "archive.4"
+    },
+    "LVLData": [
+        "SIM"
+    ],
+    "CompileProcesses": [
+        "cgproc.24386.json"
+    ]
+}
