@@ -11,15 +11,15 @@ AnnotationShow = 0
 powerDumped = 0
 [hb]
 postSimFile = /home/liuyunqi/huangtao/ap/dv/novas.fsdb
-syncTime = 1399588.235
-viewport = 0 0 1908 1007 627 410 61 944
+syncTime = 0
+viewport = 0 0 1908 1007 627 442 93 944
 activeNode = "tb_top.u_dut"
 activeScope = "tb_top.u_dut"
 activeFile = "./reg_bank_tables/rtl/RegSpaceAPB_cfg_reg_bank_tables/RegSpaceAPB_cfg_reg_bank_tables.v"
 interactiveMode = False
 viewType = Source
 simulatorMode = False
-sourceBeginLine = 82
+sourceBeginLine = 0
 baMode = False
 srcLineNum = True
 syncSignal = False
@@ -33,15 +33,14 @@ traceIncTopPort = False
 leadingZero = False
 signalPane = False
 Scope1 = "tb_top.u_dut"
-Scope2 = "tb_top.u_dut.rs"
-Scope3 = "tb_top"
-rangeSelection = 100 100 1 9 1 1
+Scope2 = "tb_top"
+multipleSelection = 13 1 2 0 0 2 3 0 0 3 3 0 0 4 9 0 0 5 9 0 0 6 3 0 0 7 3 0 0 8 3 0 0 9 9 0 0 10 9 0 0 11 3 0 0 12 9 0 0 13 3 0 0
 sdfCheckUndef = FALSE
 simFlow = FALSE
 [hb.sourceTab.1]
 scope = tb_top.u_dut
 File = /home/liuyunqi/huangtao/ap/dv/reg_bank_tables/rtl/RegSpaceAPB_cfg_reg_bank_tables/RegSpaceAPB_cfg_reg_bank_tables.v
-Line = 83
+Line = 1
 [imp.design1]
 dbEnum =  oh
 invokeDir = /home/liuyunqi/huangtao/ap/dv
@@ -54,7 +53,7 @@ FsdbFile = /home/liuyunqi/huangtao/ap/dv/novas.fsdb
 UserActionNum = 0
 nMemWindowNum = 0
 [wave.0]
-viewPort = 0 28 1908 407 100 65
+viewPort = 0 28 1908 375 100 65
 SessionFile = /home/liuyunqi/huangtao/ap/dv/verdiLog/novas_autosave.ses.wave.0
 displayGrid = FALSE
 hierarchicalName = FALSE

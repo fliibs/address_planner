@@ -351,7 +351,7 @@ savePropStat = FALSE
 savePropDtl = TRUE
 [QtDialog]
 qWaveSignalDialog = 560,291,800,479
-QwUserAskDlg = 705,450,324,134
+QwUserAskDlg = 711,477,324,134
 [Relationship]
 hideRecursiceNode = FALSE
 [Session Cache]
@@ -636,7 +636,7 @@ scope_to_save_with_macro
 open_file_dir
 open_rc_file_dir
 getSignalForm = 560 291 800 479 212 381 534 183
-viewPort = 0 28 1908 407 100 65
+viewPort = 0 28 1908 375 100 65
 signalSpacing = 5
 digitalSignalHeight = 15
 analogSignalHeight = 98
@@ -1148,7 +1148,7 @@ AddImportArgument = FALSE
 LineBreakWithScope = TRUE
 StopAfterCompileOption = -s
 [wave.0]
-viewPort = 0 28 1908 407 100 65
+viewPort = 0 28 1908 375 100 65
 [wave.1]
 viewPort = 127 219 960 332 100 65
 [wave.2]
