@@ -1,0 +1,62 @@
+Command: ./simv +UVM_TESTNAME=sanity_test -l sanity_test.log
+Chronologic VCS simulator copyright 1991-2016
+Contains Synopsys proprietary information.
+Compiler version L-2016.06_Full64; Runtime version L-2016.06_Full64;  Aug 31 15:46 2023
+UVM_INFO /home/liuyunqi/software/vcs_2016/etc/uvm-1.2/base/uvm_root.svh(402) @ 0: reporter [UVM/RELNOTES] 
+----------------------------------------------------------------
+UVM-1.2.Synopsys
+(C) 2007-2014 Mentor Graphics Corporation
+(C) 2007-2014 Cadence Design Systems, Inc.
+(C) 2006-2014 Synopsys, Inc.
+(C) 2011-2013 Cypress Semiconductor Corp.
+(C) 2013-2014 NVIDIA Corporation
+----------------------------------------------------------------
+
+  ***********       IMPORTANT RELEASE NOTES         ************
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_NO_DEPRECATED undefined.
+  See http://www.eda.org/svdb/view.php?id=3313 for more details.
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+  See http://www.eda.org/svdb/view.php?id=3770 for more details.
+
+      (Specify +UVM_NO_RELNOTES to turn off this notice)
+
+*Verdi3* Loading libsscore_vcs201606.so
+*Verdi3* : FSDB_GATE is set.
+*Verdi3* : FSDB_RTL is set.
+*Verdi3* : Enable Parallel Dumping.
+FSDB Dumper for VCS, Release Verdi3_L-2016.06-1, Linux x86_64/64bit, 07/10/2016
+(C) 1996 - 2016 by Synopsys, Inc.
+*Verdi3* : Create FSDB file 'novas.fsdb'
+*Verdi3* : Begin traversing the scopes, layer (0).
+*Verdi3* : End of traversing.
+*Verdi3* : Create FSDB file 'tb_top.fsdb'
+UVM_INFO @ 0: reporter [RNTST] Running test sanity_test...
+UVM_INFO /home/liuyunqi/software/vcs_2016/etc/uvm-1.2/base/uvm_spell_chkr.svh(123) @ 0: reporter [UVM/CONFIGDB/SPELLCHK] include_coverage not located, did you mean cfg
+UVM_INFO ./test/yuu_apb_ral_case.sv(29) @ 7900000: uvm_test_top.env.vsequencer@@seq [body] internal reg read value is 13800000
+UVM_INFO ./test/yuu_apb_ral_case.sv(31) @ 8500000: uvm_test_top.env.vsequencer@@seq [body] external reg read value is 00000000
+UVM_INFO /home/liuyunqi/software/vcs_2016/etc/uvm-1.2/base/uvm_objection.svh(1270) @ 8500000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+UVM_INFO /home/liuyunqi/software/vcs_2016/etc/uvm-1.2/base/uvm_report_server.svh(894) @ 8500000: reporter [UVM/REPORT/SERVER] 
+--- UVM Report Summary ---
+
+** Report counts by severity
+UVM_INFO :    6
+UVM_WARNING :    0
+UVM_ERROR :    0
+UVM_FATAL :    0
+** Report counts by id
+[RNTST]     1
+[TEST_DONE]     1
+[UVM/CONFIGDB/SPELLCHK]     1
+[UVM/RELNOTES]     1
+[body]     2
+
+$finish called from file "/home/liuyunqi/software/vcs_2016/etc/uvm-1.2/base/uvm_root.svh", line 527.
+$finish at simulation time              8500000
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 8500000 ps
+CPU Time:      1.030 seconds;       Data structure size:   1.0Mb
+Thu Aug 31 15:47:02 2023

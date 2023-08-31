@@ -1,0 +1,145 @@
+global coverage_group 0 yuu_apb_pkg::yuu_apb_master_collector::apb_transaction_cg __coverage_yuu_apb_master_collector.apb_transaction_cg unused_yuu_apb_master_collector_apb_transaction_cg_loop_label yuu_apb_pkg 0 1 0 0 ( )
+ 1 2
+ 104 /home/liuyunqi/huangtao/address_planner/dv/uvc/yuu_apb/src/sv/yuu_apb_master/yuu_apb_master_collector.sv
+ 102 /home/liuyunqi/huangtao/address_planner/dv/uvc/yuu_apb/src/sv/yuu_apb_slave/yuu_apb_slave_collector.sv
+ 16 0 0 0 1 0 0 0 0  1
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+2
+0
+0
+ 9 direction 17 0 0 0 129 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn 129 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 7 1 1 32 yuu_apb_pkg::yuu_apb_direction_e 1 0 0 1 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 9 apb_write 18 0 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_0 0 0 0 0 0 0 0
+ 1 1 0 0 1 1 8 apb_read 19 0 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_1 0 0 0 0 0 0 0
+
+ 8 response 22 0 0 0 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_2 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_2 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 7 1 1 31 yuu_apb_pkg::yuu_apb_response_e 1 0 0 1 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 8 apb_okay 23 0 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_3 0 0 0 0 0 0 0
+ 1 1 0 0 1 1 9 apb_error 24 0 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 131 yuu_apb_pkg_yuu_apb_master_collector_1_0::yuu_apb_pkg_yuu_apb_master_collector_1_0_yuu_apb_master_collector_apb_transaction_cg_fn_4 0 0 0 0 0 0 0
+
+end_coverage_group
+global coverage_group 0 yuu_apb_pkg::yuu_apb_slave_collector::apb_transaction_cg __coverage_yuu_apb_slave_collector.apb_transaction_cg unused_yuu_apb_slave_collector_apb_transaction_cg_loop_label yuu_apb_pkg 0 1 0 0 ( )
+ 0 16 1 0 0 1 0 0 0 0  1
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+2
+0
+0
+ 9 direction 17 1 0 0 126 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn 126 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 7 1 1 32 yuu_apb_pkg::yuu_apb_direction_e 1 0 0 1 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 9 apb_write 18 1 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_0 0 0 0 0 0 0 0
+ 1 1 0 0 1 1 8 apb_read 19 1 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_1 0 0 0 0 0 0 0
+
+ 8 response 22 1 0 0 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_2 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_2 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 7 1 1 31 yuu_apb_pkg::yuu_apb_response_e 1 0 0 1 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 8 apb_okay 23 1 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_3 0 0 0 0 0 0 0
+ 1 1 0 0 1 1 9 apb_error 24 1 1 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 128 yuu_apb_pkg_yuu_apb_slave_collector_1_0::yuu_apb_pkg_yuu_apb_slave_collector_1_0_yuu_apb_slave_collector_apb_transaction_cg_fn_4 0 0 0 0 0 0 0
+
+end_coverage_group

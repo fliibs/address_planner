@@ -286,7 +286,7 @@ class AddressSpace(AddressLogicRoot):
             self.path = path
         #for sub_space in self.sub_space_list:
         #    sub_space.report_rtl()
-        self.report_ral_model()
+        # self.report_ral_model()
         self.report_chead()
         self.report_vhead()
         self.report_json()
