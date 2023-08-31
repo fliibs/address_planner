@@ -277,7 +277,6 @@ class RegSpaceAPB(Component):
         self.p.ready   += self.p_ready_r
 
 
-        io_1 = self.rs.get_io("reg0_field10_wdat")
         for sub_space in cfg.sub_space_list:
             for field in sub_space.filled_field_list:
                  if isinstance(field, FilledField):

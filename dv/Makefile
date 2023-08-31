@@ -1,7 +1,8 @@
-.PHONY : comp sim clean 
+.PHONY : comp sim clean verdi
 UVM_VERBOSITY = UVM_LOW
 DEBUG = -debug_all+pp
 TC=base_test
+FSDB = novas.fsdb
 
 #-LDFLAGS -no-pie
 
@@ -18,6 +19,8 @@ CMP_OPTS += -lca \
 	    -timescale=1ns/1ps -unit_timescale=1ns/1ps\
             -l compile.log  
 
+
+
 comp : 
 	vcs $(CMP_OPTS) -f tb.f
 
@@ -29,5 +32,4 @@ run :comp sim
 
 clean	:
 		rm -rf *.log simv *.daidir csrc *.key DVEfiles *.fsdb vc_hdrs.h verdiLog novas.*
-
 
