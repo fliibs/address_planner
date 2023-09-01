@@ -100,7 +100,7 @@ function useWinSize() {
       setSize({
         width: document.documentElement.clientWidth - 20,
         height: (document.documentElement.clientHeight - 50) / 2
-      })
+      });
     }, []
   )
   useEffect(
@@ -108,21 +108,38 @@ function useWinSize() {
       window.addEventListener('resize', onResize)
     }, []
   )
-  console.log(document.documentElement.clientHeight)
   return size
 }
+class TableHeight {
+  constructor() {
+      this.bank_height = 100;
+      this.reg_height = 100;
+  }
+  updateHeight() {
+    const bank_grid = document.getElementById("bank_grid");
+    const reg_grid = document.getElementById("reg_grid");
+    console.log(reg_grid.offsetHeight)
+    setTableHeight({
+      bank_height: bank_grid.offsetHeight - 54.8-26-32,
+      reg_height: reg_grid.offsetHeight - 54.8-26-32
+    })
+  }
+}
+function useTableHeight() {
 
-function useTableSize() {
-  const [tableSize, setTableSize] = useState({
-    width: document.documentElement.clientWidth - 20,
-    height: (document.documentElement.clientHeight - 50) / 2 -110
+  const [tableHeight, setTableHeight] = useState({
+    bank_height: 100-40,
+    reg_height: 100-40
   });
 
   const onResize = useCallback(
     () => {
-      setTableSize({
-        width: document.documentElement.clientWidth - 20,
-        height: (document.documentElement.clientHeight - 50) / 2  -110
+      const bank_grid = document.getElementById("bank_grid");
+      const reg_grid = document.getElementById("reg_grid");
+      console.log(reg_grid.offsetHeight)
+      setTableHeight({
+        bank_height: bank_grid.offsetHeight - 54.8-26-32,
+        reg_height: reg_grid.offsetHeight - 54.8-26-32
       })
     }, []
   )
@@ -131,8 +148,7 @@ function useTableSize() {
       window.addEventListener('resize', onResize)
     }, []
   )
-  console.log(document.documentElement.clientHeight)
-  return tableSize
+  return tableHeight
 }
 
 export default function App() {
@@ -140,7 +156,7 @@ export default function App() {
   const [newInput, setnewInput] = useState(fakeData);
   const [regName, setregName] = useState("null");
   const size = useWinSize();
-  const tableSize = useTableSize();
+  const tableHeight = useTableHeight();
 
   window.electronAPI.onUpdateData((_event, data) => {
     setnewInput(data);
@@ -167,7 +183,7 @@ export default function App() {
       />
 
       <GridLayout className="layout" cols={12} rowHeight={size.height} width={size.width}>
-        <div key="c" data-grid={{ x: 0, y: 0, w: 12, h: 1 }}>
+        <div id="bank_grid" key="c" data-grid={{ x: 0, y: 0, w: 12, h: 1 }}>
           <Row>
             <Col className="gutter-row" span={24} >
               <Layout>
@@ -180,19 +196,20 @@ export default function App() {
                       if (record.type == 'reg') {
                         console.log(record);
                         selectObj(record);
-                        console.log();
                       }
                     }
                   })}
                   dataSource={newInput}
                   pagination={false}
-                  scroll={{ x: '100%', y: tableSize.height }}
+                  // scroll={{ x: '100%', y: tableSize.height }}
+                  scroll={{ x: '100%', y: tableHeight.bank_height }}
+
                 />
               </Layout>
             </Col>
           </Row>
         </div>
-        <div key="d" data-grid={{ x: 0, y: 0, w: 12, h: 1 }}>
+        <div id="reg_grid" key="d" data-grid={{ x: 0, y: 0, w: 12, h: 1 }}>
           <Row>
             <Col className="gutter-row" span={24}>
               <Layout>
@@ -200,7 +217,7 @@ export default function App() {
                 <Table
                   columns={field_column}
                   dataSource={newData}
-                  scroll={{ x: '100%', y: tableSize.height }}
+                  scroll={{ x: '100%', y: tableHeight.reg_height }}
                   pagination={false}
                 />
               </Layout>
