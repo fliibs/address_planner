@@ -18,7 +18,7 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field10',    bit=1,sw_access=ReadWrite,hw_access=WriteOnly,description='fied4, hardware write only.', offset=29)\
             .field          (name='field11',    bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied5, hardware read write.', offset=30)\
         .end\
-        .register           (name='external_reg',       bit=32,description='contain many fields.', offset=32)\
+        .register           (name='external_reg',       bit=32,description='contain many fields.', offset=4)\
             .external_field (name='field0',     bit=1,sw_access=ReadWrite,hw_access=ReadOnly, description='fied0, external hardware read only.' )\
             .external_field (name='field1',     bit=1,sw_access=ReadWrite,hw_access=ReadOnly, description='fied1, external hardware write only.', offset=3)\
             .external_field (name='field2',     bit=3,sw_access=ReadWrite,hw_access=ReadWrite,description='fied2, external hardware read write.', offset=5)\
@@ -41,7 +41,7 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .external_field (name='field19',    bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='fied2, external hardware read write.', offset=30)\
             .external_field (name='field20',    bit=1,sw_access=ReadWrite,hw_access=ReadOnly, description='fied3, external hardware read only.' , offset=31)\
         .end \
-        .register           (name='sw_no_write_reg_1',bit=32,description='contain many fields.', offset=64)\
+        .register           (name='sw_no_write_reg_1',bit=32,description='contain many fields.', offset=8)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, external read only.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=3)\
@@ -52,20 +52,20 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field7',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=16)\
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)\
         .end \
-        .register           (name='sw_no_read_reg_1',bit=32,description='contain many fields.', offset=96)\
+        .register           (name='sw_no_read_reg_1',bit=32,description='contain many fields.', offset=12)\
             .external_field (name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,external write only.')\
             .field          (name='field2',bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=2)\
             .field          (name='field3',bit=3,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=4)\
             .field          (name='field4',bit=4,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=8)\
         .end \
-        .register           (name='read_clean_reg_1',bit=32,description='contain many fields.', offset=128)\
+        .register           (name='read_clean_reg_1',bit=32,description='contain many fields.', offset=16)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,external read clean.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=3)\
             .field          (name='field3',bit=3,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=5)\
             .field          (name='field4',bit=4,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=9)\
         .end \
-        .register           (name='sw_no_write_reg_2',bit=32,description='contain many fields.', offset=160)\
+        .register           (name='sw_no_write_reg_2',bit=32,description='contain many fields.', offset=20)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, external read only.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=3)\
@@ -76,20 +76,20 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field7',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=16)\
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)\
         .end \
-        .register           (name='sw_no_read_reg_2',bit=32,description='contain many fields.', offset=192)\
+        .register           (name='sw_no_read_reg_2',bit=32,description='contain many fields.', offset=24)\
             .external_field (name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,external write only.')\
             .field          (name='field2',bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=2)\
             .field          (name='field3',bit=3,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=4)\
             .field          (name='field4',bit=4,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=8)\
         .end \
-        .register           (name='read_clean_reg_2',bit=32,description='contain many fields.', offset=224)\
+        .register           (name='read_clean_reg_2',bit=32,description='contain many fields.', offset=28)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,external read clean.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=3)\
             .field          (name='field3',bit=3,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=5)\
             .field          (name='field4',bit=4,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=9)\
         .end \
-        .register           (name='sw_no_write_reg_3',bit=32,description='contain many fields.', offset=256)\
+        .register           (name='sw_no_write_reg_3',bit=32,description='contain many fields.', offset=32)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, external read only.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=3)\
@@ -100,20 +100,20 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field7',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=16)\
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)\
         .end \
-        .register           (name='sw_no_read_reg_3',bit=32,description='contain many fields.', offset=288)\
+        .register           (name='sw_no_read_reg_3',bit=32,description='contain many fields.', offset=36)\
             .external_field (name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,external write only.')\
             .field          (name='field2',bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=2)\
             .field          (name='field3',bit=3,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=4)\
             .field          (name='field4',bit=4,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=8)\
         .end \
-        .register           (name='read_clean_reg_3',bit=32,description='contain many fields.', offset=320)\
+        .register           (name='read_clean_reg_3',bit=32,description='contain many fields.', offset=40)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,external read clean.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=3)\
             .field          (name='field3',bit=3,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=5)\
             .field          (name='field4',bit=4,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=9)\
         .end \
-        .register           (name='sw_no_write_reg_4',bit=32,description='contain many fields.', offset=352)\
+        .register           (name='sw_no_write_reg_4',bit=32,description='contain many fields.', offset=44)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, external read only.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=3)\
@@ -124,20 +124,20 @@ RS_1 = RegSpace             (name='reg_bank_tables_0',size=1*KB,description='reg
             .field          (name='field7',bit=3,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=16)\
             .field          (name='field8',bit=4,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=19)\
         .end \
-        .register           (name='sw_no_read_reg_4',bit=32,description='contain many fields.', offset=384)\
+        .register           (name='sw_no_read_reg_4',bit=32,description='contain many fields.', offset=48)\
             .external_field (name='field1',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,external write only.')\
             .field          (name='field2',bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=2)\
             .field          (name='field3',bit=3,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=4)\
             .field          (name='field4',bit=4,sw_access=WriteOnly,hw_access=ReadWrite,description='fied0,internal write only.',offset=8)\
         .end \
-        .register           (name='read_clean_reg_4',bit=32,description='contain many fields.', offset=416)\
+        .register           (name='read_clean_reg_4',bit=32,description='contain many fields.', offset=52)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,external read clean.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=3)\
             .field          (name='field3',bit=3,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=5)\
             .field          (name='field4',bit=4,sw_access=ReadClean,hw_access=ReadWrite,description='fied0,internal read clean.',offset=9)\
         .end \
-        .register           (name='sw_no_write_reg_5',bit=32,description='contain many fields.', offset=448)\
+        .register           (name='sw_no_write_reg_5',bit=32,description='contain many fields.', offset=56)\
             .reserved_field (bit=2)\
             .external_field (name='field1',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, external read only.',offset=2)\
             .field          (name='field2',bit=2,sw_access=ReadOnly,hw_access=ReadWrite,description='fied0, internal read only.',offset=3)\

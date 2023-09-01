@@ -1,0 +1,215 @@
+{
+    "reusePaths": {},
+    "Modules": {
+        "yuu_apb_pkg": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "yuu_apb_interface_0000": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "yuu_amba_pkg": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "tb_top": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "...MASTER...": {},
+        "vcs_paramclassrepository": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "_vcs_DPI_package": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "_vcs_unit__2407097312": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "uvm_pkg": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "yuu_apb_master_interface": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "std": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "yuu_common_pkg": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        },
+        "yuu_apb_slave_interface": {
+            "Compiled Times": 1,
+            "Compiled": "Yes"
+        }
+    },
+    "CompUnits": {
+        "reYIK_d": {
+            "checksum": 0,
+            "mod": "std",
+            "out": "reYIK_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 34331,
+            "mode": 4
+        },
+        "amcQw_d": {
+            "checksum": 0,
+            "mod": "...MASTER...",
+            "out": "objs/amcQw_d.o",
+            "bytes": 8689,
+            "mode": 4
+        },
+        "s3iwn_d": {
+            "checksum": 0,
+            "mod": "_vcs_unit__2407097312",
+            "out": "s3iwn_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 181406,
+            "mode": 4
+        },
+        "m67s2_d": {
+            "checksum": 0,
+            "mod": "yuu_apb_interface_0000",
+            "out": "m67s2_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 45014,
+            "mode": 4
+        },
+        "hEeZs_d": {
+            "checksum": 0,
+            "mod": "vcs_paramclassrepository",
+            "out": "hEeZs_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 5745987,
+            "mode": 4
+        },
+        "uM9F1_d": {
+            "checksum": 0,
+            "mod": "_vcs_DPI_package",
+            "out": "uM9F1_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 9248,
+            "mode": 4
+        },
+        "zr7M1_d": {
+            "checksum": 0,
+            "mod": "uvm_pkg",
+            "out": "zr7M1_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 4507203,
+            "mode": 4
+        },
+        "jdPWL_d": {
+            "checksum": 0,
+            "mod": "tb_top",
+            "out": "jdPWL_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 51341,
+            "mode": 4
+        },
+        "J9Vcb_d": {
+            "checksum": 0,
+            "mod": "yuu_amba_pkg",
+            "out": "J9Vcb_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 295703,
+            "mode": 4
+        },
+        "Z3CIs_d": {
+            "checksum": 0,
+            "mod": "yuu_common_pkg",
+            "out": "Z3CIs_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 61319,
+            "mode": 4
+        },
+        "G2ZyA_d": {
+            "checksum": 0,
+            "mod": "yuu_apb_master_interface",
+            "out": "G2ZyA_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 60599,
+            "mode": 4
+        },
+        "uCIdM_d": {
+            "checksum": 0,
+            "mod": "yuu_apb_slave_interface",
+            "out": "uCIdM_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 48506,
+            "mode": 4
+        },
+        "nUJTZ_d": {
+            "checksum": 0,
+            "mod": "yuu_apb_pkg",
+            "out": "nUJTZ_d.o",
+            "archive": "archive.0/_11990_archive_1.a",
+            "bytes": 1081508,
+            "mode": 4
+        }
+    },
+    "ObjArchives": [
+        {
+            "archive": "archive.0/_11990_archive_1.a",
+            "objects": [
+                [
+                    "hEeZs_d.o",
+                    5745987
+                ],
+                [
+                    "uM9F1_d.o",
+                    9248
+                ],
+                [
+                    "s3iwn_d.o",
+                    181406
+                ],
+                [
+                    "reYIK_d.o",
+                    34331
+                ],
+                [
+                    "zr7M1_d.o",
+                    4507203
+                ],
+                [
+                    "Z3CIs_d.o",
+                    61319
+                ],
+                [
+                    "J9Vcb_d.o",
+                    295703
+                ],
+                [
+                    "G2ZyA_d.o",
+                    60599
+                ],
+                [
+                    "uCIdM_d.o",
+                    48506
+                ],
+                [
+                    "m67s2_d.o",
+                    45014
+                ],
+                [
+                    "nUJTZ_d.o",
+                    1081508
+                ],
+                [
+                    "jdPWL_d.o",
+                    51341
+                ]
+            ],
+            "size": 12122165
+        }
+    ]
+}

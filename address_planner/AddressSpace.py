@@ -26,11 +26,17 @@ class AddressSpace(AddressLogicRoot):
         #self.father         = None
 
 
-
+    @property
+    def bit_offset(self):
+        return self.offset*8
+    
+    @property
+    def bit_size(self):
+        return self.size*8
 
     @property
     def global_offset(self):
-        return 0 if self.father is None else self.father.global_offset + self.offset
+        return 0 if self.father is None else self.father.global_offset + self.bit_offset
 
     @property
     def global_start_address(self):
@@ -38,19 +44,19 @@ class AddressSpace(AddressLogicRoot):
 
     @property
     def global_end_address(self):
-        return self.global_offset + self.size - 1
+        return self.global_offset + self.bit_size - 1
 
     @property
     def start_address(self):
-        return self.offset
+        return self.bit_offset
 
     @property
     def end_address(self):
-        return self.offset + self.size - 1
+        return self.bit_offset + self.bit_size - 1
 
     @property
     def hex_offset(self):
-        hex_value = hex(self.offset)
+        hex_value = hex(self.bit_offset)
         if hex_value == '0x0':
             return '\'h0'
         else:
@@ -71,7 +77,6 @@ class AddressSpace(AddressLogicRoot):
                 raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
                     % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
-        
         self._next_offset = offset + sub_space.size
 
 
@@ -259,7 +264,7 @@ class AddressSpace(AddressLogicRoot):
         json_dict["name"]       = self.module_name
         json_dict["start_addr"] = self.start_address
         json_dict["end_addr"]   = self.end_address
-        json_dict["size"]       = ConvertSize(self.size)
+        json_dict["size"]       = ConvertSize(self.size, is_byte=True)
         json_dict["description"]= self.description
         json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
         return json_dict
@@ -270,6 +275,9 @@ class AddressSpace(AddressLogicRoot):
         if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
         with open(self.json_path, 'w') as f:
             f.write(jtext)
+        
+        with open("reactdemo2/src/data.json", "w") as f:
+            f.write(jtext)
 
 
 
@@ -278,13 +286,11 @@ class AddressSpace(AddressLogicRoot):
             self.path = path
         #for sub_space in self.sub_space_list:
         #    sub_space.report_rtl()
-        self.report_ral_model()
+        # self.report_ral_model()
         self.report_chead()
         self.report_vhead()
         self.report_json()
-        # self.report_ralf()
-
-
+        self.report_ralf()
 
 
 

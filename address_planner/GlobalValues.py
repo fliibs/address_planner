@@ -19,9 +19,10 @@ APG_REG_RMDEFINE_FILE_REG_SPACE     = 'reg_ral_model_define.j2'
 APG_REG_RMCSV_FILE_REG_SPACE        = 'reg_ral_model_csv.j2'
 APG_REG_RALF_FILE_REG_SPACE         = 'ralf.j2'
 
-KB = 1024 * 8
-MB = 1024 * 1024 * 8
-GB = 1024 * 1024 * 1024 * 8
+B  = 1
+KB = 1024 * B
+MB = 1024 * KB
+GB = 1024 * MB
 
 # @unique
 # class FieldSoftwareAccess(Enum):
@@ -124,15 +125,18 @@ def ADD_KEY():
     key = key + 1
     return key
 
-def ConvertSize(size):
-    if size/8 > KB-1:
-        return "%.1fKB"% float(size / KB /8)
-    elif size/8 > MB-1:
-        return "%.1fMB"% float(size / MB/8)
-    elif size/8 > GB-1:
-        return "%.1fGB"% float(size / GB/8)
-    elif size/8 >=1:
-        return "%dB"% int(size/8)
+def ConvertSize(size, is_byte=False):
+    if is_byte: bit = 1
+    else:       bit = 8
+        
+    if size/bit   > KB-1:
+        return "%.1fKB"% float(size / KB / bit)
+    elif size/bit > MB-1:
+        return "%.1fMB"% float(size / MB / bit)
+    elif size/bit > GB-1:
+        return "%.1fGB"% float(size / GB / bit)
+    elif size/bit >=1:
+        return "%dB"% int(size / bit)
     else:
         return "%db"% size
 

@@ -44,6 +44,7 @@ class Register(RegSpace):
         return True if (self.start_bit <= other.start_bit) and (other.end_bit <= self.end_bit) else False
 
 
+
     @property
     def start_bit(self):
         return 0
@@ -54,7 +55,7 @@ class Register(RegSpace):
 
     @property
     def start_address(self):
-        return super().start_address
+        return self.offset
     
     @property
     def end_address(self):
@@ -141,7 +142,7 @@ class Register(RegSpace):
     
     @property
     def end(self):
-        self.father.add(self, self.father.offset+self.offset, self.module_name)
+        self.father.add(self, int((self.father.bit_offset+self.offset)/8), self.module_name)
         return self.father
     
     def report_json_core(self):
@@ -149,20 +150,15 @@ class Register(RegSpace):
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "reg"
         json_dict["name"]       = self.module_name 
-        if self.start_address < self.father.offset:
+        if self.start_address < self.father.bit_offset:
             json_dict["start_addr"] = self.start_address
             json_dict["end_addr"]   = self.end_address
         else:
-            json_dict["start_addr"] = self.start_address-self.father.offset
-            json_dict["end_addr"]   = self.end_address-self.father.offset
+            json_dict["start_addr"] = self.start_address-self.father.bit_offset
+            json_dict["end_addr"]   = self.end_address-self.father.bit_offset
         json_dict["size"]       = ConvertSize(self.bit)
         json_dict["description"]= self.description
         json_dict["fields"]     = [c.report_json_core() for c in self.field_list if c.report_json_core() is not Null]
         return json_dict
 
 
-
-field0 = [1]
-field1 = [4]
-field2 = [2]
-field_list = [field0, field1,field2]
