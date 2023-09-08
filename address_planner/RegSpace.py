@@ -147,6 +147,42 @@ class RegSpace(AddressSpace):
     #     with open(output_dir+'/'+json_name, 'w') as f:
     #         f.write(jtext)
 
+    # report port for testbench
+    def report_internal_field_port(self, is_base=True, prefix=''):
+        if "apb" in self.software_interface:
+            prefix = prefix+'rs_'
+
+        internal_port_dict = {}
+        for ss in self.sub_space_list:
+            for field in ss.field_list:
+                if field.is_external==False:
+                    internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_DICT.items() }
+                    internal_port_dict[prefix+ss.module_name+'_'+field.name]=internal_field_dict
+        
+        return internal_port_dict
+                
+    
+    def report_external_field_port(self, is_base=True, prefix=''):
+        if "apb" in self.software_interface:
+            prefix = prefix+'rs_'
+
+        external_port_dict = {}
+        for ss in self.sub_space_list:
+            for field in ss.field_list:
+                if field.is_external==True:
+                    external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_DICT.items() }
+                    external_port_dict[prefix+ss.module_name+'_'+field.name]=external_field_dict
+        
+        return external_port_dict
+
+
+    def report_top_software_port(self, prefix='p_'):
+        if "apb" in self.software_interface:
+            top_sw_port_dict = { prefix+key: value for key,value in APB_PORT_DICT.items() }
+        else:
+            top_sw_port_dict = { prefix+key: value for key,value in BASE_PORT_DICT.items() }
+
+        return top_sw_port_dict
 
 
     def report_rtl(self):
@@ -178,6 +214,9 @@ class RegSpace(AddressSpace):
     def generate(self, path=None):
         super().generate(path)
         self.report_rtl()
+        # self.report_internal_field_port()
+        # self.report_external_field_port()
+        # self.report_top_software_port()
 
 
     

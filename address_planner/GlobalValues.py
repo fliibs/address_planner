@@ -189,17 +189,49 @@ def import_inst(file_path, module_name):
         print("[ImportError]", err)
 
     
-    
-    # if var_list is not None: pattern = ','.join(var_list)
-    # if var_list is None:
-    #     print("[package import execute]: from %s import *"% file_name)
-    #     exec('from %s import *'% file_name, GlobalValue.globals)
-    # else:
-    #     print("[package import execute]: from %s import %s"% (file_name, pattern))
-    #     exec('from %s import %s'% (file_name, pattern), GlobalValue.globals)
-    
 
+#### port attribute
 
-# def ADD_TO_FIELD_HARDWARE_TYPE(**kwargs):
-#     for k,v in kwargs.items():
-#         setattr(FieldHardwareType,k,v)
+BASE_PORT_DICT = {
+    'rreq_addr' :     'input' ,
+    'rreq_vld'  :     'input' ,
+    'rreq_rdy'  :     'output',
+    'rack_data' :     'output',
+    'rack_vld'  :     'output',
+    'rack_rdy'  :     'input' ,
+    'wreq_addr' :     'input' ,
+    'wreq_data' :     'input' ,
+    'wreq_vld'  :     'input' ,
+    'wreq_rdy'  :     'output' 
+}
+
+APB_PORT_DICT = {
+    'addr'    :    'input' ,
+    'prot'    :    'input' ,
+    'sel'     :    'input' ,
+    'enable'  :    'input' ,
+    'write'   :    'input' ,
+    'wdata'   :    'input' ,
+    'strb'    :    'input' ,
+    'ready'   :    'output',
+    'rdata'   :    'output',
+    'slverr'  :    'output'
+}
+
+INTERNAL_FIELD_DICT = {
+    'wdat'  :   'input' ,
+    'wvld'  :   'input' ,
+    'wrdy'  :   'output',
+    'rdat'  :   'output',
+    'rvld'  :   'output',
+    'rrdy'  :   'input' 
+}
+
+EXTERNAL_FIELD_DICT = {
+    'wdat'  :   'output',
+    'wvld'  :   'output',
+    'wrdy'  :   'input' ,
+    'rdat'  :   'input' ,
+    'rvld'  :   'input' ,
+    'rrdy'  :   'output'
+}
