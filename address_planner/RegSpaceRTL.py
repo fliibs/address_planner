@@ -4,6 +4,7 @@ from .uhdl.uhdl import *
 from .Field import *
 from .address_planner_rtl.APBInterface import APB
 from .address_planner_rtl.Common import *
+from .GlobalValues import INTERNAL_FIELD_DICT,EXTERNAL_FIELD_DICT
 
 
 class RegSpaceRTL():
@@ -273,12 +274,19 @@ class RegSpaceAPB(Component):
                     pass
                  else:
                     # Internal Hardware Field
-                    self.expose_io(self.rs.get_io("%s_%s_"% (sub_space.module_name, field.name)))
+                    for attr_in in INTERNAL_FIELD_DICT:
+                        self.expose_io(self.rs.get_io("%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
                     # Software External Field
-                    self.expose_io(self.rs.get_io("%s_sw_%s_"% (sub_space.module_name, field.name)))
+                    for attr_ex in EXTERNAL_FIELD_DICT:
+                        self.expose_io(self.rs.get_io("%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
                     
 
-
+    def get_io(self, string):
+        match_io_list = []
+        for io in self.io_list:
+            if string==io.name:
+                match_io_list.append(io)
+        return match_io_list
 
 
 
