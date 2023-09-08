@@ -19,5 +19,13 @@ def get_sw_writeable(sub_space_list, writeable=False):
 def byte_mask(data, mask):
     mask_data = []
     for i in range(mask.width):
-        mask_data.append( BitAnd(data[8*i+7:8*i], Combine(mask[i],mask[i],mask[i],mask[i],mask[i],mask[i],mask[i],mask[i])) )
+        mask_data.append(BitMask(data[8*i+7:8*i], mask[i]))
+    mask_data.reverse()
     return Combine(*mask_data)
+
+def perfect_get_io(component, string):
+        match_io_list = []
+        for io in component.io_list:
+            if string==io.name:
+                match_io_list.append(io)
+        return match_io_list

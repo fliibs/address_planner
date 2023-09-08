@@ -90,12 +90,11 @@ class Register(RegSpace):
             filled_field.bit_offset = previous_field.end_bit + 1
             res.append(filled_field)
 
-
         return res
     
     @property
     def hex_offset(self):
-        hex_value = hex(self.reg_offset)
+        hex_value = hex(int(self.reg_offset/8))
         if hex_value == '0x0':
             return '%d\'h0'%(self.bit)
         else:

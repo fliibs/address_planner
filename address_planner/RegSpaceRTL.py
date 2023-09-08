@@ -203,6 +203,7 @@ class RegSpaceBase(Component):
                     field_reg += reg_val
                                     
             if get_sw_readable(self._cfg.sub_space_list):
+                rdat_list.reverse()
                 reg_rdat += Combine(*rdat_list)
                 
        
@@ -235,38 +236,45 @@ class RegSpaceAPB(Component):
         self.clk    = Input(UInt(1))
         self.rst_n  = Input(UInt(1))
 
+
         self.rs.clk     += self.clk
         self.rs.rst_n   += self.rst_n
 
+        # if self._cfg.
         self.p          = APB(addr_width=self._cfg.bus_width)
         self.p.slverr  += UInt(1,0)
 
-        self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
-        self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
+        # self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
         self.p_rready  = Wire(UInt(1))
         self.p_wready  = Wire(UInt(1))
         
-
         # Software Input
         self.rs.rreq_vld    += And(Not(self.p.write), self.p.sel)
         self.rs.rack_rdy    += And(Not(self.p.write), self.p.sel, self.p.enable)
         self.rs.rreq_addr   += self.p.addr
 
-        rdata_ff = EmptyWhen()
-        rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
-        self.p_rdata_r      += rdata_ff
-        self.p.rdata        += self.p_rdata_r
+        # self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
+        # rdata_ff = EmptyWhen()
+        # rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
+        # self.p_rdata_r      += rdata_ff
+        # self.p.rdata        += self.p_rdata_r
+        self.p.rdata        += self.rs.rack_data
+
         self.p_rready       += And(self.rs.rreq_vld, self.rs.rreq_rdy)
+        self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
+        self.p.ready        += Or(self.p_rready, self.p_wready)
+        
 
         self.rs.wreq_vld    += And(self.p.write, self.p.sel, self.p.enable)  
         self.rs.wreq_addr   += self.p.addr
         self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
-        self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
-       
-        ready_ff = EmptyWhen()
-        ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
-        self.p_ready_r += ready_ff
-        self.p.ready   += self.p_ready_r
+
+        
+        # ready_ff = EmptyWhen()
+        # ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
+        # self.p_ready_r += ready_ff
+        # self.p.ready   += self.p_ready_r
+        
 
         for sub_space in cfg.sub_space_list:
             for field in sub_space.filled_field_list:
@@ -275,18 +283,13 @@ class RegSpaceAPB(Component):
                  else:
                     # Internal Hardware Field
                     for attr_in in INTERNAL_FIELD_DICT:
-                        self.expose_io(self.rs.get_io("%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
+                        self.expose_io(perfect_get_io(self.rs, "%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
                     # Software External Field
                     for attr_ex in EXTERNAL_FIELD_DICT:
-                        self.expose_io(self.rs.get_io("%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
+                        self.expose_io(perfect_get_io(self.rs, "%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
                     
 
-    def get_io(self, string):
-        match_io_list = []
-        for io in self.io_list:
-            if string==io.name:
-                match_io_list.append(io)
-        return match_io_list
+    
 
 
 
