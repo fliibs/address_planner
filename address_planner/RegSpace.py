@@ -3,6 +3,8 @@ from .GlobalValues  import *
 from .AddressSpace  import AddressSpace
 from copy               import deepcopy
 from .RegSpaceRTL import *
+from subprocess import Popen
+
 
 class RegSpace(AddressSpace):
 
@@ -11,6 +13,7 @@ class RegSpace(AddressSpace):
         self.bus_width = bus_width
         #self._name_prefix = 'reg'
         self.software_interface = software_interface
+        self.rtl_path = ''
 
     def __str__(self) -> str:
         return self.module_name
@@ -36,6 +39,9 @@ class RegSpace(AddressSpace):
 
     def add_incr(self,sub_space,name):
         self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name)
+
+
+
 
     #########################################################################################
     # output generate
@@ -68,17 +74,26 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
-    
-    
-    def report_ral_model(self):
-        output_path = self._ral_model_dir+'/'
-        self.report_ral_model_core(output_path)
-        #self.report_ral_model_define_core(output_path)
-        #self.report_ral_model_csv_core(output_path)
 
+    # report and check ralf ==============================================
     def report_ralf(self):
         output_path = self._ralf_dir+'/'
         self.report_ralf_core(output_path)
+        
+
+    def check_ralf(self):
+        output_file = self._ralf_dir+'/'+'ralf_'+self.module_name+'.ralf'
+        output_path = self._ral_model_dir+'/'
+
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
+        pipe = Popen(command, shell=True)
+        pipe.communicate()
+
+        os.path.exists(f'ral_{self.module_name}')
+        command_mv = f'mv ral_{self.module_name}.sv {output_path}'
+        pipe_mv = Popen(command_mv, shell=True)
+        pipe_mv.communicate()
 
 
     def report_ralf_core(self, output_dir):
@@ -86,68 +101,74 @@ class RegSpace(AddressSpace):
             return []
         else:
             file_name = 'ralf_'+self.module_name+'.ralf'
-            path = output_dir+'/'
+            path = output_dir
             os.makedirs(os.path.dirname(path), exist_ok=True)
             text = self.report_from_template(APG_REG_RALF_FILE_REG_SPACE, {'head_type':'ralf'})
             with open(path+file_name,'w') as f:
                 f.write(text)
-
-
-    def report_ral_model_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = 'ral_block_'+self.module_name+'.sv'
-            path = output_dir+'/'
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_REG_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
+            print("[Check Ralf] Generate ral model: %s"% path+file_name)
 
     
-    # def report_ral_model_define_core(self, output_dir):
-    #     if self.sub_space_list == []:
-    #         return []
-    #     else:
-    #         file_name = 'ral_block_'+self.module_name+'_define.v'
-    #         path = output_dir+'/'
-    #         os.makedirs(os.path.dirname(path), exist_ok=True)
-    #         text = self.report_from_template(APG_REG_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
-    #         with open(path+file_name,'w') as f:
-    #             f.write(text)
+    # report and check rtl ==============================================
+    def report_rtl(self):
+        component = RegSpaceRTL(self).u
+        component.output_dir = self._rtl_dir
+        self.rtl_path = os.path.join(component.output_path)
+        component.generate_verilog(iteration=True)
+        component.generate_filelist(abs_path=True)
+        component.run_lint()
+        
 
-    # def report_ral_model_csv_core(self, output_dir):
-    #     if self.sub_space_list == []:
-    #         return []
-    #     else:
-    #         file_name = self.module_name+'.csv'
-    #         path = output_dir+'/'
-    #         os.makedirs(os.path.dirname(path), exist_ok=True)
-    #         text = self.report_from_template(APG_REG_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
-    #         with open(path+file_name,'w') as f:
-    #             f.write(text)
+    def check_rtl(self):
+        flst_path = os.path.join(self.rtl_path, 'filelist.f')
+        check_dir = os.path.join(self._rtl_dir, 'vcs_check')
+        print(check_dir)
+        os.makedirs(check_dir, exist_ok=True)
+
+        command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed -vc -v2k +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
+        pipe = Popen(command, shell=True)
+        pipe.communicate()
+
+
+    # total ==============================================================
+    def generate(self, path=None):
+        super().generate(path)
+        self.report_rtl()
+
+
+    def check(self, path=None):
+        super().check(path)
+        self.check_rtl()
+        
+        
+    #########################################
+    # tablelike support
+    #########################################
+
+    def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH, offset=0):
+        from .Reg import Register
+        bit_offset = offset*8
+        u_reg = Register(name, bit, description, bus_width)
+        u_reg.offset = bit_offset
+        u_reg.father = self
+        return u_reg
     
-    # def report_json_core(self, output_dir='.'):
-    #     json_list=[]
-    #     json_dict={}
-    #     json_dict["key"] = ADD_KEY()
-    #     json_dict["type"] = "sys"
-    #     json_dict["name"] = self.module_name
-    #     json_dict["start_addr"] = self.start_address
-    #     json_dict["end_addr"] = self.end_address
-    #     json_dict["size"] = ConvertSize(self.size)
-    #     child_list = []
-    #     for sub in self.sub_space_list:
-    #         sub.report_json(child_list)
+    def add_register(self, sub_space, offset, name):
+        self.add(sub_space, offset+self.offset, name)
+        return self
+    
 
-    #     json_dict["children"] = child_list
-    #     json_list.append(json_dict)
-    #     jtext = json.dumps(json_list,ensure_ascii=False, indent=2)
-    #     json_name = self.module_name+'.json'
-    #     with open(output_dir+'/'+json_name, 'w') as f:
-    #         f.write(jtext)
+    @property
+    def end(self):
+        self.father.add(self, self.offset, self.module_name)
+        return self.father
 
+    
+
+    ########################################
     # report port for testbench
+    ########################################
+
     def report_internal_field_port(self, is_base=True, prefix=''):
         if "apb" in self.software_interface:
             prefix = prefix+'rs_'
@@ -183,40 +204,3 @@ class RegSpace(AddressSpace):
             top_sw_port_dict = { prefix+key: value for key,value in BASE_PORT_DICT.items() }
 
         return top_sw_port_dict
-
-
-    def report_rtl(self):
-        component = RegSpaceRTL(self).u
-        component.output_dir = self._rtl_dir
-        component.generate_verilog(iteration=True)
-        component.generate_filelist()
-        component.run_lint()
-        # component.run_slang_compile()
-
-    def register(self, name, bit=32, description='', bus_width=APG_BUS_WIDTH, offset=0):
-        from .Reg import Register
-        bit_offset = offset*8
-        u_reg = Register(name, bit, description, bus_width)
-        u_reg.offset = bit_offset
-        u_reg.father = self
-        return u_reg
-    
-    def add_register(self, sub_space, offset, name):
-        self.add(sub_space, offset+self.offset, name)
-        return self
-    
-
-    @property
-    def end(self):
-        self.father.add(self, self.offset, self.module_name)
-        return self.father
-
-    def generate(self, path=None):
-        super().generate(path)
-        self.report_rtl()
-        # self.report_internal_field_port()
-        # self.report_external_field_port()
-        # self.report_top_software_port()
-
-
-    

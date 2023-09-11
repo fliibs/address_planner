@@ -117,15 +117,6 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
-    def report_ral_model(self):
-        if self.sub_space_list == []:
-            return []
-        # for ss in self.sub_space_list:
-        #     ss.report_ral_model_core()
-        output_path = self._ral_model_dir+'/' 
-        self.report_ral_model_core(output_path)
-        # self.report_ral_model_define_core(output_path)
-        # self.report_ral_model_csv_core(output_path)
 
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
@@ -133,11 +124,7 @@ class AddressSpace(AddressLogicRoot):
             raise Exception('c head compile error.')
 
 
-    def report_vhead(self):
-        vhead_name_list = self.report_vhead_core()
-        with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
-            for vhead_name in vhead_name_list:
-                f.write("`include \"%s\"\n" % vhead_name)
+    
 
 
     def report_chead_core(self):
@@ -153,78 +140,17 @@ class AddressSpace(AddressLogicRoot):
                 chead_name_list += ss.report_chead_core()
             return chead_name_list
 
-    def report_chead(self):
-        chead_name_list = self.report_chead_core()
-        with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
-            for chead_name in chead_name_list:
-                f.write("#include \"%s\"\n" % chead_name)
-
-    def check_chead(self):
-        file_path = os.path.join(self._chead_dir,'all.h')
-        if os.system('gcc -include stdint.h %s' % file_path) !=0:
-            raise Exception('c head compile error.')
-
-    # report ral model.==============================================
-    def report_ral_model(self, output_dir='ral_model'):
-
-        output_path = self.output_path+'/'+output_dir
-        self.recursive_report_ral_model_core(output_path)
-        # self.report_ral_model_core(output_path)
-        #self.report_ral_model_define_core(output_path)
-        #self.report_ral_model_csv_core(output_path)
-
-    def recursive_report_ral_model_core(self, output_dir):
-        for ss in self.sub_space_list:
-            if hasattr(ss,'report_ral_model_core'):
-                ss.report_ral_model_core(output_dir)
-            else:
-                ss.recursive_report_ral_model_core(output_dir)
-
-
-    # def report_ral_model_core(self, output_dir):
-    #     if self.sub_space_list == []:
-    #         return []
-    #     else:
-    #         path = output_dir+'/'
-    #         for ss in self.sub_space_list:
-    #             file_name = 'ral_block_'+ss.module_name+'.sv'
-    #             os.makedirs(os.path.dirname(path), exist_ok=True)
-    #             text = ss.report_from_template(APG_ADDR_RMODEL_FILE_REG_SPACE, {'head_type':'sv'})
-    #             with open(path+file_name,'w') as f:
-    #                 f.write(text)
-    
-    # def report_ral_model_define_core(self, output_dir):
-    #     if self.sub_space_list == []:
-    #         return []
-    #     else:
-    #         file_name = 'ral_block_'+self.module_name+'_define.v'
-    #         path = output_dir+'/'
-    #         os.makedirs(os.path.dirname(path), exist_ok=True)
-    #         text = self.report_from_template(APG_ADDR_RMDEFINE_FILE_REG_SPACE, {'head_type':'v'})
-    #         with open(path+file_name,'w') as f:
-    #             f.write(text)
-
-    # def report_ral_model_csv_core(self, output_dir):
-    #     if self.sub_space_list == []:
-    #         return []
-    #     else:
-    #         file_name = self.module_name+'.csv'
-    #         path = output_dir+'/'
-    #         os.makedirs(os.path.dirname(path), exist_ok=True)
-    #         text = self.report_from_template(APG_ADDR_RMCSV_FILE_REG_SPACE, {'head_type':'csv'})
-    #         
-    #         with open(path+file_name,'w') as f:
-    #             f.write(text)
 
 
     # report v head.==============================================
-
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % vhead_name)
 
+    def check_vhead(self):
+        pass
 
     def report_vhead_core(self):
         if self.sub_space_list == []:
@@ -240,11 +166,14 @@ class AddressSpace(AddressLogicRoot):
             return vhead_name_list
         
 
-    # report ralf ==============================================
-    def report_ralf(self, output_dir='ral_model'):
-        output_path = self._ralf_dir+'/'+output_dir
+    # report and check ralf ==============================================
+    def report_ralf(self):
+        output_path = self._ralf_dir+'/'
         self.recursive_report_ralf_core(output_path)
 
+    def check_ralf(self):
+        self.recursive_check_ralf_core()
+        print("[Check Ralf] Ralf file correct and Ral Model generate")
 
     def recursive_report_ralf_core(self, output_dir):
         for ss in self.sub_space_list:
@@ -253,22 +182,15 @@ class AddressSpace(AddressLogicRoot):
             else:
                 ss.recursive_report_ralf_core(output_dir)
 
+    def recursive_check_ralf_core(self):
+        for ss in self.sub_space_list:
+            if hasattr(ss,'report_ralf_core'):
+                ss.check_ralf()
+            else:
+                ss.recursive_check_ralf_core()
+        
 
-
-
-    # report json ==========================================
-    def report_json_core(self):
-        json_dict={}
-        json_dict["key"]        = ADD_KEY()
-        json_dict["type"]       = "sys"
-        json_dict["name"]       = self.module_name
-        json_dict["start_addr"] = self.start_address
-        json_dict["end_addr"]   = self.end_address
-        json_dict["size"]       = ConvertSize(self.size, is_byte=True)
-        json_dict["description"]= self.description
-        json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
-        return json_dict
-
+    # report and check json ==========================================
     def report_json(self):
         json_list= [self.report_json_core()]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
@@ -276,23 +198,49 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         
-        with open("reactdemo2/src/data.json", "w") as f:
-            f.write(jtext)
+    def check_json(self):
+        json_path = os.path.join(self._html_dir, 'data.json')
+        try:
+            json_file = open(json_path, 'r')
+            json.load(json_file)
+            print("[Check Json] Json file correct")
+        except:
+            raise Exception("[Check Json] Error in Json file")
 
+    def report_json_core(self):
+        json_dict={}
+        json_dict["key"]        = ADD_KEY()
+        json_dict["type"]       = "sys"
+        json_dict["name"]       = self.module_name
+        json_dict["start_addr"] = ConvertSize(self.start_address, is_byte=True)
+        json_dict["end_addr"]   = ConvertSize(self.end_address+1, is_byte=True)
+        json_dict["size"]       = ConvertSize(self.size, is_byte=True)
+        json_dict["description"]= self.description
+        json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
+        return json_dict
+    
 
-
+    # total ========================================
     def generate(self,path=None):
         if path != None:
             self.path = path
-        #for sub_space in self.sub_space_list:
-        #    sub_space.report_rtl()
-        # self.report_ral_model()
-        self.report_chead()
-        self.report_vhead()
         self.report_json()
         self.report_ralf()
+        self.report_chead()
+        self.report_vhead()
 
+    def check(self, path=None):
+        if path != None:
+            self.path = path
+        self.check_json()
+        self.check_ralf()
+        self.check_chead()
+        self.check_vhead()
+        
 
+    #########################################
+    # tablelike support
+    #########################################
 
     def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace

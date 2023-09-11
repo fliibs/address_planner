@@ -124,33 +124,33 @@ class RegSpaceBase(Component):
 
                     if field.hw_writeable:
                         field_hw_wdat = self.set("%s_wdat" % field_name , Input(UInt(field.bit)))
-                        field_hw_wvld = self.set("%s_wvld" % field_name , Input(UInt(1)))
-                        field_hw_wrdy = self.set("%s_wrdy" % field_name , Output(UInt(1)))
+                        field_hw_wena = self.set("%s_wena" % field_name , Input(UInt(1)))
+                        # field_hw_wrdy = self.set("%s_wrdy" % field_name , Output(UInt(1)))
 
-                        field_hw_wrdy += UInt(1,1)
+                        # field_hw_wrdy += UInt(1,1)
 
                         if field.hw_write_clean:
-                            reg_val.when(field_hw_wvld).then(UInt(field.bit,0))
+                            reg_val.when(field_hw_wena).then(UInt(field.bit,0))
                         elif field.hw_write_one_to_clean:
-                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
                         elif field.hw_write_zero_to_clean:
-                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
                         elif field.hw_write_set:
-                            reg_val.when(field_hw_wvld).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(field_hw_wena).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.hw_write_one_to_set:
-                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.hw_write_zero_to_set:
-                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.hw_write_one_to_toggle:
-                            reg_val.when(And(field_hw_wvld, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
                         elif field.hw_write_zero_to_toggle:
-                            reg_val.when(And(field_hw_wvld, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
                         elif field.hw_write_once:
                             hw_flag = self.set("%s_hw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
-                            hw_flag += when(field_hw_wvld).then(UInt(1,1))
-                            reg_val.when(And(field_hw_wvld, Not(hw_flag))).then(field_hw_wdat)
+                            hw_flag += when(field_hw_wena).then(UInt(1,1))
+                            reg_val.when(And(field_hw_wena, Not(hw_flag))).then(field_hw_wdat)
                         else:
-                            reg_val.when(field_hw_wvld).then(field_hw_wdat)
+                            reg_val.when(field_hw_wena).then(field_hw_wdat)
 
                     if field.sw_writeable:
                         if field.sw_write_clean:
@@ -178,14 +178,14 @@ class RegSpaceBase(Component):
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
-                        field_hw_rvld = self.set("%s_rvld" % field_name , Output(UInt(1)))
-                        field_hw_rrdy = self.set("%s_rrdy" % field_name , Input(UInt(1)))
+                        # field_hw_rvld = self.set("%s_rvld" % field_name , Output(UInt(1)))
+                        field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
                         
-                        field_hw_rvld += UInt(1,1)
+                        # field_hw_rvld += UInt(1,1)
                         if field.hw_read_clean:
-                            reg_val.when(field_hw_rrdy).then(UInt(field.bit,0))
+                            reg_val.when(field_hw_rena).then(UInt(field.bit,0))
                         elif field.hw_read_set:
-                            reg_val.when(field_hw_rrdy).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(field_hw_rena).then(UInt(field.bit,2**(field.bit)-1))
                         
                         field_hw_rdat += field_reg
                         

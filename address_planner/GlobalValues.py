@@ -7,10 +7,10 @@ APG_DATA_WIDTH = APG_BUS_WIDTH
 APG_ADDR_WIDTH = 32
 APG_HTML_FILE_ADDR_SPACE            = 'addr_space_html.j2'
 APG_HTML_FILE_REG_SPACE             = 'reg_space_html.j2'
-APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_head.j2'
-APG_VHEAD_FILE_REG_SPACE            = 'reg_space_head.j2'
-APG_CHEAD_FILE_ADDR_SPACE           = 'addr_space_head.j2'
-APG_CHEAD_FILE_REG_SPACE            = 'reg_space_head.j2'
+APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
+APG_VHEAD_FILE_REG_SPACE            = 'reg_space_vhead.j2'
+APG_CHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
+APG_CHEAD_FILE_REG_SPACE            = 'reg_space_chead.j2'
 APG_ADDR_RMODEL_FILE_REG_SPACE      = 'ral_model.j2'
 APG_ADDR_RMDEFINE_FILE_REG_SPACE    = 'addr_ral_model_define.j2'
 APG_ADDR_RMCSV_FILE_REG_SPACE       = 'addr_ral_model_csv.j2'
@@ -139,6 +139,9 @@ def ConvertSize(size, is_byte=False):
         return "%dB"% int(size / bit)
     else:
         return "%db"% size
+    
+def Convert2Byte(size):
+    return "%dB"% int(size/8)
 
 # @unique
 # class FieldEffect(Enum):
@@ -218,20 +221,27 @@ APB_PORT_DICT = {
     'slverr'  :    'output'
 }
 
-INTERNAL_FIELD_DICT = {
-    'wdat'  :   'input' ,
-    'wvld'  :   'input' ,
-    'wrdy'  :   'output',
-    'rdat'  :   'output',
-    'rvld'  :   'output',
-    'rrdy'  :   'input' 
-}
+# INTERNAL_FIELD_DICT = {
+#     'wdat'  :   'input' ,
+#     'wvld'  :   'input' ,
+#     'wrdy'  :   'output',
+#     'rdat'  :   'output',
+#     'rvld'  :   'output',
+#     'rrdy'  :   'input' 
+# }
 
 EXTERNAL_FIELD_DICT = {
     'wdat'  :   'output',
     'wvld'  :   'output',
     'wrdy'  :   'input' ,
     'rdat'  :   'input' ,
-    'rvld'  :   'input' ,
-    'rrdy'  :   'output'
+    'rvld'  :   'output' ,
+    'rrdy'  :   'input'
+}
+
+INTERNAL_FIELD_DICT = {
+    'wdat'  :   'input' ,
+    'wena'  :   'input' ,
+    'rdat'  :   'output',
+    'rena'  :   'input' 
 }

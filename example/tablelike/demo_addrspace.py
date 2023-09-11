@@ -30,5 +30,6 @@ AddressSpace                (name="address_space_test", size=10*KB) \
     .end 
     
 res.generate('build/example')
+res.check('build/example')
 
 

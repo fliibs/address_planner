@@ -318,45 +318,6 @@ class FieldRoot(AddressLogicRoot):
         return field_dict 
 
 
-        # jtext = json.dumps(field_list,ensure_ascii=False)
-        # return jtext
-    
-    # def field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
-    #     return Field(name, bit, sw_access, hw_access, init_value, description)
-    
-    # def reserved_field(self, bit):
-    #     return FilledField(bit)
-    
-    # def external_field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
-    #     return ExternalField(name, bit, sw_access, hw_access, init_value, description)
-    
-    # def end(self):
-    #     pass
-
-
-    # @property
-    # def global_offset(self):
-    #     return 0 if self.father == None else self.father.global_offset + self.offset
-# 
-    # @property
-    # def global_start_address(self):
-    #     return self.global_offset
-# 
-    # @property
-    # def global_end_address(self):
-    #     return self.global_offset + self.size - 1
-# 
-    # @property
-    # def start_address(self):
-    #     return self.offset
-# 
-    # @property
-    # def end_address(self):
-    #     return self.offset + self.size - 1
-
-    # @property
-    # def offset(self):
-    #     return math.floor(self.offset / self.father.bus_width)
 
 class FilledField(FieldRoot):
 
