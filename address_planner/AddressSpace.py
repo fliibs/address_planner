@@ -2,6 +2,7 @@ from copy               import deepcopy
 from functools          import reduce
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
+from subprocess         import Popen
 
 import os
 import builtins
@@ -117,15 +118,11 @@ class AddressSpace(AddressLogicRoot):
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
 
-
     def check_chead(self):
         file_path = os.path.join(self._chead_dir,'all.h')
+        print("[Check chead] Check chead: %s"% file_path)
         if os.system('gcc -include stdint.h %s' % file_path) !=0:
             raise Exception('c head compile error.')
-
-
-    
-
 
     def report_chead_core(self):
         if self.sub_space_list == []:
@@ -141,16 +138,23 @@ class AddressSpace(AddressLogicRoot):
             return chead_name_list
 
 
-
     # report v head.==============================================
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
-                f.write("`include \"%s\"\n" % vhead_name)
+                f.write("`include \"%s\"\n" % os.path.join(self._vhead_dir, vhead_name))
 
     def check_vhead(self):
-        pass
+        check_dir = os.path.join(self._vhead_dir, 'vcs_check')
+        file_path = os.path.join(self._vhead_dir, 'all.vh')
+        os.makedirs(check_dir, exist_ok=True)
+        
+        print("[Check vhead] Check vhead: %s"% file_path)
+        command_vhead = f'vcs -full64 -sverilog -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc {file_path} | tee {check_dir}/vcs.log'
+       
+        os.system(command_vhead)
+        
 
     def report_vhead_core(self):
         if self.sub_space_list == []:
@@ -173,7 +177,6 @@ class AddressSpace(AddressLogicRoot):
 
     def check_ralf(self):
         self.recursive_check_ralf_core()
-        print("[Check Ralf] Ralf file correct and Ral Model generate")
 
     def recursive_report_ralf_core(self, output_dir):
         for ss in self.sub_space_list:

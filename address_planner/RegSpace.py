@@ -84,16 +84,15 @@ class RegSpace(AddressSpace):
     def check_ralf(self):
         output_file = self._ralf_dir+'/'+'ralf_'+self.module_name+'.ralf'
         output_path = self._ral_model_dir+'/'
-
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
-        pipe = Popen(command, shell=True)
-        pipe.communicate()
 
-        os.path.exists(f'ral_{self.module_name}')
-        command_mv = f'mv ral_{self.module_name}.sv {output_path}'
-        pipe_mv = Popen(command_mv, shell=True)
-        pipe_mv.communicate()
+        print("[Check Ralf] Check ralf file: %s"% output_file)
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
+        os.system(command)
+
+        if os.path.exists(f'ral_{self.module_name}.sv'): command = f'mv ral_{self.module_name}.sv {output_path}'
+        else: raise Exception("ralgen fail!")
+        os.system(command)
 
 
     def report_ralf_core(self, output_dir):
@@ -106,7 +105,7 @@ class RegSpace(AddressSpace):
             text = self.report_from_template(APG_REG_RALF_FILE_REG_SPACE, {'head_type':'ralf'})
             with open(path+file_name,'w') as f:
                 f.write(text)
-            print("[Check Ralf] Generate ral model: %s"% path+file_name)
+            
 
     
     # report and check rtl ==============================================
@@ -122,12 +121,12 @@ class RegSpace(AddressSpace):
     def check_rtl(self):
         flst_path = os.path.join(self.rtl_path, 'filelist.f')
         check_dir = os.path.join(self._rtl_dir, 'vcs_check')
-        print(check_dir)
         os.makedirs(check_dir, exist_ok=True)
 
-        command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed -vc -v2k +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
-        pipe = Popen(command, shell=True)
-        pipe.communicate()
+        print("[Check RTL] Check rtl file: %s"% flst_path)
+        command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
+
+        os.system(command)
 
 
     # total ==============================================================

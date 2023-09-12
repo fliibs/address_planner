@@ -4,13 +4,19 @@
 //==========================================================
 `ifndef ADDR_{{ss.module_name_until_regbank.upper()}}
 
-    typedef union{
-        struct {
-            {% for field in ss.field_list -%}
-                uint32_t {{field.name}} = {{field.bit}};
-            {% endfor -%}
-    } bits;
-        uint32_t val;
+    typedef union packed {
+        struct packed {
+        {%- set index = namespace(value=0) -%}
+        {% for field in ss.filled_field_list -%}
+            {% if field.name == 'FilledField' %}
+            logic [{{field.bit-1}}:0] reserved_{{index.value}};
+            {%- set index.value = index.value + 1 -%}
+            {% else %}
+            logic [{{field.bit-1}}:0] {{field.name}};
+            {%- endif -%}
+        {% endfor %}
+            } bits;
+        logic [{{ss.bit-1}}:0] val;
     } {{ss.module_name_until_regbank.upper()}};
 
     `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.global_start_address)}}
