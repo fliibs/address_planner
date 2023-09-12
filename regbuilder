@@ -1,4 +1,4 @@
-#!/bin/shell
+#!/bin/bash
 #!/usr/bin/python3
 
 echo "[ ExcelParser ] Start parse excel file"
