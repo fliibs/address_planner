@@ -90,9 +90,8 @@ class RegSpace(AddressSpace):
         command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
         os.system(command)
 
-        if os.path.exists(f'ral_{self.module_name}.sv'): command = f'mv ral_{self.module_name}.sv {output_path}'
+        if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
         else: raise Exception("ralgen fail!")
-        os.system(command)
 
 
     def report_ralf_core(self, output_dir):

@@ -2,7 +2,6 @@ from copy               import deepcopy
 from functools          import reduce
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
-from subprocess         import Popen
 
 import os
 import builtins
