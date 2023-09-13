@@ -114,7 +114,6 @@ class AddressLogicRoot(object):
         return '%s_%s.vh' % (self._name_prefix,self.module_name)
     
 
-
     #########################################################################################
     # output generate
     #########################################################################################
@@ -128,7 +127,8 @@ class AddressLogicRoot(object):
         if not os.path.exists(self._chead_dir):         os.makedirs(self._chead_dir) 
         if not os.path.exists(self._vhead_dir):         os.makedirs(self._vhead_dir) 
         if not os.path.exists(self._rtl_dir):           os.makedirs(self._rtl_dir)
-        if not os.path.exists(self._ral_model_dir):     os.makedirs(self._ral_model_dir)    
+        if not os.path.exists(self._ralf_dir):          os.makedirs(self._ralf_dir)
+        # if not os.path.exists(self._ral_model_dir):     os.makedirs(self._ral_model_dir)    
 
     def report_from_template(self,template,extra_in_namespace={}):
         env = Environment(loader=PackageLoader('address_planner','report_template'))

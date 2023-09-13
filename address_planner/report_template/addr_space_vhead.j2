@@ -1,0 +1,23 @@
+{%- macro space_define(space) -%}
+{%- if head_type == 'c' -%}
+    {%- set def_prefix = '#' -%}
+{%- else -%}
+    {%- set def_prefix = '`' -%}
+{%- endif -%}
+{{def_prefix}}ifndef     ADDR_{{space.global_name.upper()}}
+    {{def_prefix}}define {{ '%-45s' % 'ADDR_%s' % space.global_name.upper()}} {{builtins.hex(space.start_address)}}
+    {{def_prefix}}define {{ '%-45s' % 'SIZE_%s' % space.global_name.upper()}} {{builtins.hex(space.size)}}
+    {{def_prefix}}define {{ '%-45s' % 'OFFSET_%s' % space.global_name.upper()}} {{builtins.hex(space.offset)}}
+{{def_prefix}}endif
+{%- endmacro -%}
+
+//==========================================================
+// Definition of address space {{space.global_name.upper()}}
+//==========================================================
+
+//==========================================================
+// Sub address space definition of {{space.global_name.upper()}}
+//==========================================================
+{% for ss in space.sub_space_list %}
+{{space_define(ss)}}
+{% endfor %}

@@ -1,0 +1,35 @@
+{% for ss in space.sub_space_list %}
+//==========================================================
+// Definition of reg {{ss.module_name_until_regbank.upper()}}
+//==========================================================
+`ifndef ADDR_{{ss.module_name_until_regbank.upper()}}
+
+    typedef union packed {
+        struct packed {
+        {%- set index = namespace(value=0) -%}
+        {% for field in ss.filled_field_list -%}
+            {% if field.name == 'FilledField' %}
+            logic [{{field.bit-1}}:0] reserved_{{index.value}};
+            {%- set index.value = index.value + 1 -%}
+            {% else %}
+            logic [{{field.bit-1}}:0] {{field.name}};
+            {%- endif -%}
+        {% endfor %}
+            } bits;
+        logic [{{ss.bit-1}}:0] val;
+    } {{ss.module_name_until_regbank.upper()}};
+
+    `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.global_start_address)}}
+    `define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.size)}}
+    `define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.offset)}}
+
+`endif
+{% for field in ss.field_list %}
+`ifndef OFFSET_{{field.module_name_until_regbank.upper()}}
+    `define {{field.module_name_until_regbank.upper()}}_OFFSET  {{field.bit_offset}}
+    `define {{field.module_name_until_regbank.upper()}}_WIDTH   {{field.bit}}
+    `define {{field.module_name_until_regbank.upper()}}_MASK    {{field.mask}}
+    `define {{field.module_name_until_regbank.upper()}}_RST_VAL {{field.mask}}
+`endif
+{% endfor %}
+{% endfor %}
