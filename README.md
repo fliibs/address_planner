@@ -12,6 +12,11 @@ Address planner is a tool used to plan the allocation of all register and memory
 
 ## Quick Start
 
+### 0. Run with excel
+```shell
+ap <excel_path> <output_path>
+```
+
 ### 1. Install RegBuilder
 ```python
 git clone https://github.com/fliibs/address_planner.git
