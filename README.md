@@ -16,7 +16,7 @@ Address planner is a tool used to plan the allocation of all register and memory
 
 excel template is in excel folder
 ```shell
-ap <excel_path> <output_path>
+regbuilder <excel_path> <output_path>
 ```
 
 ### 1. Install RegBuilder
