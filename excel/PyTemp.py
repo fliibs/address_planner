@@ -1,6 +1,4 @@
 Head = '''
-import sys
-sys.path.append('.')
 from address_planner import *
 
 regBank = RegSpace(name='{name}',size={size}*KB,description="{description}",bus_width={width},software_interface='{interface}')
@@ -15,8 +13,8 @@ ADD= '''
 regBank.add(reg_{cnt},{OffsetAddress},'{name}')
 '''
 Gen = '''
-regBank.generate('build/{name}')
+regBank.generate('{name}')
 '''
 Check = '''
-regBank.check('build/{name}')
+regBank.check('{name}')
 '''

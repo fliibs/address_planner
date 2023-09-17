@@ -1,17 +1,18 @@
 from openpyxl import load_workbook
-import PyTemp
+from  excel import PyTemp
 import re
-import sys
+# import sys
 import os
 
 
 RegBankMes = {}
 RegMap = {}
-def ReadExcel():
-    if len(sys.argv)>=2:    input_path = sys.argv[1]
-    else:   raise Exception("Input file not exist!")
-    if len(sys.argv)>=3:    output_path = sys.argv[2]
-    else:   output_path = ''
+
+def ReadExcel(input_path, output_path):
+    # if len(sys.argv)>=2:    input_path = sys.argv[1]
+    # else:   raise Exception("Input file not exist!")
+    # if len(sys.argv)>=3:    output_path = sys.argv[2]
+    # else:   output_path = ''
 
     workbook = load_workbook(input_path)
     regBank = workbook["REGBANK"]
@@ -80,12 +81,12 @@ def ReadExcel():
     print(RegMap,file=datalog)
 
 
-def CreatPy():
+def CreatPy(input_path, output_path):
     
-    ReadExcel()
+    ReadExcel(input_path, output_path)
 
-    if len(sys.argv)>=3:    output_path = sys.argv[2]
-    else:   output_path = ''
+    # if len(sys.argv)>=3:    output_path = sys.argv[2]
+    # else:   output_path = ''
 
     pyCode = PyTemp.Head.replace('{name}',RegBankMes['name']).replace('{size}',str(RegBankMes['size'])).replace('{description}',RegBankMes['description']).replace('{width}',str(RegBankMes['width'])).replace('{interface}',RegBankMes['interface'])
     
@@ -100,10 +101,10 @@ def CreatPy():
             
         pyCode += PyTemp.ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress'])).replace('{name}',str(regName))
         
-    pyCode += PyTemp.Gen.replace('{name}',RegBankMes['name'])
+    pyCode += PyTemp.Gen.replace('{name}',output_path)
     
     if RegBankMes['check'] == 'true':
-        pyCode += PyTemp.Check.replace('{name}',RegBankMes['name'])
+        pyCode += PyTemp.Check.replace('{name}',output_path)
         
     filename = RegBankMes['name']+"_rf_gen.py"
     if output_path != '': os.makedirs(output_path, exist_ok=True)
@@ -113,4 +114,4 @@ def CreatPy():
 
     return output_file
                         
-print(CreatPy())
+# print(CreatPy())
