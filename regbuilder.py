@@ -24,6 +24,7 @@ def main():
     print("[ ExcelParser ] Load input file: %s"% args.e)
     prs_out =  CreatPy(args.e, args.o)
     if prs_out == '': raise Exception("[ Generate Fail ] Fail to parse excel file, prs_out is empty")
+    print("[ ExcelParser ] Successfull parse file: %s"% args.e)
     print("[ Regbuilder ] Start parse python file %s"% prs_out)
 
     cmd_exc = f'python3 {prs_out}'

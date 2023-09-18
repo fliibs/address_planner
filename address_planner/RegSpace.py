@@ -87,7 +87,7 @@ class RegSpace(AddressSpace):
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         print("[Check Ralf] Check ralf file: %s"% output_file)
-        command = f'ralgen -full64 -uvm -b -t {self.module_name} {output_file}'
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
         os.system(command)
 
         if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')

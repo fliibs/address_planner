@@ -1,4 +1,6 @@
 Head = '''
+import sys
+sys.path.append('.')
 from address_planner import *
 
 regBank = RegSpace(name='{name}',size={size}*KB,description="{description}",bus_width={width},software_interface='{interface}')

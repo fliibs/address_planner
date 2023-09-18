@@ -3,7 +3,7 @@ sys.path.append(os.getcwd())
 from address_planner import * # pylint: disable=unused-wildcard-import
 
 res = \
-RegSpace                    (name='reg_bank_tables',size=1*KB,description='reg_bank_B,contain many regs zhouying.', software_interface="apb")  \
+RegSpace                    (name='reg_bank_tables',size=1*KB,description='reg_bank_B,contain many regs zhouying.', software_interface="vr")  \
         .register           (name='internal_reg',       bit=32,description='contain many fields.', offset=32) \
             .field          (name='field0',     bit=1,sw_access=ReadOnly, hw_access=ReadWrite,description='fied0, software read only.',offset=0) \
             .field          (name='field1',     bit=2,sw_access=WriteOnly,hw_access=ReadWrite,description='fied1, software write only.', offset=3) \

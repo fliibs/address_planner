@@ -10,29 +10,68 @@ from .GlobalValues import INTERNAL_FIELD_DICT,EXTERNAL_FIELD_DICT
 class RegSpaceRTL():
     def __init__(self, cfg):
         # super().__init__()
-        self._cfg = cfg
-        if "apb" in self._cfg.software_interface:
-            self.u = RegSpaceAPB(cfg=cfg)
-        else:
-            self.u = RegSpaceBase(cfg=cfg)
+        # self._cfg = cfg
+        # if "apb" in self._cfg.software_interface:
+        #     self.u = RegSpaceAPB(cfg=cfg)
+        # else:
+        #     self.u = RegSpaceBase(cfg=cfg)
+        self.u = RegSpaceBase(cfg=cfg)
 
 
 class RegSpaceBase(Component):
 
     def __init__(self,cfg):
         super().__init__()
-        self._cfg = cfg
-
+        self._cfg      = cfg
         self.clk       = Input(UInt(1))
         self.rst_n     = Input(UInt(1))
-        
-        self.rreq_addr = Input(UInt(self._cfg.bus_width))
-        self.rreq_vld  = Input(UInt(1))
-        self.rreq_rdy  = Output(UInt(1))
 
-        self.rack_data = Output(UInt(APG_BUS_WIDTH))
-        self.rack_vld  = Output(UInt(1))
-        self.rack_rdy  = Input(UInt(1))
+
+        if "apb" in cfg.software_interface:
+            self.rreq_addr      = Wire(UInt(self._cfg.bus_width))
+            self.rreq_vld       = Wire(UInt(1))
+            self.rreq_rdy       = Wire(UInt(1))
+
+            self.rack_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.rack_vld       = Wire(UInt(1))
+            self.rack_rdy       = Wire(UInt(1))
+
+            self.wreq_addr      = Wire(UInt(self._cfg.bus_width))
+            self.wreq_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.wreq_vld       = Wire(UInt(1))
+            self.wreq_rdy       = Wire(UInt(1))
+
+            self.p              =  APB(addr_width=self._cfg.bus_width)
+            self.p.slverr       += UInt(1,0)
+            
+            # Software Input
+            self.rreq_vld       += And(Not(self.p.write), self.p.sel)
+            self.rack_rdy       += And(Not(self.p.write), self.p.sel, self.p.enable)
+            self.rreq_addr      += self.p.addr
+
+            self.p.rdata        += self.rack_data
+            
+            self.p.ready        += UInt(1,1)
+            
+
+            self.wreq_vld       += And(self.p.write, self.p.sel, self.p.enable)  
+            self.wreq_addr      += self.p.addr
+            self.wreq_data      += byte_mask(self.p.wdata,self.p.strb)
+
+        else:
+            self.rreq_addr = Input(UInt(self._cfg.bus_width))
+            self.rreq_vld  = Input(UInt(1))
+            self.rreq_rdy  = Output(UInt(1))
+
+            self.rack_data = Output(UInt(APG_BUS_WIDTH))
+            self.rack_vld  = Output(UInt(1))
+            self.rack_rdy  = Input(UInt(1))
+
+            self.wreq_addr = Input(UInt(self._cfg.bus_width))
+            self.wreq_data = Input(UInt(APG_BUS_WIDTH))
+            self.wreq_vld  = Input(UInt(1))
+            self.wreq_rdy  = Output(UInt(1))
+
 
         if get_sw_readable(self._cfg.sub_space_list):
             self.rreq_rdy += And(self.rack_rdy,self.rack_vld)
@@ -41,13 +80,7 @@ class RegSpaceBase(Component):
 
         rack_dat_read_mux = EmptyWhen()
         rack_read_mux     = EmptyWhen()
-        
-        self.wreq_addr = Input(UInt(self._cfg.bus_width))
-        self.wreq_data = Input(UInt(APG_BUS_WIDTH))
-        self.wreq_vld  = Input(UInt(1))
-        self.wreq_rdy  = Output(UInt(1))
-
-        wack_rdy_mux = EmptyWhen()
+        wack_rdy_mux      = EmptyWhen()
         
         #########################################################################################################
         #   Reg box
@@ -62,10 +95,11 @@ class RegSpaceBase(Component):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
+
                 reg_rrdy += UInt(1,1)
-                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address)))
-                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rdat)
-                rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rrdy)
+                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
+                rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
             
             if get_sw_writeable(self._cfg.sub_space_list):
                 
@@ -75,8 +109,8 @@ class RegSpaceBase(Component):
 
                 reg_wrdy += UInt(1,1)
                 reg_wdat += self.wreq_data[sub_space.bit-1:0]
-                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address)))
-                wack_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address))).then(reg_wrdy)
+                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                wack_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
            
 
             ##########################################################################################################
@@ -210,7 +244,7 @@ class RegSpaceBase(Component):
         ##########################################################################################################
 
         if get_sw_readable(self._cfg.sub_space_list):
-            rack_dat_read_mux.otherwise(UInt(sub_space.bit,0))
+            rack_dat_read_mux.otherwise(UInt(sub_space.bit,2**(sub_space.bit)-1,'hex'))
             rack_read_mux.otherwise(UInt(1,0))
 
             self.rack_data += rack_dat_read_mux
