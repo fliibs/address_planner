@@ -3,8 +3,7 @@ from .GlobalValues  import *
 from .AddressSpace  import AddressSpace
 from copy               import deepcopy
 from .RegSpaceRTL import *
-from subprocess import Popen
-
+import shutil
 
 class RegSpace(AddressSpace):
 
@@ -144,6 +143,7 @@ class RegSpace(AddressSpace):
         self.report_dv_filelist()
         self.report_dv_ral()
         self.report_dv_testcase()
+        self.move_dv_env()
 
         
     #########################################
@@ -306,4 +306,21 @@ class RegSpace(AddressSpace):
             os.makedirs(path, exist_ok=True)
             print(f"ralgen -full64 -t {self.module_name} -o {path}/ral_top -uvm {self._ralf_dir}/{self.module_name}.ralf")
             os.system(f"ralgen -full64 -t {self.module_name} -o {path}/ral_top -uvm {self._ralf_dir}/{self.module_name}.ralf")
+    
+    def move_dv_env(self):
+        dir_path, _ = os.path.split(os.path.realpath(__file__))
+        root_path = os.path.abspath(os.path.join(dir_path,'..'))
+        src_path = os.path.join(root_path, 'dv_env')
+        dst_path = os.path.join(self._dv_dir, 'dv_env')
+        if os.path.exists(dst_path): shutil.rmtree(dst_path)
+        shutil.copytree(src_path, dst_path)
+        
+        dv_setup_path = os.path.join(dst_path,'setup_dv.sh')
+        if not os.path.exists(dv_setup_path): shutil.move(dv_setup_path, self._dv_dir)
+
+
+
+
+
+
             

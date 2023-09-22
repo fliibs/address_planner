@@ -8,6 +8,7 @@ root_path = '/home/liuyunqi/huangtao/address_planner'
 dv_env = 'dv_env'
 dv_setup = 'setup_dv.sh'
 dv_tool_path = os.path.join(root_path, dv_env)
+demo_path    = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
 build_path = os.getcwd()
 
 sys.path.append(root_path)
@@ -22,9 +23,16 @@ def main():
 
     args = parser.parse_args()
 
+    if args.demo:
+        print("generate an excel tamplate: ./regbank_demo.xlsx")
+        shutil.copyfile(demo_path, './regbank_demo.xlsx')
+        return
+
+    print("Regbuilder Start")
+
     prs_out = task_parse_excel(args)
     task_regbuilder(args, prs_out[0])
-    task_dv_setup(args, prs_out[1])
+    # task_dv_setup(args, prs_out[1])
 
     print("[ Generate Success ]")
 
@@ -32,10 +40,6 @@ def main():
 
 
 def task_parse_excel(args, others=None):
-    print("Regbuilder Start")
-    if args.demo:
-        print("gen an excel tamplate")
-        return
     
     if args.e == None: raise Exception("Input file not exist!") # simplify way
 
