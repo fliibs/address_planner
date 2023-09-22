@@ -1,0 +1,66 @@
+.PHONY : comp clean verdi run_h
+UVM_VERBOSITY = UVM_LOW
+DEBUG = -debug_all+pp
+TC=base_test
+FSDB = novas.fsdb
+LOGPARSER_TOOL= ${PRJ_ROOT}/dv/dv_env/dv_logparser.py
+TC_LIST=ral_bit_bash_test ral_reg_acc_test ral_reg_rst_test
+
+#-LDFLAGS -no-pie
+
+CMP_OPTS += -lca \
+           -kdb \
+           -sverilog \
+            +v2k \
+            $(DEBUG) \
+	    -P ~/software/verdi_2016/share/PLI/VCS/linux64/verdi.tab ~/software/verdi_2016/share/PLI/VCS/linux64/pli.a\
+	    -cpp g++-4.8  -cc gcc-4.8  -LDFLAGS -Wl,--no-as-needed -CFLAGS -fPIE\
+            -ntb_opts uvm-1.2 \
+            +vcs+lic+wait \
+            -full64\
+	    -timescale=1ns/1ps -unit_timescale=1ns/1ps\
+            -l compile.log  
+
+
+comp : 
+	vcs $(CMP_OPTS) -f tb.f
+
+sim : comp
+	mkdir -p ${TC}_output
+	cd ${TC}_output;\
+	../simv +UVM_TESTNAME=${TC} -l ${TC}.log
+
+post_sim:sim
+	cd ${TC}_output;\
+	python3 ${LOGPARSER_TOOL} -s ${TC}.log 
+
+run :comp sim post_sim
+
+#run_batch:comp
+#	for tc in ${TC_LIST}; do \
+#	TC_TMP=$$tc; \
+#	mkdir -p ${TC_TMP}_output;\
+#	cd ${TC_TMP}_output;\
+#	../simv +UVM_TESTNAME=${TC_TMP} -l ${TC_TMP}.log\
+#	cd ..
+#	done
+
+run_batch:comp
+	tc=ral_reg_rst_test;
+	mkdir -p $(tc)_output;
+	cd $(tc)_output;\
+	../simv +UVM_TESTNAME=$(tc) -l $(tc).log\
+	cd ..
+	tc=ral_reg_acc_test;
+	mkdir -p $(tc)_output;
+	cd $(tc)_output;\
+	../simv +UVM_TESTNAME=$(tc) -l $(tc).log
+	cd ..
+	tc=ral_bit_bash_test;
+	mkdir -p $(tc)_output;
+	cd $(tc)_output;\
+	../simv +UVM_TESTNAME=$(tc) -l $(tc).log
+	cd ..
+
+clean	:
+		rm -rf *.log simv *.daidir csrc *.key DVEfiles *.fsdb vc_hdrs.h verdiLog novas.*

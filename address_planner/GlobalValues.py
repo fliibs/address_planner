@@ -239,9 +239,31 @@ EXTERNAL_FIELD_DICT = {
     'rrdy'  :   'input'
 }
 
+EXTERNAL_FIELD_RO_DICT = {
+    'rdat'  :   'input' ,
+    'rvld'  :   'output' ,
+    'rrdy'  :   'input'
+}
+
+EXTERNAL_FIELD_WO_DICT = {
+    'wdat'  :   'output',
+    'wvld'  :   'output',
+    'wrdy'  :   'input' 
+}
+
 INTERNAL_FIELD_DICT = {
     'wdat'  :   'input' ,
     'wena'  :   'input' ,
     'rdat'  :   'output',
     'rena'  :   'input' 
+}
+
+INTERNAL_FIELD_RO_DICT = {
+    'rdat'  :   'output',
+    'rena'  :   'input' 
+}
+
+INTERNAL_FIELD_WO_DICT = {
+    'wdat'  :   'input' ,
+    'wena'  :   'input' 
 }

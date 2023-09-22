@@ -75,13 +75,14 @@ reg_E.add_incr(Field(name='h_field24',bit=2,hw_access=WriteOnlyOnce,description=
 #add reg0 and reg1(inst from reg_B) to reg_bank_B
 reg_bank_B.add_incr(reg_B,'reg0')
 reg_bank_B.add_incr(reg_C,'reg1')
-reg_bank_B.add_incr(reg_D,'reg0')
-reg_bank_B.add_incr(reg_E,'reg1')
+reg_bank_B.add_incr(reg_D,'reg2')
+reg_bank_B.add_incr(reg_E,'reg3')
 
 
 # reg_bank_B.path = ('example_build/%s' % reg_bank_B.module_name)
 
 reg_bank_B.generate('build/example')
+reg_bank_B.report_dv()
 # reg_bank_C.path = ('example_build/%s' % reg_bank_C.module_name)
 # reg_bank_C.report_json()
 # reg_bank_C.report_rtl()

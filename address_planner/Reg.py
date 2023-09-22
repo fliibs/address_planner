@@ -19,11 +19,11 @@ class Register(RegSpace):
         field.inst_name = field.module_name if name == None else name
         
         if not self.inclusion_detect(field):
-            raise Exception()
+            raise Exception('Field inclusion detect')
 
         for exist_field in self.field_list:
             if self.collision_detect(exist_field,field):
-                raise Exception()
+                raise Exception('Field collision detect')
         self.field_list.append(field)
 
         self._next_offset = offset + field.bit

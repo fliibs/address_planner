@@ -1,9 +1,18 @@
 import os 
 import sys
 import argparse
-from subprocess import Popen
-sys.path.append('/home/liuyunqi/huangtao/address_planner')
+import shutil
+import copy
+
+root_path = '/home/liuyunqi/huangtao/address_planner'
+dv_env = 'dv_env'
+dv_setup = 'setup_dv.sh'
+dv_tool_path = os.path.join(root_path, dv_env)
+build_path = os.getcwd()
+
+sys.path.append(root_path)
 from excel.ex2py import CreatPy
+
 
 def main():
     parser = argparse.ArgumentParser(description='RegBuilder Scope! ')
@@ -13,25 +22,57 @@ def main():
 
     args = parser.parse_args()
 
-    print("Regbuilder Start")
+    prs_out = task_parse_excel(args)
+    task_regbuilder(args, prs_out[0])
+    task_dv_setup(args, prs_out[1])
 
+    print("[ Generate Success ]")
+
+
+
+
+def task_parse_excel(args, others=None):
+    print("Regbuilder Start")
     if args.demo:
         print("gen an excel tamplate")
         return
     
     if args.e == None: raise Exception("Input file not exist!") # simplify way
 
-    print("[ ExcelParser ] Load input file: %s"% args.e)
-    prs_out =  CreatPy(args.e, args.o)
+    print("[ ExcelParser ] Load input file: %s"% os.path.abspath(args.e))
+    prs_out, rs_name =  CreatPy(args.e, args.o)
     if prs_out == '': raise Exception("[ Generate Fail ] Fail to parse excel file, prs_out is empty")
     print("[ ExcelParser ] Successfull parse file: %s"% args.e)
-    print("[ Regbuilder ] Start parse python file %s"% prs_out)
 
-    cmd_exc = f'python3 {prs_out}'
-    os.environ['PYTHONPATH'] = '$PYTHONPATH:/home/liuyunqi/huangtao/address_planner'
+    return [prs_out, rs_name]
+
+
+def task_regbuilder(args, others=None):
+
+    print("[ Regbuilder ] Start parse python file %s"% others)
+    cmd_exc = f'python3 {others}'
+    os.environ['PYTHONPATH'] = f'$PYTHONPATH:{root_path}'
     os.system(cmd_exc)
-    print("[ Generate Success ]")
+
+    return None
+
+
+def task_dv_setup(args, others=None):
+
+    dv_path = os.path.abspath(f'{args.o}/{others}/dv')
+    dst_path = os.path.join(dv_path, dv_env)
+    print("[ Generate DV ] output path: %s"% dv_path)
+    if os.path.exists(dst_path): shutil.rmtree(dst_path)
+    shutil.copytree(f'{dv_tool_path}', dst_path)
+
+    dv_setup_path = os.path.join(dst_path, dv_setup)
+    if not os.path.exists(dv_setup_path): shutil.move(dv_setup_path, dv_path)
+    
+
+    return None
 
 
 
-main()
+
+if __name__=="__main__":
+    main()
