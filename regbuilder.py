@@ -4,12 +4,11 @@ import argparse
 import shutil
 import copy
 
-root_path = '/home/liuyunqi/huangtao/address_planner'
+root_path, _ = os.path.split(os.path.realpath(__file__))
 dv_env = 'dv_env'
 dv_setup = 'setup_dv.sh'
 dv_tool_path = os.path.join(root_path, dv_env)
 demo_path    = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
-build_path = os.getcwd()
 
 sys.path.append(root_path)
 from excel.ex2py import CreatPy

@@ -68,7 +68,9 @@ def ReadExcel(input_path, output_path):
                     RegMap[regName]['Field'][filedName]['HardwareAccess'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'DefaultValue':
                     matcher = re.match(r'.*\'(\w)(\d*)',str(cellValue)) 
-                    if matcher.group(1) == 'b':
+                    if matcher == None:
+                        RegMap[regName]['Field'][filedName]['initValue'] = cellValue
+                    elif matcher.group(1) == 'b':
                         RegMap[regName]['Field'][filedName]['initValue'] = '0b'+ matcher.group(2)
                     elif matcher.group(1) == 'h':
                         RegMap[regName]['Field'][filedName]['initValue'] = '0x'+matcher.group(2)
@@ -103,6 +105,10 @@ def CreatPy(input_path, output_path):
         
         for fieldName,field in RegMap[regName]['Field'].items():
             pyCode += PyTemp.RegCfg.replace('{cnt}',str(index)).replace('{name}',fieldName).replace('{bit}',str(field['bit'])).replace('{SoftwareAccess}',field['SoftwareAccess']).replace('{HardwareAccess}',field.get('HardwareAccess','Null')).replace('{initValue}',str(field['initValue'])).replace('{description}',field.get('Description','')).replace('{offset}',str(field['offset']))
+            if field['FieldType'] == 'External':
+                pyCode = pyCode.replace('{Field}','External')
+            else:
+                pyCode = pyCode.replace('{Field}','')
             
         pyCode += PyTemp.ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress'])).replace('{name}',str(regName))
         
