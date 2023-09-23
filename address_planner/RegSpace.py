@@ -4,6 +4,7 @@ from .AddressSpace  import AddressSpace
 from copy               import deepcopy
 from .RegSpaceRTL import *
 import shutil
+import re
 
 class RegSpace(AddressSpace):
 
@@ -78,33 +79,7 @@ class RegSpace(AddressSpace):
     def report_ralf(self):
         output_path = self._ralf_dir+'/'
         self.report_ralf_core(output_path)
-        
-
-    def check_ralf(self):
-        output_file = self._ralf_dir+'/'+self.module_name+'.ralf'
-        output_path = self._ral_model_dir+'/'
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-        print("[Check Ralf] Check ralf file: %s"% output_file)
-        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
-        os.system(command)
-
-        if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
-        else: raise Exception("ralgen fail!")
-
-
-    def report_ralf_core(self, output_dir):
-        if self.sub_space_list == []:
-            return []
-        else:
-            file_name = self.module_name+'.ralf'
-            path = output_dir
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            text = self.report_from_template(APG_REG_RALF_FILE_REG_SPACE, {'head_type':'ralf'})
-            with open(path+file_name,'w') as f:
-                f.write(text)
-            
-
+    
     
     # report and check rtl ==============================================
     def report_rtl(self):
@@ -115,17 +90,6 @@ class RegSpace(AddressSpace):
         component.generate_filelist(abs_path=True)
         component.run_lint()
         
-
-    def check_rtl(self):
-        flst_path = os.path.join(self.rtl_path, 'filelist.f')
-        check_dir = os.path.join(self._rtl_dir, 'vcs_check')
-        os.makedirs(check_dir, exist_ok=True)
-
-        print("[Check RTL] Check rtl file: %s"% flst_path)
-        command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
-
-        os.system(command)
-
 
     # total ==============================================================
     def generate(self, path=None):
@@ -182,10 +146,53 @@ class RegSpace(AddressSpace):
 
 
 
+    ########################################
+    # check 
+    ########################################
+
+    def check_rtl(self):
+        flst_path = os.path.join(self.rtl_path, 'filelist.f')
+        check_dir = os.path.join(self._rtl_dir, 'vcs_check')
+        os.makedirs(check_dir, exist_ok=True)
+
+        print("\n################################################################################")
+        print("[Check RTL] Check rtl file: %s"% flst_path)
+        print("################################################################################\n")
+        command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
+        os.system(command)
+
+        with open(f'{check_dir}/vcs.log','r') as f:
+            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+                raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        print("[Check RTL] vcs check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
 
 
+    def check_ralf(self):
+        output_file = self._ralf_dir+'/'+self.module_name+'.ralf'
+        output_path = self._ral_model_dir+'/'
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+        print("\n################################################################################")
+        print("[Check Ralf] Check ralf file: %s"% output_file)
+        print("################################################################################\n")
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
+
+        # if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
+        if os.system(command)==0: os.system(f'mv ral_{self.module_name}.sv {output_path}')
+        else: raise Exception("ralgen fail!")
+        print("[Check Ralf] output path of ral model: %s"% os.path.abspath(os.path.join(output_path, f'ral_{self.module_name}.sv')))
 
 
+    def report_ralf_core(self, output_dir):
+        if self.sub_space_list == []:
+            return []
+        else:
+            file_name = self.module_name+'.ralf'
+            path = output_dir
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            text = self.report_from_template(APG_REG_RALF_FILE_REG_SPACE, {'head_type':'ralf'})
+            with open(path+file_name,'w') as f:
+                f.write(text)
 
 
 
@@ -315,8 +322,9 @@ class RegSpace(AddressSpace):
         if os.path.exists(dst_path): shutil.rmtree(dst_path)
         shutil.copytree(src_path, dst_path)
         
-        dv_setup_path = os.path.join(dst_path,'setup_dv.sh')
-        if not os.path.exists(dv_setup_path): shutil.move(dv_setup_path, self._dv_dir)
+        setup_path = os.path.join(dst_path,'setup_dv.sh')
+        dv_setup_path = os.path.join(self._dv_dir,'setup_dv.sh')
+        if not os.path.exists(dv_setup_path): shutil.move(setup_path, self._dv_dir)
 
 
 

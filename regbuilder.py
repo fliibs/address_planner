@@ -38,6 +38,9 @@ def main():
 
 
 
+
+
+
 def task_parse_excel(args, others=None):
     
     if args.e == None: raise Exception("Input file not exist!") # simplify way
@@ -55,8 +58,8 @@ def task_regbuilder(args, others=None):
     print("[ Regbuilder ] Start parse python file %s"% others)
     cmd_exc = f'python3 {others}'
     os.environ['PYTHONPATH'] = f'$PYTHONPATH:{root_path}'
-    os.system(cmd_exc)
-
+    if os.system(cmd_exc)!=0:
+        raise Exception("Generate fail, please check above exception")
     return None
 
 
@@ -71,7 +74,6 @@ def task_dv_setup(args, others=None):
     dv_setup_path = os.path.join(dst_path, dv_setup)
     if not os.path.exists(dv_setup_path): shutil.move(dv_setup_path, dv_path)
     
-
     return None
 
 

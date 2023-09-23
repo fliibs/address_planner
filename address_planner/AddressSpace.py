@@ -7,6 +7,7 @@ import os
 import builtins
 import json
 import shutil
+import re
 
 class AddressSpace(AddressLogicRoot):
 
@@ -116,12 +117,7 @@ class AddressSpace(AddressLogicRoot):
         with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
-
-    def check_chead(self):
-        file_path = os.path.join(self._chead_dir,'all.h')
-        print("[Check chead] Check chead: %s"% file_path)
-        if os.system('gcc -include stdint.h %s' % file_path) !=0:
-            raise Exception('c head compile error.')
+    
 
     def report_chead_core(self):
         if self.sub_space_list == []:
@@ -144,17 +140,7 @@ class AddressSpace(AddressLogicRoot):
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % os.path.join(self._vhead_dir, vhead_name))
 
-    def check_vhead(self):
-        check_dir = os.path.join(self._vhead_dir, 'vcs_check')
-        file_path = os.path.join(self._vhead_dir, 'all.vh')
-        os.makedirs(check_dir, exist_ok=True)
         
-        print("[Check vhead] Check vhead: %s"% file_path)
-        command_vhead = f'vcs -full64 -sverilog -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc {file_path} | tee {check_dir}/vcs.log'
-       
-        os.system(command_vhead)
-        
-
     def report_vhead_core(self):
         if self.sub_space_list == []:
             return []
@@ -174,9 +160,7 @@ class AddressSpace(AddressLogicRoot):
         output_path = self._ralf_dir+'/'
         self.recursive_report_ralf_core(output_path)
 
-    def check_ralf(self):
-        self.recursive_check_ralf_core()
-
+    
     def recursive_report_ralf_core(self, output_dir):
         for ss in self.sub_space_list:
             if hasattr(ss,'report_ralf_core'):
@@ -184,14 +168,7 @@ class AddressSpace(AddressLogicRoot):
             else:
                 ss.recursive_report_ralf_core(output_dir)
 
-    def recursive_check_ralf_core(self):
-        for ss in self.sub_space_list:
-            if hasattr(ss,'report_ralf_core'):
-                ss.check_ralf()
-            else:
-                ss.recursive_check_ralf_core()
-        
-
+    
     # report and check json ==========================================
     def report_json(self):
         json_list= [self.report_json_core()]
@@ -200,14 +177,7 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         
-    def check_json(self):
-        json_path = os.path.join(self._html_dir, 'data.json')
-        try:
-            json_file = open(json_path, 'r')
-            json.load(json_file)
-            print("[Check Json] Json file correct")
-        except:
-            raise Exception("[Check Json] Error in Json file")
+    
 
     def report_json_core(self):
         json_dict={}
@@ -256,4 +226,78 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space, offset, name)
         return self
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ############################
+    # check
+    ############################
+
+
+    def check_ralf(self):
+        self.recursive_check_ralf_core()
+
+
+    def recursive_check_ralf_core(self):
+        for ss in self.sub_space_list:
+            if hasattr(ss,'report_ralf_core'):
+                ss.check_ralf()
+            else:
+                ss.recursive_check_ralf_core()
+
+
+    def check_vhead(self):
+        check_dir = os.path.join(self._vhead_dir, 'vcs_check')
+        file_path = os.path.join(self._vhead_dir, 'all.vh')
+        os.makedirs(check_dir, exist_ok=True)
+        
+        print("\n################################################################################")
+        print("[Check vhead] Check vhead: %s"% file_path)
+        print("################################################################################\n")
+        
+        command_vhead = f'vcs -full64 -sverilog -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc {file_path} | tee {check_dir}/vcs.log'
+        os.system(command_vhead)
+        with open(f'{check_dir}/vcs.log','r') as f:
+            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+                raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        print("[Check vhead] vhead check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
     
+
+    def check_json(self):
+        json_path = os.path.join(self._html_dir, 'data.json')
+        try:
+            print("\n################################################################################")
+            print("[Check Json] Check Json: %s"% json_path)
+            print("################################################################################\n")
+            json_file = open(json_path, 'r')
+            json.load(json_file)
+
+            print("[Check Json] json file correct")
+        except:
+            raise Exception("[Check Json] Error in Json file")
+        
+    
+    def check_chead(self):
+        file_path = os.path.join(self._chead_dir,'all.h')
+        print("\n################################################################################")
+        print("[Check chead] Check chead: %s"% file_path)
+        print("################################################################################\n")
+        
+        if os.system('gcc -include stdint.h %s' % file_path) !=0:
+            raise Exception('c head compile error.')
+        print("[Check chead]  c head correct")

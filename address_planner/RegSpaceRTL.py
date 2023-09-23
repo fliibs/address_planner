@@ -54,7 +54,7 @@ class RegSpaceBase(Component):
             self.p.ready        += UInt(1,1)
             
 
-            self.wreq_vld       += And(self.p.write, self.p.sel, self.p.enable)  
+            self.wreq_vld       += And(self.p.write, self.p.sel, Not(self.p.enable))  
             self.wreq_addr      += self.p.addr
             self.wreq_data      += byte_mask(self.p.wdata,self.p.strb)
 
