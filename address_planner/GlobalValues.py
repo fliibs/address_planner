@@ -79,6 +79,9 @@ class FieldAccess(Enum):
     Write0Toggle         = 'W0T'
     WriteOnce            = 'W1'
     WriteOnlyOnce        = 'WO1'
+
+    WriteOnePulse        = 'W1P'
+    WriteZeroPulse       = 'W0P'     
     
     
 
@@ -109,6 +112,9 @@ Write1Toggle         = FieldAccess.Write1Toggle
 Write0Toggle         = FieldAccess.Write0Toggle
 WriteOnce            = FieldAccess.WriteOnce
 WriteOnlyOnce        = FieldAccess.WriteOnlyOnce
+
+WriteOnePulse        = FieldAccess.WriteOnePulse
+WriteZeroPulse       = FieldAccess.WriteZeroPulse
 
 
 @unique
@@ -221,14 +227,6 @@ APB_PORT_DICT = {
     'slverr'  :    'output'
 }
 
-# INTERNAL_FIELD_DICT = {
-#     'wdat'  :   'input' ,
-#     'wvld'  :   'input' ,
-#     'wrdy'  :   'output',
-#     'rdat'  :   'output',
-#     'rvld'  :   'output',
-#     'rrdy'  :   'input' 
-# }
 
 EXTERNAL_FIELD_DICT = {
     'wdat'  :   'output',
@@ -239,13 +237,13 @@ EXTERNAL_FIELD_DICT = {
     'rrdy'  :   'input'
 }
 
-EXTERNAL_FIELD_RO_DICT = {
+EXTERNAL_FIELD_R_DICT = {
     'rdat'  :   'input' ,
     'rvld'  :   'output' ,
     'rrdy'  :   'input'
 }
 
-EXTERNAL_FIELD_WO_DICT = {
+EXTERNAL_FIELD_W_DICT = {
     'wdat'  :   'output',
     'wvld'  :   'output',
     'wrdy'  :   'input' 
@@ -258,12 +256,16 @@ INTERNAL_FIELD_DICT = {
     'rena'  :   'input' 
 }
 
-INTERNAL_FIELD_RO_DICT = {
+INTERNAL_FIELD_R_DICT = {
+    'rdat'  :   'output',
+}
+
+INTERNAL_FIELD_REXTRA_DICT = {
     'rdat'  :   'output',
     'rena'  :   'input' 
 }
 
-INTERNAL_FIELD_WO_DICT = {
+INTERNAL_FIELD_W_DICT = {
     'wdat'  :   'input' ,
     'wena'  :   'input' 
 }

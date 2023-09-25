@@ -92,10 +92,10 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
-    def generate(self, path=None):
+    def generate(self, path=None, report_dv=False):
         super().generate(path)
         self.report_rtl()
-        self.report_dv()
+        if report_dv: self.report_dv()
 
 
     def check(self, path=None):
@@ -210,14 +210,13 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             for field in ss.field_list:
                 if field.is_external==False:
-                    if field.hw_readable and field.hw_writeable:
-                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_DICT.items() }
-                    elif field.hw_readable:
-                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_RO_DICT.items() }
-                    elif field.hw_writeable:
-                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_WO_DICT.items() }
-                    else:
-                        internal_field_dict = {}
+                    if field.hw_readable:
+                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_R_DICT.items() }
+                        if field.hw_read_clean or field.hw_read_set:
+                            internal_field_dict = {prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_REXTRA_DICT.items()}
+                    if field.hw_writeable:
+                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_W_DICT.items() }
+
                     internal_port_dict[prefix+ss.module_name+'_'+field.name]=internal_field_dict
         
         return internal_port_dict
@@ -231,14 +230,11 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             for field in ss.field_list:
                 if field.is_external==True:
-                    if field.sw_readable and field.sw_writeable:
-                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_DICT.items() }
-                    elif field.sw_readable:
-                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_RO_DICT.items() }
-                    elif field.sw_writeable:
-                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_WO_DICT.items() }
-                    else:
-                        external_field_dict = {}
+                    if field.sw_readable:
+                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_R_DICT.items() }
+                    if field.sw_writeable:
+                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_W_DICT.items() }
+
                     external_port_dict[prefix+ss.module_name+'_'+field.name]=external_field_dict
         
         return external_port_dict
