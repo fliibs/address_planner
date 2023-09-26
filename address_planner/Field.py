@@ -53,9 +53,9 @@ class FieldRoot(AddressLogicRoot):
 
 
     def write_one_pulse_detect(self):
-        if self.sw_access==WriteOnePulse and self.hw_access!=ReadOnly:
+        if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.hw_access!=ReadOnly:
             raise Exception("detect write one pulse field: %s, but hardware access should be readonly"% self._name)
-        if self.sw_access==WriteOnePulse and self.is_external==False:
+        if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.is_external==False:
             raise Exception("detect write one pulse field: %s, but it must be external field"% self._name)
 
         
