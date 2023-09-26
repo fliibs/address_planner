@@ -211,11 +211,11 @@ class RegSpace(AddressSpace):
             for field in ss.field_list:
                 if field.is_external==False:
                     if field.hw_readable:
-                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_R_DICT.items() }
+                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD.rd_field_dict.items() }
                         if field.hw_read_clean or field.hw_read_set:
-                            internal_field_dict = {prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_REXTRA_DICT.items()}
+                            internal_field_dict = {prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD.rd_extra_field_dict.items()}
                     if field.hw_writeable:
-                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD_W_DICT.items() }
+                        internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD.wr_field_dict.items() }
 
                     internal_port_dict[prefix+ss.module_name+'_'+field.name]=internal_field_dict
         
@@ -231,9 +231,9 @@ class RegSpace(AddressSpace):
             for field in ss.field_list:
                 if field.is_external==True:
                     if field.sw_readable:
-                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_R_DICT.items() }
+                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD.rd_define_dict.items() }
                     if field.sw_writeable:
-                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD_W_DICT.items() }
+                        external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD.wr_define_dict.items() }
 
                     external_port_dict[prefix+ss.module_name+'_'+field.name]=external_field_dict
         
@@ -242,9 +242,9 @@ class RegSpace(AddressSpace):
 
     def report_top_software_port(self, prefix='p_'):
         if "apb" in self.software_interface:
-            top_sw_port_dict = { prefix+key: value for key,value in APB_PORT_DICT.items() }
+            top_sw_port_dict = { prefix+key: value for key,value in APB_PORT.define_dict.items() }
         else:
-            top_sw_port_dict = { prefix+key: value for key,value in BASE_PORT_DICT.items() }
+            top_sw_port_dict = { prefix+key: value for key,value in BASE_PORT.define_dict.items() }
 
         return top_sw_port_dict
     

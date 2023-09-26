@@ -45,7 +45,6 @@ module tb_top;
         force  u_dut.clk=v_clk;                             
         force  u_dut.rst_n=v_rst_n;                          
         force  u_dut.p_addr=yuu_apb_if.master_if[0].paddr;                          
-        force  u_dut.p_prot= yuu_apb_if.master_if[0].pprot;                        
         force  u_dut.p_sel= yuu_apb_if.master_if[0].psel;                          
         force  u_dut.p_enable=yuu_apb_if.master_if[0].penable;                        
         force  u_dut.p_write= yuu_apb_if.master_if[0].pwrite;                        

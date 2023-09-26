@@ -1,6 +1,6 @@
 .PHONY : comp clean verdi run_h
-UVM_VERBOSITY = UVM_LOW
-DEBUG = -debug_all+pp
+LOG_LVL = UVM_LOW
+DEBUG = -debug_access+all
 TC=base_test
 FSDB = novas.fsdb
 LOGPARSER_TOOL= ${PRJ_ROOT}/dv/dv_env/dv_logparser.py
@@ -28,7 +28,7 @@ comp :
 sim : comp
 	mkdir -p ${TC}_output
 	cd ${TC}_output;\
-	../simv +UVM_TESTNAME=${TC} -l ${TC}.log
+	../simv +UVM_TESTNAME=${TC} -l ${TC}.log +UVM_VERBOSITY=${LOG_LVL}
 
 post_sim:sim
 	cd ${TC}_output;\
