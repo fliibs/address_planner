@@ -1,17 +1,18 @@
 from openpyxl import load_workbook
-import PyTemp
+from  excel import PyTemp
 import re
-import sys
+# import sys
 import os
 
 
 RegBankMes = {}
 RegMap = {}
-def ReadExcel():
-    if len(sys.argv)>=2:    input_path = sys.argv[1]
-    else:   raise Exception("Input file not exist!")
-    if len(sys.argv)>=3:    output_path = sys.argv[2]
-    else:   output_path = ''
+
+def ReadExcel(input_path, output_path):
+    # if len(sys.argv)>=2:    input_path = sys.argv[1]
+    # else:   raise Exception("Input file not exist!")
+    # if len(sys.argv)>=3:    output_path = sys.argv[2]
+    # else:   output_path = ''
 
     workbook = load_workbook(input_path)
     regBank = workbook["REGBANK"]
@@ -66,8 +67,15 @@ def ReadExcel():
                 elif cellValue is not None and regBank[cellName].value  == 'HardwareAccess':
                     RegMap[regName]['Field'][filedName]['HardwareAccess'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'DefaultValue':
-                    matcher = re.match(r'.*\w(\d)',cellValue) 
-                    RegMap[regName]['Field'][filedName]['initValue'] = matcher.group(1)
+                    matcher = re.match(r'.*\'(\w)(\d*)',str(cellValue)) 
+                    if matcher == None:
+                        RegMap[regName]['Field'][filedName]['initValue'] = cellValue
+                    elif matcher.group(1) == 'b':
+                        RegMap[regName]['Field'][filedName]['initValue'] = '0b'+ matcher.group(2)
+                    elif matcher.group(1) == 'h':
+                        RegMap[regName]['Field'][filedName]['initValue'] = '0x'+matcher.group(2)
+                    elif matcher.group(1) == 'd':
+                        RegMap[regName]['Field'][filedName]['initValue'] = matcher.group(2)
                 elif cellValue is not None and regBank[cellName].value  == 'Description':
                     if 'Field' not in RegMap[regName]:
                          RegMap[regName]['Description'] = cellValue
@@ -80,12 +88,12 @@ def ReadExcel():
     print(RegMap,file=datalog)
 
 
-def CreatPy():
+def CreatPy(input_path, output_path):
     
-    ReadExcel()
+    ReadExcel(input_path, output_path)
 
-    if len(sys.argv)>=3:    output_path = sys.argv[2]
-    else:   output_path = ''
+    # if len(sys.argv)>=3:    output_path = sys.argv[2]
+    # else:   output_path = ''
 
     pyCode = PyTemp.Head.replace('{name}',RegBankMes['name']).replace('{size}',str(RegBankMes['size'])).replace('{description}',RegBankMes['description']).replace('{width}',str(RegBankMes['width'])).replace('{interface}',RegBankMes['interface'])
     
@@ -97,13 +105,17 @@ def CreatPy():
         
         for fieldName,field in RegMap[regName]['Field'].items():
             pyCode += PyTemp.RegCfg.replace('{cnt}',str(index)).replace('{name}',fieldName).replace('{bit}',str(field['bit'])).replace('{SoftwareAccess}',field['SoftwareAccess']).replace('{HardwareAccess}',field.get('HardwareAccess','Null')).replace('{initValue}',str(field['initValue'])).replace('{description}',field.get('Description','')).replace('{offset}',str(field['offset']))
+            if field['FieldType'] == 'External':
+                pyCode = pyCode.replace('{Field}','External')
+            else:
+                pyCode = pyCode.replace('{Field}','')
             
         pyCode += PyTemp.ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress'])).replace('{name}',str(regName))
         
-    pyCode += PyTemp.Gen.replace('{name}',RegBankMes['name'])
+    pyCode += PyTemp.Gen.replace('{name}',output_path)
     
     if RegBankMes['check'] == 'true':
-        pyCode += PyTemp.Check.replace('{name}',RegBankMes['name'])
+        pyCode += PyTemp.Check.replace('{name}',output_path)
         
     filename = RegBankMes['name']+"_rf_gen.py"
     if output_path != '': os.makedirs(output_path, exist_ok=True)
@@ -111,6 +123,6 @@ def CreatPy():
     with open(output_file,'w') as fileWriter:
         fileWriter.write(pyCode)
 
-    return output_file
+    return (output_file,RegBankMes['name'])
                         
-print(CreatPy())
+# print(CreatPy())

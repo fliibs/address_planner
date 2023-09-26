@@ -12,9 +12,6 @@ reg_B.add_incr(Field(name='field0',bit=1,sw_access=ReadOnly,hw_access=ReadWrite,
 reg_B.add_incr(Field(name='field1',bit=2,sw_access=ReadSet,hw_access=ReadWrite,description='sw read set.'))
 reg_B.add_incr(Field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='sw read write.'))
 reg_B.add_incr(Field(name='field3',bit=1,sw_access=ReadClean,hw_access=ReadWrite,description='sw read clean.'))
-# reg_B.add_incr(Field(name='field3',bit=1,sw_access=ReadWrite,hw_access=ReadOnly, description='hw read only.'))
-# reg_B.add_incr(Field(name='field4',bit=1,sw_access=ReadWrite,hw_access=WriteOnly,description='hw write only.'))
-# reg_B.add_incr(Field(name='field5',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,description='hw read write.'))
 reg_B.add_incr(Field(name='field4',bit=1,sw_access=WriteOnly,hw_access=ReadWrite,description='sw write only.'))
 reg_B.add_incr(Field(name='field5',bit=1,sw_access=WriteReadClean,hw_access=ReadWrite,description='sw read clean write.'))
 reg_B.add_incr(Field(name='field6',bit=1,sw_access=WriteClean,hw_access=ReadWrite,description='sw write clean.'))
@@ -75,13 +72,13 @@ reg_E.add_incr(Field(name='h_field24',bit=2,hw_access=WriteOnlyOnce,description=
 #add reg0 and reg1(inst from reg_B) to reg_bank_B
 reg_bank_B.add_incr(reg_B,'reg0')
 reg_bank_B.add_incr(reg_C,'reg1')
-reg_bank_B.add_incr(reg_D,'reg0')
-reg_bank_B.add_incr(reg_E,'reg1')
+reg_bank_B.add_incr(reg_D,'reg2')
+reg_bank_B.add_incr(reg_E,'reg3')
 
 
 # reg_bank_B.path = ('example_build/%s' % reg_bank_B.module_name)
 
-reg_bank_B.generate('build/example')
+reg_bank_B.generate('build/example', report_dv=True)
 # reg_bank_C.path = ('example_build/%s' % reg_bank_C.module_name)
 # reg_bank_C.report_json()
 # reg_bank_C.report_rtl()

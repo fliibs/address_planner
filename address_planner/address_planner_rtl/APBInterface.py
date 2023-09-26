@@ -14,7 +14,7 @@ class APB(Bundle):
         # self.buser = 5
 
         self.addr   = Input(UInt(self.addr_width))
-        self.prot   = Input(UInt(3))
+        # self.prot   = Input(UInt(3))
         self.sel    = Input(UInt(1))
         self.enable = Input(UInt(1))
         self.write  = Input(UInt(1))

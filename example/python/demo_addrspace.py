@@ -23,4 +23,4 @@ reg_C.add(ExternalField(name='field3',bit=4,sw_access=ReadWrite,hw_access=ReadOn
 reg_bank_B.add(reg_B,0x4,'internal_reg')
 reg_bank_B.add(reg_C,0x8,'external_reg')
 
-reg_bank_B.generate('build/example')
+reg_bank_B.generate('build')

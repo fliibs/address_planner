@@ -4,35 +4,73 @@ from .uhdl.uhdl import *
 from .Field import *
 from .address_planner_rtl.APBInterface import APB
 from .address_planner_rtl.Common import *
-from .GlobalValues import INTERNAL_FIELD_DICT,EXTERNAL_FIELD_DICT
 
 
 class RegSpaceRTL():
     def __init__(self, cfg):
         # super().__init__()
-        self._cfg = cfg
-        if "apb" in self._cfg.software_interface:
-            self.u = RegSpaceAPB(cfg=cfg)
-        else:
-            self.u = RegSpaceBase(cfg=cfg)
+        # self._cfg = cfg
+        # if "apb" in self._cfg.software_interface:
+        #     self.u = RegSpaceAPB(cfg=cfg)
+        # else:
+        #     self.u = RegSpaceBase(cfg=cfg)
+        self.u = RegSpaceBase(cfg=cfg)
 
 
 class RegSpaceBase(Component):
 
     def __init__(self,cfg):
         super().__init__()
-        self._cfg = cfg
-
+        self._cfg      = cfg
         self.clk       = Input(UInt(1))
         self.rst_n     = Input(UInt(1))
-        
-        self.rreq_addr = Input(UInt(self._cfg.bus_width))
-        self.rreq_vld  = Input(UInt(1))
-        self.rreq_rdy  = Output(UInt(1))
 
-        self.rack_data = Output(UInt(APG_BUS_WIDTH))
-        self.rack_vld  = Output(UInt(1))
-        self.rack_rdy  = Input(UInt(1))
+
+        if "apb" in cfg.software_interface:
+            self.rreq_addr      = Wire(UInt(self._cfg.bus_width))
+            self.rreq_vld       = Wire(UInt(1))
+            self.rreq_rdy       = Wire(UInt(1))
+
+            self.rack_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.rack_vld       = Wire(UInt(1))
+            self.rack_rdy       = Wire(UInt(1))
+
+            self.wreq_addr      = Wire(UInt(self._cfg.bus_width))
+            self.wreq_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.wreq_vld       = Wire(UInt(1))
+            self.wreq_rdy       = Wire(UInt(1))
+
+            self.p              =  APB(addr_width=self._cfg.bus_width)
+            self.p.slverr       += UInt(1,0)
+            
+            # Software Input
+            self.rreq_vld       += And(Not(self.p.write), self.p.sel)
+            self.rack_rdy       += And(Not(self.p.write), self.p.sel, self.p.enable)
+            self.rreq_addr      += self.p.addr
+
+            self.p.rdata        += self.rack_data
+            
+            self.p.ready        += UInt(1,1)
+            
+
+            self.wreq_vld       += And(self.p.write, self.p.sel, Not(self.p.enable))  
+            self.wreq_addr      += self.p.addr
+            self.wreq_data      += byte_mask(self.p.wdata,self.p.strb)
+
+        else:
+            self.rreq_addr = Input(UInt(self._cfg.bus_width))
+            self.rreq_vld  = Input(UInt(1))
+            self.rreq_rdy  = Output(UInt(1))
+
+            self.rack_data = Output(UInt(APG_BUS_WIDTH))
+            self.rack_vld  = Output(UInt(1))
+            self.rack_rdy  = Input(UInt(1))
+
+            self.wreq_addr = Input(UInt(self._cfg.bus_width))
+            self.wreq_data = Input(UInt(APG_BUS_WIDTH))
+            self.wreq_vld  = Input(UInt(1))
+            self.wreq_rdy  = Output(UInt(1))
+
 
         if get_sw_readable(self._cfg.sub_space_list):
             self.rreq_rdy += And(self.rack_rdy,self.rack_vld)
@@ -41,13 +79,7 @@ class RegSpaceBase(Component):
 
         rack_dat_read_mux = EmptyWhen()
         rack_read_mux     = EmptyWhen()
-        
-        self.wreq_addr = Input(UInt(self._cfg.bus_width))
-        self.wreq_data = Input(UInt(APG_BUS_WIDTH))
-        self.wreq_vld  = Input(UInt(1))
-        self.wreq_rdy  = Output(UInt(1))
-
-        wack_rdy_mux = EmptyWhen()
+        wreq_rdy_mux      = EmptyWhen()
         
         #########################################################################################################
         #   Reg box
@@ -62,10 +94,11 @@ class RegSpaceBase(Component):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
+
                 reg_rrdy += UInt(1,1)
-                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address)))
-                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rdat)
-                rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rrdy)
+                reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
+                rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
             
             if get_sw_writeable(self._cfg.sub_space_list):
                 
@@ -75,8 +108,8 @@ class RegSpaceBase(Component):
 
                 reg_wrdy += UInt(1,1)
                 reg_wdat += self.wreq_data[sub_space.bit-1:0]
-                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address)))
-                wack_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address))).then(reg_wrdy)
+                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
            
 
             ##########################################################################################################
@@ -95,26 +128,40 @@ class RegSpaceBase(Component):
                     rdat_list.append(UInt(field.bit,field.init_value))
 
                 elif field.is_external:
-                    field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
-                    if get_sw_readable(self._cfg.sub_space_list):
-                        field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
-                        field_sw_rvld  = self.set('%s_rvld' % field_name, Output(UInt(1)))
-                        field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
-                        
-                        field_sw_rvld += reg_rvld
-                        rdat_list.append(field_sw_rdat)
+                    # write one pulse field
+                    if field.sw_access==WriteOnePulse or field.sw_access==WriteZeroPulse:
+                        rdat_list.append(UInt(field.bit,0))
+                        field_name = "%s_%s" % (sub_space.module_name, field.module_name)
+                        field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+
+                        field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
+                        if field.sw_access==WriteOnePulse:
+                            field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
+                        else:
+                            field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
+                        field_hw_rdat += field_hw_rdat_reg
 
                     else:
-                        rdat_list.append(UInt(field.bit,0))
+                        field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
+                        if get_sw_readable(self._cfg.sub_space_list):
+                            field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
+                            field_sw_rvld  = self.set('%s_rvld' % field_name, Output(UInt(1)))
+                            field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
+                            
+                            field_sw_rvld += reg_rvld
+                            rdat_list.append(field_sw_rdat)
+
+                        else:
+                            rdat_list.append(UInt(field.bit,0))
 
 
-                    if get_sw_writeable(self._cfg.sub_space_list):
-                        field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
-                        field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
-                        field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
+                        if get_sw_writeable(self._cfg.sub_space_list):
+                            field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
+                            field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
+                            field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
-                        field_sw_wvld += reg_wvld
+                            field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                            field_sw_wvld += reg_wvld
 
                 # Internal Register    
                 else:
@@ -132,23 +179,23 @@ class RegSpaceBase(Component):
                         if field.hw_write_clean:
                             reg_val.when(field_hw_wena).then(UInt(field.bit,0))
                         elif field.hw_write_one_to_clean:
-                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(field_hw_wena).then(BitAnd(Inverse(field_hw_wdat), field_reg))
                         elif field.hw_write_zero_to_clean:
-                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(field_hw_wena).then(BitAnd(field_hw_wdat, field_reg))
                         elif field.hw_write_set:
                             reg_val.when(field_hw_wena).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.hw_write_one_to_set:
-                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(field_hw_wena).then(BitOr(field_hw_wdat, field_reg))
                         elif field.hw_write_zero_to_set:
-                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(field_hw_wena).then(BitOr(Inverse(field_hw_wdat), field_reg))
                         elif field.hw_write_one_to_toggle:
-                            reg_val.when(And(field_hw_wena, NotEqual(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(field_hw_wena).then(BitXor(field_hw_wdat, field_reg))
                         elif field.hw_write_zero_to_toggle:
-                            reg_val.when(And(field_hw_wena, Equal(field_hw_wdat, UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(field_hw_wena).then(BitXnor(field_hw_wdat, field_reg))
                         elif field.hw_write_once:
                             hw_flag = self.set("%s_hw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
                             hw_flag += when(field_hw_wena).then(UInt(1,1))
-                            reg_val.when(And(field_hw_wena, Not(hw_flag))).then(field_hw_wdat)
+                            reg_val.when(BitAnd(field_hw_wena, Inverse(hw_flag))).then(field_hw_wdat)
                         else:
                             reg_val.when(field_hw_wena).then(field_hw_wdat)
 
@@ -156,35 +203,37 @@ class RegSpaceBase(Component):
                         if field.sw_write_clean:
                             reg_val.when(reg_wvld).then(UInt(field.bit,0))
                         elif field.sw_write_one_to_clean:
-                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(reg_wvld).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
                         elif field.sw_write_zero_to_clean:
-                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit, 0))
+                            reg_val.when(reg_wvld).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_set:
                             reg_val.when(reg_wvld).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_one_to_set:
-                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(reg_wvld).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_zero_to_set:
-                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(reg_wvld).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
                         elif field.sw_write_one_to_toggle:
-                            reg_val.when(And(reg_wvld, NotEqual(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(reg_wvld).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_zero_to_toggle:
-                            reg_val.when(And(reg_wvld, Equal(reg_wdat[field.end_bit:field.start_bit], UInt(field.bit, 0)))).then(Inverse(field_reg))
+                            reg_val.when(reg_wvld).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_once:
                             sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
                             sw_flag += when(reg_wvld).then(UInt(1,1))
-                            reg_val.when(And(reg_wvld, Not(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
+                            reg_val.when(BitAnd(reg_wvld, Inverse(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
                         else:
                             reg_val.when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit])
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
                         # field_hw_rvld = self.set("%s_rvld" % field_name , Output(UInt(1)))
-                        field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
+                        # field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
                         
                         # field_hw_rvld += UInt(1,1)
                         if field.hw_read_clean:
+                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
                             reg_val.when(field_hw_rena).then(UInt(field.bit,0))
                         elif field.hw_read_set:
+                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
                             reg_val.when(field_hw_rena).then(UInt(field.bit,2**(field.bit)-1))
                         
                         field_hw_rdat += field_reg
@@ -210,7 +259,7 @@ class RegSpaceBase(Component):
         ##########################################################################################################
 
         if get_sw_readable(self._cfg.sub_space_list):
-            rack_dat_read_mux.otherwise(UInt(sub_space.bit,0))
+            rack_dat_read_mux.otherwise(UInt(sub_space.bit,2**(sub_space.bit)-2,'hex'))
             rack_read_mux.otherwise(UInt(1,0))
 
             self.rack_data += rack_dat_read_mux
@@ -220,73 +269,73 @@ class RegSpaceBase(Component):
             self.rack_vld  += UInt(1,0)
 
         if get_sw_writeable(self._cfg.sub_space_list):
-            wack_rdy_mux.otherwise(UInt(1,0))
-            self.wreq_rdy  += wack_rdy_mux
+            wreq_rdy_mux.otherwise(UInt(1,0))
+            self.wreq_rdy  += wreq_rdy_mux
         else:
             self.wreq_rdy  += UInt(1,0)
 
         
 
-class RegSpaceAPB(Component):
-    def __init__(self, cfg):
-        super().__init__()
-        self._cfg = cfg
-        self.rs = RegSpaceBase(cfg=cfg)
+# class RegSpaceAPB(Component):
+#     def __init__(self, cfg):
+#         super().__init__()
+#         self._cfg = cfg
+#         self.rs = RegSpaceBase(cfg=cfg)
 
-        self.clk    = Input(UInt(1))
-        self.rst_n  = Input(UInt(1))
+#         self.clk    = Input(UInt(1))
+#         self.rst_n  = Input(UInt(1))
 
 
-        self.rs.clk     += self.clk
-        self.rs.rst_n   += self.rst_n
+#         self.rs.clk     += self.clk
+#         self.rs.rst_n   += self.rst_n
 
-        # if self._cfg.
-        self.p          = APB(addr_width=self._cfg.bus_width)
-        self.p.slverr  += UInt(1,0)
+#         # if self._cfg.
+#         self.p          = APB(addr_width=self._cfg.bus_width)
+#         self.p.slverr  += UInt(1,0)
 
-        # self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
-        self.p_rready  = Wire(UInt(1))
-        self.p_wready  = Wire(UInt(1))
+#         # self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
+#         self.p_rready  = Wire(UInt(1))
+#         self.p_wready  = Wire(UInt(1))
         
-        # Software Input
-        self.rs.rreq_vld    += And(Not(self.p.write), self.p.sel)
-        self.rs.rack_rdy    += And(Not(self.p.write), self.p.sel, self.p.enable)
-        self.rs.rreq_addr   += self.p.addr
+#         # Software Input
+#         self.rs.rreq_vld    += And(Not(self.p.write), self.p.sel)
+#         self.rs.rack_rdy    += And(Not(self.p.write), self.p.sel, self.p.enable)
+#         self.rs.rreq_addr   += self.p.addr
 
-        # self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
-        # rdata_ff = EmptyWhen()
-        # rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
-        # self.p_rdata_r      += rdata_ff
-        # self.p.rdata        += self.p_rdata_r
-        self.p.rdata        += self.rs.rack_data
+#         # self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
+#         # rdata_ff = EmptyWhen()
+#         # rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
+#         # self.p_rdata_r      += rdata_ff
+#         # self.p.rdata        += self.p_rdata_r
+#         self.p.rdata        += self.rs.rack_data
 
-        self.p_rready       += And(self.rs.rreq_vld, self.rs.rreq_rdy)
-        self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
-        self.p.ready        += Or(self.p_rready, self.p_wready)
-        
-
-        self.rs.wreq_vld    += And(self.p.write, self.p.sel, self.p.enable)  
-        self.rs.wreq_addr   += self.p.addr
-        self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
-
-        
-        # ready_ff = EmptyWhen()
-        # ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
-        # self.p_ready_r += ready_ff
-        # self.p.ready   += self.p_ready_r
+#         self.p_rready       += And(self.rs.rreq_vld, self.rs.rreq_rdy)
+#         self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
+#         self.p.ready        += Or(self.p_rready, self.p_wready)
         
 
-        for sub_space in cfg.sub_space_list:
-            for field in sub_space.filled_field_list:
-                 if isinstance(field, FilledField):
-                    pass
-                 else:
-                    # Internal Hardware Field
-                    for attr_in in INTERNAL_FIELD_DICT:
-                        self.expose_io(perfect_get_io(self.rs, "%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
-                    # Software External Field
-                    for attr_ex in EXTERNAL_FIELD_DICT:
-                        self.expose_io(perfect_get_io(self.rs, "%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
+#         self.rs.wreq_vld    += And(self.p.write, self.p.sel, self.p.enable)  
+#         self.rs.wreq_addr   += self.p.addr
+#         self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
+
+        
+#         # ready_ff = EmptyWhen()
+#         # ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
+#         # self.p_ready_r += ready_ff
+#         # self.p.ready   += self.p_ready_r
+        
+
+#         for sub_space in cfg.sub_space_list:
+#             for field in sub_space.filled_field_list:
+#                  if isinstance(field, FilledField):
+#                     pass
+#                  else:
+#                     # Internal Hardware Field
+#                     for attr_in in INTERNAL_FIELD_DICT:
+#                         self.expose_io(perfect_get_io(self.rs, "%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
+#                     # Software External Field
+#                     for attr_ex in EXTERNAL_FIELD_DICT:
+#                         self.expose_io(perfect_get_io(self.rs, "%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
                     
 
     

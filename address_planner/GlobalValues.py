@@ -79,6 +79,9 @@ class FieldAccess(Enum):
     Write0Toggle         = 'W0T'
     WriteOnce            = 'W1'
     WriteOnlyOnce        = 'WO1'
+
+    WriteOnePulse        = 'W1P'
+    WriteZeroPulse       = 'W0P'     
     
     
 
@@ -109,6 +112,9 @@ Write1Toggle         = FieldAccess.Write1Toggle
 Write0Toggle         = FieldAccess.Write0Toggle
 WriteOnce            = FieldAccess.WriteOnce
 WriteOnlyOnce        = FieldAccess.WriteOnlyOnce
+
+WriteOnePulse        = FieldAccess.WriteOnePulse
+WriteZeroPulse       = FieldAccess.WriteZeroPulse
 
 
 @unique
@@ -194,54 +200,71 @@ def import_inst(file_path, module_name):
     
 
 #### port attribute
+class BASE_PORT(object):
+    define_dict={
+        'rreq_addr' :     'input' ,
+        'rreq_vld'  :     'input' ,
+        'rreq_rdy'  :     'output',
+        'rack_data' :     'output',
+        'rack_vld'  :     'output',
+        'rack_rdy'  :     'input' ,
+        'wreq_addr' :     'input' ,
+        'wreq_data' :     'input' ,
+        'wreq_vld'  :     'input' ,
+        'wreq_rdy'  :     'output' 
+    }
+    
+    def __init__(self):
+        pass
 
-BASE_PORT_DICT = {
-    'rreq_addr' :     'input' ,
-    'rreq_vld'  :     'input' ,
-    'rreq_rdy'  :     'output',
-    'rack_data' :     'output',
-    'rack_vld'  :     'output',
-    'rack_rdy'  :     'input' ,
-    'wreq_addr' :     'input' ,
-    'wreq_data' :     'input' ,
-    'wreq_vld'  :     'input' ,
-    'wreq_rdy'  :     'output' 
-}
 
-APB_PORT_DICT = {
-    'addr'    :    'input' ,
-    'prot'    :    'input' ,
-    'sel'     :    'input' ,
-    'enable'  :    'input' ,
-    'write'   :    'input' ,
-    'wdata'   :    'input' ,
-    'strb'    :    'input' ,
-    'ready'   :    'output',
-    'rdata'   :    'output',
-    'slverr'  :    'output'
-}
+class APB_PORT(object):
+    define_dict={
+        'addr'    :    'input' ,
+        'prot'    :    'input' ,
+        'sel'     :    'input' ,
+        'enable'  :    'input' ,
+        'write'   :    'input' ,
+        'wdata'   :    'input' ,
+        'strb'    :    'input' ,
+        'ready'   :    'output',
+        'rdata'   :    'output',
+        'slverr'  :    'output'
+    }
 
-# INTERNAL_FIELD_DICT = {
-#     'wdat'  :   'input' ,
-#     'wvld'  :   'input' ,
-#     'wrdy'  :   'output',
-#     'rdat'  :   'output',
-#     'rvld'  :   'output',
-#     'rrdy'  :   'input' 
-# }
+    def __init__(self):
+        pass
 
-EXTERNAL_FIELD_DICT = {
-    'wdat'  :   'output',
-    'wvld'  :   'output',
-    'wrdy'  :   'input' ,
-    'rdat'  :   'input' ,
-    'rvld'  :   'output' ,
-    'rrdy'  :   'input'
-}
+class EXTERNAL_FIELD(object):
+    wr_define_dict={
+        'wdat'  :   'output',
+        'wvld'  :   'output',
+        'wrdy'  :   'input' ,
+    }
 
-INTERNAL_FIELD_DICT = {
-    'wdat'  :   'input' ,
-    'wena'  :   'input' ,
-    'rdat'  :   'output',
-    'rena'  :   'input' 
-}
+    rd_define_dict={
+        'rdat'  :   'input' ,
+        'rvld'  :   'output' ,
+        'rrdy'  :   'input'
+    }
+
+    def __init__(self):
+        pass
+
+class INTERNAL_FIELD(object):
+    wr_field_dict={
+        'wdat'  :   'input' ,
+        'wena'  :   'input' 
+    }
+
+    rd_field_dict={
+        'rdat'  :   'output',
+    }
+
+    rd_extra_field_dict={
+        'rdat'  :   'output',
+        'rena'  :   'input' 
+    }
+
+    def __init__(self):
+        pass

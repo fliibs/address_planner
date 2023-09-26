@@ -20,6 +20,7 @@ class FieldRoot(AddressLogicRoot):
         self.bit_offset         = 0
         self.init_value         = init_value     
 
+        
     @property
     def name(self):
         return self._name
@@ -49,6 +50,15 @@ class FieldRoot(AddressLogicRoot):
     @property
     def module_name_until_regbank(self):
         return self.father.module_name_until_regbank + '_' + self.module_name
+
+
+    def write_one_pulse_detect(self):
+        if self.sw_access==WriteOnePulse and self.hw_access!=ReadOnly:
+            raise Exception("detect write one pulse field: %s, but hardware access should be readonly"% self._name)
+        if self.sw_access==WriteOnePulse and self.is_external==False:
+            raise Exception("detect write one pulse field: %s, but it must be external field"% self._name)
+
+        
 
     ############## Software Type ###############
     @property
@@ -99,7 +109,8 @@ class FieldRoot(AddressLogicRoot):
                self.sw_access == Write1Toggle or \
                self.sw_access == Write0Toggle or \
                self.sw_access == WriteOnce or \
-               self.sw_access == WriteOnlyOnce
+               self.sw_access == WriteOnlyOnce or \
+               self.sw_access == WriteOnePulse
 
     @property
     def sw_read_clean(self):
@@ -161,6 +172,10 @@ class FieldRoot(AddressLogicRoot):
     def sw_write_once(self):
         return self.sw_access == WriteOnce or \
                self.sw_access == WriteOnlyOnce
+    
+    @property
+    def sw_write_one_pulse(self):
+        return self.sw_access == WriteOnePulse
 
 
     ############## Hardware Type ##############
@@ -284,10 +299,8 @@ class FieldRoot(AddressLogicRoot):
 
     @property
     def field_reg_read(self):
-        return  self.sw_read_clean or \
-                self.sw_read_set or \
-                self.hw_read_clean or \
-                self.hw_read_set
+        return  self.hw_readable or \
+                self.sw_readable
     
     @property
     def field_reg_write(self):
@@ -331,9 +344,16 @@ class Field(FieldRoot):
     def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = False
+        self.write_one_pulse_detect()
 
 
 class ExternalField(FieldRoot):
     def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = True
+        self.write_one_pulse_detect()
+
+
+class W1PField(ExternalField):
+    def __init__(self, name, bit, sw_access=WriteOnePulse, hw_access=ReadOnly, init_value=0, description=''):
+        super().__init__(name, bit, sw_access, hw_access, init_value, description)

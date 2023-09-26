@@ -31,9 +31,6 @@ class AddressLogicRoot(object):
             return self.father.father_until(T)
 
     def module_name_until(self,T,join_str='_'):
-        #print(self)
-        #print(type(self))
-        #print(T)
         if self.father is None or self is T or (isinstance(T,type) and isinstance(self,T)):
         #if self.father is None or isinstance(self, T) or (isinstance(T,type) and isinstance(self,T)):
             return self.module_name
@@ -83,6 +80,10 @@ class AddressLogicRoot(object):
     @property
     def _ralf_dir(self):
         return os.path.join(self.output_path+'/ralf')
+    
+    @property
+    def _dv_dir(self):
+        return os.path.join(self.output_path+'/dv')
 
     @property
     def html_path(self):

@@ -1,0 +1,71 @@
+import uvm_pkg::*;
+import yuu_apb_pkg::*;
+`include "uvm_macros.svh"
+
+module tb_top;
+    logic v_clk;
+    logic v_rst_n;
+    
+    initial begin
+        v_rst_n=0;
+        #100ns;
+        v_rst_n=1;
+    end
+
+    initial begin
+        v_clk=0;
+        forever begin
+          #100ns;
+          v_clk=~v_clk;
+        end
+    end
+
+    initial begin
+        #10000ns;
+ //       $finish;
+    end
+    
+    initial begin
+        //$fsdbDumpvars(0,tb_top,"+all");
+        $fsdbDumpvars();
+        $fsdbDumpfile("tb_top.fsdb");
+        //$fsdbDumpflush;
+    end
+    
+    RegSpaceBase_cfg_{{space.module_name}} u_dut();
+    
+    yuu_apb_interface yuu_apb_if();
+
+    initial begin
+      uvm_config_db#(virtual yuu_apb_interface)::set(null, "*", "vif", yuu_apb_if);
+      run_test();
+    end
+
+    initial begin
+        force  u_dut.clk=v_clk;                             
+        force  u_dut.rst_n=v_rst_n;                          
+        force  u_dut.p_addr=yuu_apb_if.master_if[0].paddr;                          
+        force  u_dut.p_sel= yuu_apb_if.master_if[0].psel;                          
+        force  u_dut.p_enable=yuu_apb_if.master_if[0].penable;                        
+        force  u_dut.p_write= yuu_apb_if.master_if[0].pwrite;                        
+        force  u_dut.p_wdata= yuu_apb_if.master_if[0].pwdata;                       
+        force  u_dut.p_strb= yuu_apb_if.master_if[0].pstrb;                         
+        {% for isig in input_sig_list -%}
+        force  u_dut.{{isig}}=0   ;
+        {% endfor %}
+        force  yuu_apb_if.master_if[0].prdata=u_dut.p_rdata;
+        force  yuu_apb_if.master_if[0].pready=u_dut.p_ready;
+        force  yuu_apb_if.master_if[0].pslverr=u_dut.p_slverr;
+    
+    end
+    
+    
+    initial begin
+      force yuu_apb_if.pclk=v_clk;
+      force yuu_apb_if.preset_n=v_rst_n;
+    end
+endmodule 
+
+`include  "ral_top.sv"
+`include  "tc_lib.sv"
+
