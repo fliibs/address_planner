@@ -124,7 +124,7 @@ class RegSpaceBase(Component):
                 # External Register Software Access
                 elif field.reserved:
                     rdat_list.append(UInt(field.bit,0))
-                elif not (field.field_reg_read or field.field_reg_write):
+                elif not field.field_reg_write:
                     rdat_list.append(UInt(field.bit,field.init_value))
 
                 elif field.is_external:
@@ -247,7 +247,6 @@ class RegSpaceBase(Component):
                         rdat_list.append(field_reg)
                     else:
                         rdat_list.append(UInt(field.bit,0))
-
 
                     field_reg += reg_val
                                     
