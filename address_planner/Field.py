@@ -307,7 +307,11 @@ class FieldRoot(AddressLogicRoot):
     @property
     def field_reg_write(self):
         return  self.hw_writeable or \
-                self.sw_writeable
+                self.sw_writeable or \
+                self.hw_read_clean or \
+                self.hw_read_set or \
+                self.sw_read_clean or \
+                self.sw_read_set
 
 
 
