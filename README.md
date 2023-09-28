@@ -10,13 +10,27 @@ Address planner is a tool used to plan the allocation of all register and memory
 [Userguide](https://github.com/fliibs/address_planner/wiki/User-Guide-1)
  Here
 
+## New feature
+
+### Add WriteOnePulse and WriteZeroPulse field
+```python
+# WriteOnePulse
+sw_access=WriteOnePulse, hw_access=ReadOnly
+
+# WriteZeroPulse
+sw_access=WriteZeroPulse, hw_access=ReadOnly
+```
+ 
+
 ## Quick Start
 
 ### 0. Run with excel
 
 excel template is in excel folder
 ```shell
-regbuilder <excel_path> <output_path>
+regbuilder -h
+regbuilder -demo
+regbuilder -e <excel_path> -o <output_path>
 ```
 
 ### 1. Install RegBuilder
