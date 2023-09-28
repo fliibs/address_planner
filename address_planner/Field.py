@@ -52,11 +52,14 @@ class FieldRoot(AddressLogicRoot):
         return self.father.module_name_until_regbank + '_' + self.module_name
 
 
-    def write_one_pulse_detect(self):
+
+    def detect_pulse(self):
         if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.hw_access!=ReadOnly:
             raise Exception("detect write one pulse field: %s, but hardware access should be readonly"% self._name)
         if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.is_external==False:
             raise Exception("detect write one pulse field: %s, but it must be external field"% self._name)
+        if self.hw_access==WriteOnePulse or self.hw_access==WriteZeroPulse:
+            raise Exception("detect pulse on hardware access of field: %s, hardware has no pulse type"% self._name)
 
         
 
@@ -305,7 +308,11 @@ class FieldRoot(AddressLogicRoot):
     @property
     def field_reg_write(self):
         return  self.hw_writeable or \
-                self.sw_writeable
+                self.sw_writeable or \
+                self.hw_read_clean or \
+                self.hw_read_set or \
+                self.sw_read_clean or \
+                self.sw_read_set
 
 
 
@@ -344,14 +351,14 @@ class Field(FieldRoot):
     def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = False
-        self.write_one_pulse_detect()
+        self.detect_pulse()
 
 
 class ExternalField(FieldRoot):
     def __init__(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = True
-        self.write_one_pulse_detect()
+        self.detect_pulse()
 
 
 class W1PField(ExternalField):
