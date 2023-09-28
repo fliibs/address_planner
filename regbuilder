@@ -2,7 +2,7 @@
 #!/usr/bin/python3
 
 
-root_path='/home/liuyunqi/huangtao/address_planner'
+root_path='.'
 
 echo python3 regbuilder.py $@
 python3 $root_path/regbuilder.py $@

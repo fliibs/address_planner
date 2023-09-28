@@ -52,6 +52,7 @@ class FieldRoot(AddressLogicRoot):
         return self.father.module_name_until_regbank + '_' + self.module_name
 
 
+
     def detect_pulse(self):
         if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.hw_access!=ReadOnly:
             raise Exception("detect write one pulse field: %s, but hardware access should be readonly"% self._name)
