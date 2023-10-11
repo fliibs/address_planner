@@ -23,6 +23,11 @@ reg_B.add_incr(Field(name='field11',bit=2,sw_access=Write1Set,hw_access=ReadWrit
 reg_B.add_incr(Field(name='field12',bit=2,sw_access=Write0Set,hw_access=ReadWrite,description='sw write zero set.'))
 reg_B.add_incr(Field(name='field13',bit=2,sw_access=Write1Toggle,hw_access=ReadWrite,description='sw write one toggle.'))
 reg_B.add_incr(Field(name='field14',bit=2,sw_access=Write0Toggle,hw_access=ReadWrite,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field15',bit=1,sw_access=Null,hw_access=Null,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field16',bit=1,sw_access=ReadOnly,hw_access=Null,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field17',bit=1,sw_access=ReadWrite,hw_access=Null,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field18',bit=1,sw_access=Null,hw_access=ReadOnly,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field18',bit=1,sw_access=Null,hw_access=ReadWrite,description='sw write zero toggle.'))
 
 
 reg_C = Register(name='regC',bit=32,description='test for software, contain many regs.')

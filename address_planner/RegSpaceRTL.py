@@ -129,41 +129,56 @@ class RegSpaceBase(Component):
 
                 elif field.is_external:
                     # write one pulse field
-                    if field.sw_access==WriteOnePulse or field.sw_access==WriteZeroPulse:
-                        rdat_list.append(UInt(field.bit,0))
-                        field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                        field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+                    # if field.sw_write_one_pulse or field.sw_write_zero_pulse:
+                    #     rdat_list.append(UInt(field.bit,0))
+                    #     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
+                    #     field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
 
-                        field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
-                        if field.sw_access==WriteOnePulse:
-                            field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
-                        else:
-                            field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
-                        field_hw_rdat += field_hw_rdat_reg
+                    #     field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
+                    #     if field.sw_write_one_pulse:
+                    #         field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
+                    #     else:
+                    #         field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
+                    #     field_hw_rdat += field_hw_rdat_reg
+
+                    # else:
+                    field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
+                    if get_sw_readable(self._cfg.sub_space_list):
+                        field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
+                        field_sw_rvld  = self.set('%s_rvld' % field_name, Output(UInt(1)))
+                        field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
+                        
+                        field_sw_rvld += reg_rvld
+                        rdat_list.append(field_sw_rdat)
 
                     else:
-                        field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
-                        if get_sw_readable(self._cfg.sub_space_list):
-                            field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
-                            field_sw_rvld  = self.set('%s_rvld' % field_name, Output(UInt(1)))
-                            field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
-                            
-                            field_sw_rvld += reg_rvld
-                            rdat_list.append(field_sw_rdat)
-
-                        else:
-                            rdat_list.append(UInt(field.bit,0))
+                        rdat_list.append(UInt(field.bit,0))
 
 
-                        if get_sw_writeable(self._cfg.sub_space_list):
-                            field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
-                            field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
-                            field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
+                    if get_sw_writeable(self._cfg.sub_space_list):
+                        field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
+                        field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
+                        field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                            field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
-                            field_sw_wvld += reg_wvld
+                        field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                        field_sw_wvld += reg_wvld
 
-                # Internal Register    
+                
+                # write one pulse field
+                elif field.sw_write_one_pulse or field.sw_write_zero_pulse:
+                    rdat_list.append(UInt(field.bit,0))
+                    field_name = "%s_%s" % (sub_space.module_name, field.module_name)
+                    field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+
+                    field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
+                    if field.sw_write_one_pulse:
+                        field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
+                    else:
+                        field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
+                    field_hw_rdat += field_hw_rdat_reg  
+
+
+                # Internal Register  
                 else:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
                     field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,self.rst_n))

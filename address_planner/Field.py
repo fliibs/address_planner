@@ -19,6 +19,7 @@ class FieldRoot(AddressLogicRoot):
         self.is_external        = False
         self.bit_offset         = 0
         self.init_value         = init_value     
+        self.is_lock            = False
 
         
     @property
@@ -53,11 +54,11 @@ class FieldRoot(AddressLogicRoot):
 
 
     def detect_pulse(self):
-        if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.hw_access!=ReadOnly:
-            raise Exception("detect write one pulse field: %s, but hardware access should be readonly"% self._name)
-        if (self.sw_access==WriteOnePulse or self.sw_access==WriteZeroPulse) and self.is_external==False:
-            raise Exception("detect write one pulse field: %s, but it must be external field"% self._name)
-        if self.hw_access==WriteOnePulse or self.hw_access==WriteZeroPulse:
+        if (self.sw_access==Write1Pulse or self.sw_access==Write0Pulse) and self.hw_access!=ReadOnly:
+            raise Exception("detect write pulse field: %s, but hardware access should be readonly"% self._name)
+        if (self.sw_access==Write1Pulse or self.sw_access==Write0Pulse) and self.is_external==True:
+            raise Exception("detect write pulse field: %s, but it must be internal field"% self._name)
+        if self.hw_access==Write1Pulse or self.hw_access==Write0Pulse:
             raise Exception("detect pulse on hardware access of field: %s, hardware has no pulse type"% self._name)
 
         
@@ -112,7 +113,8 @@ class FieldRoot(AddressLogicRoot):
                self.sw_access == Write0Toggle or \
                self.sw_access == WriteOnce or \
                self.sw_access == WriteOnlyOnce or \
-               self.sw_access == WriteOnePulse
+               self.sw_access == Write1Pulse or \
+               self.sw_access == Write0Pulse
 
     @property
     def sw_read_clean(self):
@@ -177,7 +179,11 @@ class FieldRoot(AddressLogicRoot):
     
     @property
     def sw_write_one_pulse(self):
-        return self.sw_access == WriteOnePulse
+        return self.sw_access == Write1Pulse
+    
+    @property
+    def sw_write_zero_pulse(self):
+        return self.sw_access == Write0Pulse
 
 
     ############## Hardware Type ##############
@@ -360,6 +366,23 @@ class ExternalField(FieldRoot):
         self.detect_pulse()
 
 
-class W1PField(ExternalField):
-    def __init__(self, name, bit, sw_access=WriteOnePulse, hw_access=ReadOnly, init_value=0, description=''):
-        super().__init__(name, bit, sw_access, hw_access, init_value, description)
+class W1PField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write1Pulse, ReadOnly, init_value, description)
+
+
+class W0PField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write0Pulse, ReadOnly, init_value, description)
+
+
+class LockField(Field):
+    def __init__(self, name, bit, description=''):
+        super().__init__(name, bit, WriteSet, ReadOnly, 0, description)
+        self.is_lock = True
+
+
+class MagicNumber(Field):
+    def __init__(self, name, bit=32, password=0, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, ReadOnly, init_value, description)
+        self.password = password
