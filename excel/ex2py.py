@@ -67,7 +67,7 @@ def ReadExcel(input_path, output_path):
                 elif cellValue is not None and regBank[cellName].value  == 'HardwareAccess':
                     RegMap[regName]['Field'][filedName]['HardwareAccess'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'DefaultValue':
-                    matcher = re.match(r'.*\'(\w)(\d*)',str(cellValue)) 
+                    matcher = re.match(r'.*\'(\w)(\w*)',str(cellValue)) 
                     if matcher == None:
                         RegMap[regName]['Field'][filedName]['initValue'] = cellValue
                     elif matcher.group(1) == 'b':
