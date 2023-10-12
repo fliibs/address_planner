@@ -5,7 +5,7 @@ import math
 
 class Register(RegSpace):
 
-    def __init__(self,name,bit=32, lock_list=[], description='',bus_width=APG_BUS_WIDTH,reg_type=Normal):
+    def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH,reg_type=Normal,lock_list=[]):
         size = math.ceil(bit/bus_width)
         super().__init__(name=name, size=size, description=description, path='./', bus_width=bus_width)
         self.bit            = bit
