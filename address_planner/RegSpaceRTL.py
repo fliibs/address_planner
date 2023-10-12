@@ -108,7 +108,15 @@ class RegSpaceBase(Component):
 
                 reg_wrdy += UInt(1,1)
                 reg_wdat += self.wreq_data[sub_space.bit-1:0]
-                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                
+                magic_intf_list = []
+                for magic in sub_space.get_magic_list:
+                    if hasattr(self,f'{magic.module_name}_rdat'):
+                        magic_intf_list.append(Equal(getattr(self,f'{magic.module_name}_rdat'), UInt(32,magic.field_list[0].password,'hex')))
+                    else:
+                        magic_intf_list.append(Equal(self.set('%s_wdat' % magic.module_name, Wire(UInt(magic.bit))), UInt(magic.bit,magic.field_list[0].password,'hex')))
+
+                reg_wvld += And(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list)
                 wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
            
 
@@ -128,20 +136,6 @@ class RegSpaceBase(Component):
                     rdat_list.append(UInt(field.bit,field.init_value))
 
                 elif field.is_external:
-                    # write one pulse field
-                    # if field.sw_write_one_pulse or field.sw_write_zero_pulse:
-                    #     rdat_list.append(UInt(field.bit,0))
-                    #     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                    #     field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
-
-                    #     field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
-                    #     if field.sw_write_one_pulse:
-                    #         field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
-                    #     else:
-                    #         field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
-                    #     field_hw_rdat += field_hw_rdat_reg
-
-                    # else:
                     field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
                     if get_sw_readable(self._cfg.sub_space_list):
                         field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
@@ -153,7 +147,6 @@ class RegSpaceBase(Component):
 
                     else:
                         rdat_list.append(UInt(field.bit,0))
-
 
                     if get_sw_writeable(self._cfg.sub_space_list):
                         field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
@@ -171,10 +164,20 @@ class RegSpaceBase(Component):
                     field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
 
                     field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
+
+                    lock_intf_list = []
+                    for lock in field.get_lock_list:
+                        lock_field_name = f'{lock[0].module_name}_{lock[1].name}'
+                        if hasattr(self, lock_field_name):
+                            lock_intf_list.append(Fanout(getattr(self, lock_field_name),field_hw_rdat_reg.width))
+                        else:
+                            lock_intf_list.append(Fanout(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)),field_hw_rdat_reg.width))
+                    
+
                     if field.sw_write_one_pulse:
-                        field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width))
+                        field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], Fanout(reg_wvld,field_hw_rdat_reg.width),*lock_intf_list)
                     else:
-                        field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width))
+                        field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), Fanout(reg_wvld,field_hw_rdat_reg.width),*lock_intf_list)
                     field_hw_rdat += field_hw_rdat_reg  
 
 
@@ -215,28 +218,37 @@ class RegSpaceBase(Component):
                             reg_val.when(field_hw_wena).then(field_hw_wdat)
 
                     if field.sw_writeable:
+                        lock_intf_list = []
+                        for lock in field.get_lock_list:
+                            lock_field_name = f'{lock[0].module_name}_{lock[1].name}'
+                            if hasattr(self, lock_field_name):
+                                lock_intf_list.append(getattr(self, lock_field_name))
+                            else:
+                                lock_intf_list.append(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)))
+                        # print(field.name,field.get_lock_list)
+                        
                         if field.sw_write_clean:
-                            reg_val.when(reg_wvld).then(UInt(field.bit,0))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(UInt(field.bit,0))
                         elif field.sw_write_one_to_clean:
-                            reg_val.when(reg_wvld).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
                         elif field.sw_write_zero_to_clean:
-                            reg_val.when(reg_wvld).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_set:
-                            reg_val.when(reg_wvld).then(UInt(field.bit,2**(field.bit)-1))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_one_to_set:
-                            reg_val.when(reg_wvld).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_zero_to_set:
-                            reg_val.when(reg_wvld).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
                         elif field.sw_write_one_to_toggle:
-                            reg_val.when(reg_wvld).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_zero_to_toggle:
-                            reg_val.when(reg_wvld).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
                         elif field.sw_write_once:
                             sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
-                            sw_flag += when(reg_wvld).then(UInt(1,1))
-                            reg_val.when(BitAnd(reg_wvld, Inverse(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
+                            sw_flag += when(And(reg_wvld, *lock_intf_list)).then(UInt(1,1))
+                            reg_val.when(BitAnd(And(reg_wvld, *lock_intf_list), Inverse(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
                         else:
-                            reg_val.when(reg_wvld).then(reg_wdat[field.end_bit:field.start_bit])
+                            reg_val.when(And(reg_wvld, *lock_intf_list)).then(reg_wdat[field.end_bit:field.start_bit])
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))

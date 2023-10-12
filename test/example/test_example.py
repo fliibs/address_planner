@@ -24,6 +24,9 @@ def test_multifile():
 def test_multifile_reg():
     importlib.import_module('example.tablelike.demo_multifile_reg')
 
+def test_write_pulse():
+    importlib.import_module('example.python.demo_w1p')
+
 
 
 

@@ -96,8 +96,38 @@ class AddressSpace(AddressLogicRoot):
 
     def inclusion_detect(self,other):
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
+    
 
+    def search_field(self, reg_name, field_name):
+        for sub_space in self.sub_space_list:
+            for field in sub_space.field_list:
+                if reg_name == sub_space.module_name and field_name == field.name:
+                    self.lock_inclusion_detect(field)
+                    return [sub_space, field]
+        
+        raise Exception(f'lock field {reg_name}_{field_name} not exist')
+    
+    def search_magic(self, reg_name):
+        for sub_space in self.sub_space_list:
+            if reg_name == sub_space.module_name:
+                self.magic_inclusion_detect(sub_space)
+                return sub_space
+        raise Exception(f'magic register {reg_name} not exist')
 
+    
+    def check_list(self, other):
+        if not isinstance(other, list):     raise Exception("input must be a List type")
+
+    def lock_inclusion_detect(self, field):
+        from .Field import LockField
+        if not isinstance(field, LockField):
+            raise Exception(f'field in lock list is not LockField Type')
+        
+    def magic_inclusion_detect(self, reg):
+        from .Field import MagicNumber
+        if not isinstance(reg.field_list[0], MagicNumber):
+            raise Exception(f'field in magic list is not MagicNumber Type')
+        
 
 
     #########################################################################################

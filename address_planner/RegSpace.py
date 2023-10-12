@@ -18,13 +18,24 @@ class RegSpace(AddressSpace):
     def __str__(self) -> str:
         return self.module_name
 
-    def add(self,sub_space,offset,name):
+    def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
         bit_offset = offset*8
         sub_space_copy = deepcopy(sub_space)
-        
         sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
-        sub_space_copy.module_name = name
+        sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
+
+        self.check_list(lock_list)
+        for member in lock_list:
+            if member not in sub_space_copy.lock_list:
+                self.check_list(member)
+                sub_space_copy.lock_list.append(member)
+
+        self.check_list(magic_list)
+        for member in magic_list:
+            if member not in sub_space_copy.magic_list:
+                sub_space_copy.magic_list.append(member)
+
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
@@ -37,10 +48,10 @@ class RegSpace(AddressSpace):
         self._next_offset = bit_offset + sub_space.bit
     
 
-    def add_incr(self,sub_space,name):
-        self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name)
+    def add_incr(self,sub_space,name=None,lock_list=[],magic_list=[]):
+        self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name,lock_list=lock_list,magic_list=magic_list)
 
-
+    
 
 
     #########################################################################################

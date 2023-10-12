@@ -19,9 +19,9 @@ class FieldRoot(AddressLogicRoot):
         self.is_external        = False
         self.bit_offset         = 0
         self.init_value         = init_value     
-        self.is_lock            = False
+        self.lock_list          = []
 
-        
+
     @property
     def name(self):
         return self._name
@@ -51,7 +51,19 @@ class FieldRoot(AddressLogicRoot):
     @property
     def module_name_until_regbank(self):
         return self.father.module_name_until_regbank + '_' + self.module_name
+    
+    @property
+    def get_lock_list(self):
+        lock_list = self.lock_list.copy()
+        for lock in self.father.lock_list:
+            if lock not in self.lock_list:
+                lock_list.append(lock)
 
+        if lock_list == []: return []
+
+        reg_space = self.father.father
+        real_lock_list = [reg_space.search_field(lock[0], lock[1]) for lock in lock_list]
+        return real_lock_list
 
 
     def detect_pulse(self):
@@ -61,8 +73,9 @@ class FieldRoot(AddressLogicRoot):
             raise Exception("detect write pulse field: %s, but it must be internal field"% self._name)
         if self.hw_access==Write1Pulse or self.hw_access==Write0Pulse:
             raise Exception("detect pulse on hardware access of field: %s, hardware has no pulse type"% self._name)
-
         
+    def lock_self_detect(self):
+        pass
 
     ############## Software Type ###############
     @property
@@ -378,12 +391,11 @@ class W0PField(Field):
 
 
 class LockField(Field):
-    def __init__(self, name, bit, description=''):
-        super().__init__(name, bit, WriteSet, ReadOnly, 0, description)
-        self.is_lock = True
+    def __init__(self, name, bit=1, description=''):
+        super().__init__(name, bit, WriteSet, Null, 0, description)
 
 
 class MagicNumber(Field):
-    def __init__(self, name, bit=32, password=0, init_value=0, description=''):
-        super().__init__(name, bit, ReadWrite, ReadOnly, init_value, description)
+    def __init__(self, name='field_magic', bit=32, password=0, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, Null, init_value, description)
         self.password = password
