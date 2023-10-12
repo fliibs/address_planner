@@ -80,8 +80,8 @@ class FieldAccess(Enum):
     WriteOnce            = 'W1'
     WriteOnlyOnce        = 'WO1'
 
-    WriteOnePulse        = 'W1P'
-    WriteZeroPulse       = 'W0P'     
+    Write1Pulse          = 'W1P'
+    Write0Pulse          = 'W0P'     
     
     
 
@@ -113,8 +113,8 @@ Write0Toggle         = FieldAccess.Write0Toggle
 WriteOnce            = FieldAccess.WriteOnce
 WriteOnlyOnce        = FieldAccess.WriteOnlyOnce
 
-WriteOnePulse        = FieldAccess.WriteOnePulse
-WriteZeroPulse       = FieldAccess.WriteZeroPulse
+Write1Pulse          = FieldAccess.Write1Pulse
+Write0Pulse          = FieldAccess.Write0Pulse
 
 
 @unique
@@ -235,6 +235,7 @@ class APB_PORT(object):
     def __init__(self):
         pass
 
+
 class EXTERNAL_FIELD(object):
     wr_define_dict={
         'wdat'  :   'output',
@@ -250,6 +251,7 @@ class EXTERNAL_FIELD(object):
 
     def __init__(self):
         pass
+
 
 class INTERNAL_FIELD(object):
     wr_field_dict={

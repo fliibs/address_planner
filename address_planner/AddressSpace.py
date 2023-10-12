@@ -27,6 +27,7 @@ class AddressSpace(AddressLogicRoot):
         #self.father         = None
 
 
+
     @property
     def bit_offset(self):
         return self.offset*8

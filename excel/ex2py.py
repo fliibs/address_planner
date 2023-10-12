@@ -46,7 +46,7 @@ def ReadExcel(input_path, output_path):
                     regName = cellValue
                     RegMap[regName] = {}
                 elif cellValue is not None and regBank[cellName].value  == 'OffsetAddress':
-                    RegMap[regName]['OffsetAddress'] = int(cellValue,16) * 8   # byte
+                    RegMap[regName]['OffsetAddress'] = int(cellValue,16)   # byte
                 elif cellValue is not None and regBank[cellName].value  == 'RegType':
                     RegMap[regName]['RegType'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'FieldName':

@@ -12,13 +12,16 @@ Address planner is a tool used to plan the allocation of all register and memory
 
 ## New feature
 
-### Add WriteOnePulse and WriteZeroPulse field
+### Add Write1Pulse and Write0Pulse field
+
+change these two fields from external field to interanl field
+
 ```python
 # WriteOnePulse
-sw_access=WriteOnePulse, hw_access=ReadOnly
+sw_access=Write1Pulse, hw_access=ReadOnly
 
 # WriteZeroPulse
-sw_access=WriteZeroPulse, hw_access=ReadOnly
+sw_access=Write0Pulse, hw_access=ReadOnly
 ```
  
 
