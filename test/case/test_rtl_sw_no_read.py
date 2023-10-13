@@ -1,6 +1,5 @@
-import os
 import sys
-
+sys.path.append('.')
 from address_planner import * # pylint: disable=unused-wildcard-import
 
 
@@ -31,7 +30,7 @@ def test_sw_no_read_vr():
 
     reg_bank_C.add_incr(reg_B,'reg0')
     reg_bank_C.add(reg_B,32,'reg1')
-    reg_bank_C.generate('build/test')
+    reg_bank_C.generate('build/example')
 
 if __file__ == '__main__':
     test_sw_no_read_vr()

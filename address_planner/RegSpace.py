@@ -214,6 +214,7 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             for field in ss.field_list:
                 if field.is_external==False:
+                    internal_field_dict={}
                     if field.hw_readable:
                         internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD.rd_field_dict.items() }
                         if field.hw_read_clean or field.hw_read_set:
@@ -234,6 +235,7 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             for field in ss.field_list:
                 if field.is_external==True:
+                    external_field_dict = {}
                     if field.sw_readable:
                         external_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in EXTERNAL_FIELD.rd_define_dict.items() }
                     if field.sw_writeable:
