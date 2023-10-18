@@ -23,7 +23,6 @@ class Register(RegSpace):
         self.check_list(lock_list)
         for member in lock_list:
             if member not in field.lock_list:
-                self.check_list(member)
                 field.lock_list.append(member)
             
         if not self.inclusion_detect(field):

@@ -28,7 +28,6 @@ class RegSpace(AddressSpace):
         self.check_list(lock_list)
         for member in lock_list:
             if member not in sub_space_copy.lock_list:
-                self.check_list(member)
                 sub_space_copy.lock_list.append(member)
 
         self.check_list(magic_list)

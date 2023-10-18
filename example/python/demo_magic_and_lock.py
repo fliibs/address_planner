@@ -16,12 +16,12 @@ reg_bank_B.add(internal_reg_0, offset=0x20, magic_list=['magic_reg_0','magic_reg
 
 internal_reg_1 = Register(name='internal_reg_1',description='reg0_1',reg_type=Normal)
 
-internal_reg_1.add(Field(name='field0',bit=1,sw_access=Write1Pulse, hw_access=ReadOnly,init_value=0,description='fied0, write one pulse.' ),offset=0, lock_list=[['lock_reg_0','lock_field_1']])
-internal_reg_1.add(Field(name='field1',bit=2,sw_access=Write0Pulse,hw_access=ReadOnly,init_value=0,description='fied1, write zero pulse.'),offset=1, lock_list=[['lock_reg_1','lock_field_0']])
+internal_reg_1.add(Field(name='field0',bit=1,sw_access=Write1Pulse, hw_access=ReadOnly,init_value=0,description='fied0, write one pulse.' ),offset=0, lock_list=['lock_reg_0.lock_field_1'])
+internal_reg_1.add(Field(name='field1',bit=2,sw_access=Write0Pulse,hw_access=ReadOnly,init_value=0,description='fied1, write zero pulse.'),offset=1, lock_list=['lock_reg_1.lock_field_0'])
 internal_reg_1.add(Field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,init_value=0,description='fied2, software read write.'),offset=3)
 internal_reg_1.add(Field(name='field3',bit=3,sw_access=ReadWrite,hw_access=ReadOnly, init_value=0,description='fied3, hardware read only.' ),offset=4)
 
-reg_bank_B.add(internal_reg_1, offset=0x24, lock_list=[['lock_reg_0', 'lock_field_0']], magic_list=['magic_reg_1'])
+reg_bank_B.add(internal_reg_1, offset=0x24, lock_list=['lock_reg_0.lock_field_0'], magic_list=['magic_reg_1'])
 
 
 internal_reg_2 = Register(name='internal_reg_2',description='reg0_2',reg_type=Normal)
@@ -29,7 +29,7 @@ internal_reg_2 = Register(name='internal_reg_2',description='reg0_2',reg_type=No
 internal_reg_2.add(Field(name='field0',bit=1,sw_access=ReadOnly, hw_access=ReadWrite,init_value=0,description='fied0, software read only.' ),offset=0)
 internal_reg_2.add(Field(name='field1',bit=2,sw_access=WriteOnly,hw_access=ReadWrite,init_value=0,description='fied1, software write only.'),offset=1)
 internal_reg_2.add(Field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,init_value=0,description='fied2, software read write.'),offset=3)
-internal_reg_2.add(Field(name='field3',bit=3,sw_access=ReadWrite,hw_access=ReadOnly, init_value=0,description='fied3, hardware read only.' ),offset=4, lock_list=[['lock_reg_1', 'lock_field_1']])
+internal_reg_2.add(Field(name='field3',bit=3,sw_access=ReadWrite,hw_access=ReadOnly, init_value=0,description='fied3, hardware read only.' ),offset=4, lock_list=['lock_reg_1.lock_field_1'])
 
 reg_bank_B.add(internal_reg_2, offset=0x28, magic_list=['magic_reg_0'])
 

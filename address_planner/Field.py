@@ -62,7 +62,7 @@ class FieldRoot(AddressLogicRoot):
         if lock_list == []: return []
 
         reg_space = self.father.father
-        real_lock_list = [reg_space.search_field(lock[0], lock[1]) for lock in lock_list]
+        real_lock_list = [reg_space.search_field(lock.split('.')[0], lock.split('.')[1]) for lock in lock_list]
         return real_lock_list
 
 
