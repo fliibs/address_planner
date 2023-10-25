@@ -163,7 +163,7 @@ class RegSpaceBase(Component):
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
                     field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
 
-                    field_hw_rdat_reg = self.set("%s_rdat_reg" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
+                    field_hw_rdat_reg = self.set("%s" % field_name, Reg(UInt(field.bit,0), self.clk, self.rst_n))
 
                     lock_intf_list = []
                     for lock in field.get_lock_list:
