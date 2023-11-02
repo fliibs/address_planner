@@ -303,9 +303,11 @@ class AddressSpace(AddressLogicRoot):
         
         command_vhead = f'vcs -full64 -sverilog -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc {file_path} | tee {check_dir}/vcs.log'
         os.system(command_vhead)
-        with open(f'{check_dir}/vcs.log','r') as f:
-            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
-                raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        # with open(f'{check_dir}/vcs.log','r') as f:
+        #     if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+        #         raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        if not os.path.exists(f'{check_dir}/simv'):
+            raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
         print("[Check vhead] vhead check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
     
 

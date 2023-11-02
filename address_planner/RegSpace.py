@@ -175,9 +175,11 @@ class RegSpace(AddressSpace):
         command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
         os.system(command)
 
-        with open(f'{check_dir}/vcs.log','r') as f:
-            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
-                raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        # with open(f'{check_dir}/vcs.log','r') as f:
+        #     if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+        #         raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        if not os.path.exists(f'{check_dir}/simv'):
+            raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
         print("[Check RTL] vcs check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
 
 

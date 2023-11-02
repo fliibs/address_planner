@@ -21,8 +21,8 @@ ADD= '''
 regBank.add(reg_{cnt},offset={OffsetAddress},lock_list={lockList},magic_list={magicList})
 '''
 Gen = '''
-regBank.generate('build/{name}')
+regBank.generate('build')
 '''
 Check = '''
-regBank.check('build/{name}')
+regBank.check('build')
 '''
