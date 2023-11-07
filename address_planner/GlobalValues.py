@@ -1,5 +1,5 @@
 import os,sys
-import importlib
+import importlib.util
 from enum   import Enum,unique
 
 APG_BUS_WIDTH = 32

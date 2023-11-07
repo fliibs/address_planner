@@ -8,9 +8,9 @@ sys.path.append(os.getcwd()+'/example/tablelike')
 # use "import_inst" to import register instance.
 # file_path   : file path of ip.
 # module_name : register instance list which will import to python file.
-R_0 = import_inst(file_path='ip0/register_demo_0.py', module_name='R_0')
-R_1 = import_inst(file_path='ip0/register_demo_0.py', module_name='R_1')
-R_3 = import_inst(file_path='ip1/register_demo_1.py', module_name='R_3')
+R_0 = import_inst(file_path='example/tablelike/ip0/register_demo_0.py', module_name='R_0')
+R_1 = import_inst(file_path='example/tablelike/ip0/register_demo_0.py', module_name='R_1')
+R_3 = import_inst(file_path='example/tablelike/ip1/register_demo_1.py', module_name='R_3')
 
 # generate a regbank.
 u= RegSpace             (name='reg_multifile_test',size=1*KB,description='reg_bank_B,contain few reg.', software_interface="apb")\
