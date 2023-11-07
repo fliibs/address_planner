@@ -188,18 +188,30 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
         gbl[k] = v
 
 
-def import_inst(file_path, module_name):
-    dir_path, file_name = os.path.split(file_path)
-    file_name = file_name.rstrip('.py')
+# def import_inst(file_path, module_name):
+#     dir_path, file_name = os.path.split(file_path)
+#     file_name = file_name.rstrip('.py')
 
-    dir_path = dir_path.strip('/').replace('/','.')
+#     dir_path = dir_path.strip('/').replace('/','.')
+#     try:
+#         res = importlib.import_module(dir_path+'.'+file_name, package=__package__)
+#         print("[package import execute]: from %s.%s import %s"% (dir_path, file_name, module_name))
+#         res = getattr(res, module_name)
+#         return res
+#     except ImportError as err:
+#         print("[ImportError]", err)
+
+def import_inst(file_path, module_name='regBank'):
     try:
-        res = importlib.import_module(dir_path+'.'+file_name, package=__package__)
-        print("[package import execute]: from %s.%s import %s"% (dir_path, file_name, module_name))
-        res = getattr(res, module_name)
-        return res
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return getattr(module, module_name)
     except ImportError as err:
         print("[ImportError]", err)
+
+def get_full_path(path):
+    return os.path.expandvars(path)
 
     
 
