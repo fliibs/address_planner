@@ -35,6 +35,9 @@ class RegSpace(AddressSpace):
             if member not in sub_space_copy.magic_list:
                 sub_space_copy.magic_list.append(member)
 
+        # if not self.intr_detect(sub_space_copy):
+        #     raise Exception('Intr err')
+
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
@@ -50,7 +53,30 @@ class RegSpace(AddressSpace):
     def add_incr(self,sub_space,name=None,lock_list=[],magic_list=[]):
         self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name,lock_list=lock_list,magic_list=magic_list)
 
-    
+
+    def add_intr(self,sub_space,offset,name=None):
+        from .Reg import Register
+        if not self.intr_detect(sub_space):
+            raise Exception('Intr err')
+        
+        reg_raw_statue  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
+        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=sub_space.reg_type)
+        if sub_space.reg_type==IntrMask:
+            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=sub_space.reg_type)
+        
+        for field in sub_space.field_list:
+            if isinstance(field, IntrField):                                            reg_raw_statue.add(field, field.bit_offset)
+            elif isinstance(field, IntrEnableField):                                    reg_enable.add(field, field.bit_offset-32)
+            elif sub_space.reg_type==IntrMask and isinstance(field, IntrMaskField):     reg_mask.add(field, field.bit_offset-64) 
+            else:                                                                       raise Exception('Error field!')
+            
+        name_raw_status = None if name==None else f'{name}_raw_status'
+        name_enable     = None if name==None else f'{name}_enable'
+        self.add(sub_space=reg_raw_statue, offset=offset, name=name_raw_status)
+        self.add(sub_space=reg_enable, offset=offset+4, name=name_enable)
+        if sub_space.reg_type==IntrMask:
+            name_mask       = None if name==None else f'{name}_mask'
+            self.add(sub_space=reg_mask, offset=offset+8, name=name_mask)
 
 
     #########################################################################################

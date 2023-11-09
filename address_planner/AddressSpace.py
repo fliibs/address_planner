@@ -97,6 +97,10 @@ class AddressSpace(AddressLogicRoot):
     def inclusion_detect(self,other):
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
     
+    def intr_detect(self,space):
+        if space.reg_type==Intr and space.bit!=IntrBitWidth.Intr.value:             return False 
+        elif space.reg_type==IntrMask and space.bit!=IntrBitWidth.IntrMask.value:   return False
+        else:                                                                       return True
 
     def search_field(self, reg_name, field_name):
         for sub_space in self.sub_space_list:

@@ -399,3 +399,16 @@ class MagicNumber(Field):
     def __init__(self, name='field_magic', bit=32, password=0, init_value=0, description=''):
         super().__init__(name, bit, ReadWrite, Null, init_value, description)
         self.password = password
+
+
+class IntrField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, ReadWrite, init_value, f'{name} interrupt status field {description}')
+
+class IntrEnableField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, ReadWrite, init_value, f'{name} interrupt enable field {description}')
+
+class IntrMaskField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, ReadWrite, init_value, f'{name} interrupt mask field {description}')

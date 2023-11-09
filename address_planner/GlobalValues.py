@@ -119,13 +119,23 @@ Write0Pulse          = FieldAccess.Write0Pulse
 
 @unique
 class RegType(Enum):
-    Normal = 'Normal'
-    Magic  = 'Magic'
-    Lock   = 'Lock'
+    Normal   = 'Normal'
+    Magic    = 'Magic'
+    Lock     = 'Lock'
+    Intr     = 'Interrupt without Mask'
+    IntrMask = 'Interrupt with Mask'
 
-Normal = RegType.Normal
-Magic  = RegType.Magic
-Lock   = RegType.Lock
+Normal      = RegType.Normal
+Magic       = RegType.Magic
+Lock        = RegType.Lock
+Intr        = RegType.Intr
+IntrMask    = RegType.IntrMask
+
+
+@unique
+class IntrBitWidth(Enum):
+    Intr     = 64
+    IntrMask = 96
 
 
 key = 0

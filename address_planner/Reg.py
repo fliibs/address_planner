@@ -194,3 +194,16 @@ class Register(RegSpace):
         return json_dict
 
 
+class InterruptRegister(Register):
+    def __init__(self, name, description='',bus_width=APG_BUS_WIDTH,reg_type=Intr, lock_list=[]):
+        if reg_type==Intr:       bit_ = IntrBitWidth.Intr.value
+        elif reg_type==IntrMask: bit_ = IntrBitWidth.IntrMask.value
+        else:                    raise Exception()
+        super().__init__(name,bit_,description,bus_width,reg_type,lock_list)
+
+    def add_intr_field(self, name, bit, init_value=0, description='', offset=0):
+        self.add(field=IntrField(name=name,bit=bit,init_value=init_value,description=description),offset=offset)
+        self.add(field=IntrEnableField(name=f'{name}',bit=bit,init_value=init_value,description=description),offset=offset+32)
+        if self.reg_type==IntrMask:
+            self.add(field=IntrMaskField(name=f'{name}',bit=bit,init_value=init_value,description=description),offset=offset+64)
+
