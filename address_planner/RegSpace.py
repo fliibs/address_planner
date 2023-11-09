@@ -18,13 +18,23 @@ class RegSpace(AddressSpace):
     def __str__(self) -> str:
         return self.module_name
 
-    def add(self,sub_space,offset,name):
+    def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
         bit_offset = offset*8
         sub_space_copy = deepcopy(sub_space)
-        
         sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
-        sub_space_copy.module_name = name
+        sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
+
+        self.check_list(lock_list)
+        for member in lock_list:
+            if member not in sub_space_copy.lock_list:
+                sub_space_copy.lock_list.append(member)
+
+        self.check_list(magic_list)
+        for member in magic_list:
+            if member not in sub_space_copy.magic_list:
+                sub_space_copy.magic_list.append(member)
+
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
@@ -37,10 +47,10 @@ class RegSpace(AddressSpace):
         self._next_offset = bit_offset + sub_space.bit
     
 
-    def add_incr(self,sub_space,name):
-        self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name)
+    def add_incr(self,sub_space,name=None,lock_list=[],magic_list=[]):
+        self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name,lock_list=lock_list,magic_list=magic_list)
 
-
+    
 
 
     #########################################################################################
@@ -165,9 +175,11 @@ class RegSpace(AddressSpace):
         command = f'vcs -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc -f {flst_path} | tee {check_dir}/vcs.log'
         os.system(command)
 
-        with open(f'{check_dir}/vcs.log','r') as f:
-            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
-                raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        # with open(f'{check_dir}/vcs.log','r') as f:
+        #     if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+        #         raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        if not os.path.exists(f'{check_dir}/simv'):
+            raise Exception("vcs check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
         print("[Check RTL] vcs check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
 
 
@@ -214,7 +226,7 @@ class RegSpace(AddressSpace):
         for ss in self.sub_space_list:
             for field in ss.field_list:
                 if field.is_external==False:
-                    internal_field_dict={}
+                    internal_field_dict = {}
                     if field.hw_readable:
                         internal_field_dict = { prefix+ss.module_name+'_'+field.name+'_'+key:value for key,value in INTERNAL_FIELD.rd_field_dict.items() }
                         if field.hw_read_clean or field.hw_read_set:

@@ -39,8 +39,6 @@ def main():
 
 
 
-
-
 def task_parse_excel(args, others=None):
     
     if args.e == None: raise Exception("Input file not exist!") # simplify way
@@ -49,6 +47,8 @@ def task_parse_excel(args, others=None):
     prs_out, rs_name =  CreatPy(args.e, args.o)
     if prs_out == '': raise Exception("[ Generate Fail ] Fail to parse excel file, prs_out is empty")
     print("[ ExcelParser ] Successfull parse file: %s"% args.e)
+
+    os.system(f'mv datalog.txt {args.o}')
 
     return [prs_out, rs_name]
 

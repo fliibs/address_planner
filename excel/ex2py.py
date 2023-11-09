@@ -46,7 +46,8 @@ def ReadExcel(input_path, output_path):
                     regName = cellValue
                     RegMap[regName] = {}
                 elif cellValue is not None and regBank[cellName].value  == 'OffsetAddress':
-                    RegMap[regName]['OffsetAddress'] = int(cellValue,16)   # byte
+                    # RegMap[regName]['OffsetAddress'] = int(cellValue,16)   # byte
+                    RegMap[regName]['OffsetAddress'] = cellValue   # byte
                 elif cellValue is not None and regBank[cellName].value  == 'RegType':
                     RegMap[regName]['RegType'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'FieldName':
@@ -55,11 +56,16 @@ def ReadExcel(input_path, output_path):
                     filedName = cellValue
                     RegMap[regName]['Field'][filedName] = {}
                 elif cellValue is not None and regBank[cellName].value  == 'Position':
-                    RegMap[regName]['Field'][filedName]['Position'] = cellValue
                     End = cellValue[cellValue.index('[')+1:cellValue.index(':')]
                     Start = cellValue[cellValue.index(':')+1:cellValue.index(']')]
-                    RegMap[regName]['Field'][filedName]['offset'] = Start
-                    RegMap[regName]['Field'][filedName]['bit'] = int(End) - int(Start) + 1
+                    if 'Field' not in RegMap[regName]:
+                        RegMap[regName]['Position'] = cellValue
+                        RegMap[regName]['offset'] = Start
+                        RegMap[regName]['bit'] = int(End) - int(Start) + 1
+                    else:
+                        RegMap[regName]['Field'][filedName]['Position'] = cellValue
+                        RegMap[regName]['Field'][filedName]['offset'] = Start
+                        RegMap[regName]['Field'][filedName]['bit'] = int(End) - int(Start) + 1
                 elif cellValue is not None and regBank[cellName].value  == 'FieldType':
                     RegMap[regName]['Field'][filedName]['FieldType'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'SoftwareAccess':
@@ -67,25 +73,44 @@ def ReadExcel(input_path, output_path):
                 elif cellValue is not None and regBank[cellName].value  == 'HardwareAccess':
                     RegMap[regName]['Field'][filedName]['HardwareAccess'] = cellValue
                 elif cellValue is not None and regBank[cellName].value  == 'DefaultValue':
-                    matcher = re.match(r'.*\'(\w)(\w*)',str(cellValue)) 
+                    matcher = re.match(r'.*\'(\w)(\d*)',str(cellValue)) 
                     if matcher == None:
-                        RegMap[regName]['Field'][filedName]['initValue'] = cellValue
+                        initValue = cellValue
                     elif matcher.group(1) == 'b':
-                        RegMap[regName]['Field'][filedName]['initValue'] = '0b'+ matcher.group(2)
+                        initValue = '0b'+ matcher.group(2)
                     elif matcher.group(1) == 'h':
-                        RegMap[regName]['Field'][filedName]['initValue'] = '0x'+matcher.group(2)
+                        initValue = '0x'+matcher.group(2)
                     elif matcher.group(1) == 'd':
-                        RegMap[regName]['Field'][filedName]['initValue'] = matcher.group(2)
+                        initValue = matcher.group(2)
+                    if 'Field' not in RegMap[regName]:
+                        RegMap[regName]['initValue'] = initValue
+                    else:
+                        RegMap[regName]['Field'][filedName]['initValue'] = initValue
                 elif cellValue is not None and regBank[cellName].value  == 'Description':
                     if 'Field' not in RegMap[regName]:
-                         RegMap[regName]['Description'] = cellValue
+                        RegMap[regName]['Description'] = cellValue
                     else:
                         RegMap[regName]['Field'][filedName]['Description'] = cellValue
-                        
-    if output_path != '': os.makedirs(output_path, exist_ok=True)
-    output_file = os.path.join(output_path, "datalog.txt")
-    datalog = open(output_file,'w',encoding="utf-8")        
-    print(RegMap,file=datalog)
+                elif cellValue is not None and regBank[cellName].value  == 'LockDep':
+                    if 'Field' not in RegMap[regName]:
+                         RegMap[regName]['LockDep'] = cellValue.split(',')
+                    else:
+                        RegMap[regName]['Field'][filedName]['LockDep'] = cellValue.split(',')
+                elif cellValue is not None and regBank[cellName].value  == 'MagicNumberDep':
+                    RegMap[regName]['MagicNumberDep'] = cellValue.split(',')
+                elif cellValue is not None and regBank[cellName].value  == 'MagicValue':
+                    RegMap[regName]['MagicValue'] = cellValue
+
+    PrintLog()
+    
+def PrintLog():
+    datalog = open("datalog.txt",'w',encoding="utf-8")  
+    for k,v in RegMap.items():
+        print(k,file=datalog)
+        print(v,file=datalog)
+    for k,v in RegBankMes.items():
+        print(k,file=datalog)
+        print(v,file=datalog)
 
 
 def CreatPy(input_path, output_path):
@@ -101,21 +126,56 @@ def CreatPy(input_path, output_path):
         
         pyCode += '\n################################'+regName+'#######################################\n'
         
+    pyCode = PyTemp.Head.replace('{name}',RegBankMes['name']).replace('{size}',str(RegBankMes['size'])).replace('{description}',RegBankMes['description']).replace('{width}',str(RegBankMes['width'])).replace('{interface}',RegBankMes['interface'])
+    
+    for index,regName in enumerate(RegMap):
+        
+        pyCode += '\n################################'+regName+'#######################################\n'
         pyCode += PyTemp.Reg.replace('{cnt}',str(index)).replace('{name}',regName).replace('{Description}',RegMap[regName].get('Description','')).replace('{RegType}',RegMap[regName]['RegType'])
         
-        for fieldName,field in RegMap[regName]['Field'].items():
-            pyCode += PyTemp.RegCfg.replace('{cnt}',str(index)).replace('{name}',fieldName).replace('{bit}',str(field['bit'])).replace('{SoftwareAccess}',field['SoftwareAccess']).replace('{HardwareAccess}',field.get('HardwareAccess','Null')).replace('{initValue}',str(field['initValue'])).replace('{description}',field.get('Description','')).replace('{offset}',str(field['offset']))
-            if field['FieldType'] == 'External':
-                pyCode = pyCode.replace('{Field}','External')
-            else:
-                pyCode = pyCode.replace('{Field}','')
-            
-        pyCode += PyTemp.ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress'])).replace('{name}',str(regName))
-        
-    pyCode += PyTemp.Gen.replace('{name}',output_path)
+        if RegMap[regName]['RegType'] == 'Normal':
+            for fieldName,field in RegMap[regName]['Field'].items():
+                RegCfg = PyTemp.RegCfg
+                if field['FieldType'] == 'External':
+                    RegCfg = RegCfg.replace('{Field}','External')
+                else:
+                    RegCfg = RegCfg.replace('{Field}','')
+                if 'LockDep' not in  field:
+                    RegCfg = RegCfg.replace(',lock_list={lockList}','')
+                else:
+                    lockList = ''
+                    for item in field['LockDep']:
+                        lockList += '\"' + str(item[:item.find('.')]) + '.' + str(item[item.find('.') + 1 :]) + '\",'
+                    RegCfg = RegCfg.replace('{lockList}','[' + lockList[:-1] + ']')
+                pyCode += RegCfg.replace('{cnt}',str(index)).replace('{name}',fieldName).replace('{bit}',str(field['bit'])).replace('{SoftwareAccess}',field['SoftwareAccess']).replace('{HardwareAccess}',field.get('HardwareAccess','Null')).replace('{initValue}',str(field['initValue'])).replace('{description}',field.get('Description','')).replace('{offset}',str(field['offset']))
+                
+        elif RegMap[regName]['RegType'] == 'Magic':
+            pyCode += PyTemp.MagicRegCfg.replace('{cnt}',str(index)).replace('{MagicValue}',RegMap[regName]['MagicValue']).replace('{initValue}',RegMap[regName]['initValue']).replace('{bit}',str(RegMap[regName]['bit']))
+        elif RegMap[regName]['RegType'] == 'Lock':
+            for fieldName,field in RegMap[regName]['Field'].items():
+                pyCode += PyTemp.LockRefCfg.replace('{cnt}',str(index)).replace('{bit}',str(field['bit'])).replace('{name}',fieldName).replace('{bit}',str(field['bit'])).replace('{description}',field.get('Description','')).replace('{offset}',str(field['offset']))
+                
+        ADD = PyTemp.ADD
+        if 'MagicNumberDep' not in RegMap[regName]:
+            ADD = ADD.replace(',magic_list={magicList}','')
+        else:
+            magicList = ''
+            for item in RegMap[regName]['MagicNumberDep']:
+                magicList += '\"' + str(item) + '\",'
+            ADD = ADD.replace('{magicList}','[' + magicList[:-1] + ']')
+        if 'LockDep' not in  RegMap[regName]:
+            ADD = ADD.replace(',lock_list={lockList}','')
+        else:
+            LockList = ''
+            for item in RegMap[regName]['LockDep']:
+                LockList += '\"' + str(item[:item.find('.')]) + '.' + str(item[item.find('.') + 1 :]) + '\",'
+            ADD = ADD.replace('{lockList}','[' + LockList[:-1] + ']')
+        pyCode += ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress'])).replace('{name}',str(regName))
+
+    pyCode += PyTemp.Gen.replace('{name}',RegBankMes['name'])
     
     if RegBankMes['check'] == 'true':
-        pyCode += PyTemp.Check.replace('{name}',output_path)
+        pyCode += PyTemp.Check.replace('{name}',RegBankMes['name'])
         
     filename = RegBankMes['name']+"_rf_gen.py"
     if output_path != '': os.makedirs(output_path, exist_ok=True)

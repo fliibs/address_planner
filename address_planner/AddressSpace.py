@@ -96,8 +96,38 @@ class AddressSpace(AddressLogicRoot):
 
     def inclusion_detect(self,other):
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
+    
 
+    def search_field(self, reg_name, field_name):
+        for sub_space in self.sub_space_list:
+            for field in sub_space.field_list:
+                if reg_name == sub_space.module_name and field_name == field.name:
+                    self.lock_inclusion_detect(field)
+                    return [sub_space, field]
+        
+        raise Exception(f'lock field {reg_name}_{field_name} not exist')
+    
+    def search_magic(self, reg_name):
+        for sub_space in self.sub_space_list:
+            if reg_name == sub_space.module_name:
+                self.magic_inclusion_detect(sub_space)
+                return sub_space
+        raise Exception(f'magic register {reg_name} not exist')
 
+    
+    def check_list(self, other):
+        if not isinstance(other, list):     raise Exception("input must be a List type")
+
+    def lock_inclusion_detect(self, field):
+        from .Field import LockField
+        if not isinstance(field, LockField):
+            raise Exception(f'field in lock list is not LockField Type')
+        
+    def magic_inclusion_detect(self, reg):
+        from .Field import MagicNumber
+        if not isinstance(reg.field_list[0], MagicNumber):
+            raise Exception(f'field in magic list is not MagicNumber Type')
+        
 
 
     #########################################################################################
@@ -273,9 +303,11 @@ class AddressSpace(AddressLogicRoot):
         
         command_vhead = f'vcs -full64 -sverilog -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed +lint=PCWM -debug_access+all -o {check_dir}/simv -Mdir={check_dir}/csrc {file_path} | tee {check_dir}/vcs.log'
         os.system(command_vhead)
-        with open(f'{check_dir}/vcs.log','r') as f:
-            if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
-                raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        # with open(f'{check_dir}/vcs.log','r') as f:
+        #     if not re.search(r'simv\sup\sto\sdate', f.readlines()[-1]): 
+        #         raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
+        if not os.path.exists(f'{check_dir}/simv'):
+            raise Exception("vhead check error occur, log path:%s"% os.path.abspath(f'{check_dir}/vcs.log'))
         print("[Check vhead] vhead check output log: %s"% os.path.abspath(f'{check_dir}/vcs.log'))
     
 

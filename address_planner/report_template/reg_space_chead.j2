@@ -15,7 +15,7 @@
 
     #define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.global_start_address)}}
     #define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.size)}}
-    #define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.offset)}}
+    #define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{builtins.hex((ss.offset/8)|int)}}
 
 #endif
 {% for field in ss.field_list %}
