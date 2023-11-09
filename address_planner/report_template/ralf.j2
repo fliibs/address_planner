@@ -1,5 +1,5 @@
 block {{space.module_name}} {
-    bytes {{(space.size/8)|int}};
+    bytes {{(space.data_width/8)|int}};
     {% for ss in space.sub_space_list -%}
     register {{ss.module_name}} @{{ss.hex_offset}} {
         bytes {{(ss.bit/8)|int}};

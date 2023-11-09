@@ -31,12 +31,12 @@ class RegSpaceBase(Component):
             self.rreq_vld       = Wire(UInt(1))
             self.rreq_rdy       = Wire(UInt(1))
 
-            self.rack_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.rack_data      = Wire(UInt(self._cfg.data_width))
             self.rack_vld       = Wire(UInt(1))
             self.rack_rdy       = Wire(UInt(1))
 
             self.wreq_addr      = Wire(UInt(self._cfg.bus_width))
-            self.wreq_data      = Wire(UInt(APG_BUS_WIDTH))
+            self.wreq_data      = Wire(UInt(self._cfg.data_width))
             self.wreq_vld       = Wire(UInt(1))
             self.wreq_rdy       = Wire(UInt(1))
 
@@ -62,12 +62,12 @@ class RegSpaceBase(Component):
             self.rreq_vld  = Input(UInt(1))
             self.rreq_rdy  = Output(UInt(1))
 
-            self.rack_data = Output(UInt(APG_BUS_WIDTH))
+            self.rack_data = Output(UInt(self._cfg.data_width))
             self.rack_vld  = Output(UInt(1))
             self.rack_rdy  = Input(UInt(1))
 
             self.wreq_addr = Input(UInt(self._cfg.bus_width))
-            self.wreq_data = Input(UInt(APG_BUS_WIDTH))
+            self.wreq_data = Input(UInt(self._cfg.data_width))
             self.wreq_vld  = Input(UInt(1))
             self.wreq_rdy  = Output(UInt(1))
 
@@ -95,7 +95,7 @@ class RegSpaceBase(Component):
             # Intr RegType
             ###################################################################################     
             if sub_space.reg_type==Intr:
-                reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(APG_BUS_WIDTH)))
+                reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(self._cfg.data_width)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
 
@@ -104,12 +104,12 @@ class RegSpaceBase(Component):
                 rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
                 rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
 
-                reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(APG_BUS_WIDTH)))
+                reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(self._cfg.data_width)))
                 reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1)))
                 reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
 
                 reg_wrdy += UInt(1,1)
-                reg_wdat += self.wreq_data[APG_BUS_WIDTH-1:0]
+                reg_wdat += self.wreq_data[self._cfg.data_width-1:0]
                 wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
 
                 rdat_list = []
@@ -304,13 +304,13 @@ class RegSpaceBase(Component):
         
         ##########################################################################################################
         if get_sw_readable(self._cfg.sub_space_list):
-            rack_dat_read_mux.otherwise(UInt(APG_BUS_WIDTH,2**(APG_BUS_WIDTH)-2,'hex'))
+            rack_dat_read_mux.otherwise(UInt(self._cfg.data_width,2**(self._cfg.data_width)-2,'hex'))
             rack_read_mux.otherwise(UInt(1,0))
 
             self.rack_data += rack_dat_read_mux
             self.rack_vld  += rack_read_mux
         else:
-            self.rack_data += UInt(APG_BUS_WIDTH,0)
+            self.rack_data += UInt(self._cfg.data_width,0)
             self.rack_vld  += UInt(1,0)
 
         if get_sw_writeable(self._cfg.sub_space_list):

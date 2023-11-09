@@ -11,6 +11,7 @@ class RegSpace(AddressSpace):
     def __init__(self,name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
         super().__init__(name=name,size=size,description=description,path=path)
         self.bus_width = bus_width
+        self.data_width = APG_BUS_WIDTH
         #self._name_prefix = 'reg'
         self.software_interface = software_interface
         self.rtl_path = ''
