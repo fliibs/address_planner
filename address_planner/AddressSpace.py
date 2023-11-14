@@ -102,6 +102,10 @@ class AddressSpace(AddressLogicRoot):
         elif space.reg_type==IntrMask and space.bit!=IntrBitWidth.IntrMask.value:   return False
         else:                                                                       return True
 
+    # def reg_bit_detect(self, sub_space):
+    #     if sub_space.bit%32!=0: return False 
+    #     else:                   return True
+
     def search_field(self, reg_name, field_name):
         for sub_space in self.sub_space_list:
             for field in sub_space.field_list:

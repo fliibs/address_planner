@@ -91,41 +91,7 @@ class RegSpaceBase(Component):
                 start_address = int((sub_space.start_address)/8)
             # print("address:",start_address, sub_space.start_address, sub_space.offset)
             # print(sub_space.reg_type, self.__dict__)
-            # ###################################################################################
-            # # Intr RegType
-            # ###################################################################################     
-            # if sub_space.reg_type==Intr:
-            #     reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(self._cfg.data_width)))
-            #     reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
-            #     reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
 
-            #     reg_rrdy += UInt(1,1)
-            #     reg_rvld += And(And(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
-            #     rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
-            #     rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
-
-            #     reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(self._cfg.data_width)))
-            #     reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1)))
-            #     reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
-
-            #     reg_wrdy += UInt(1,1)
-            #     reg_wdat += self.wreq_data[self._cfg.data_width-1:0]
-            #     wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
-
-            #     rdat_list = []
-
-            #     for field in sub_space.filled_field_list:
-            #         if isinstance(field, FilledField):
-            #             rdat_list.append(UInt(field.bit,0))
-
-
-                
-
-
-            ###################################################################################
-            # Normal RegType
-            ###################################################################################     
-            
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
@@ -303,6 +269,8 @@ class RegSpaceBase(Component):
 
                     field_reg += reg_val
                                         
+            
+            ### Interrupt register logic
             if get_sw_readable(self._cfg.sub_space_list):
                 rdat_list.reverse()
                 if sub_space.reg_type==Intr:
