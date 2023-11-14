@@ -60,24 +60,33 @@ class RegSpace(AddressSpace):
         if not self.intr_detect(sub_space):
             raise Exception('Intr err')
         
-        reg_raw_statue  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
-        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=sub_space.reg_type)
+        reg_raw_status  = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
+        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=Normal)
         if sub_space.reg_type==IntrMask:
-            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=sub_space.reg_type)
+            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal)
         
         for field in sub_space.field_list:
-            if isinstance(field, IntrField):                                            reg_raw_statue.add(field, field.bit_offset)
+            if isinstance(field, IntrField):                                            reg_raw_status.add(field, field.bit_offset)
             elif isinstance(field, IntrEnableField):                                    reg_enable.add(field, field.bit_offset-32)
             elif sub_space.reg_type==IntrMask and isinstance(field, IntrMaskField):     reg_mask.add(field, field.bit_offset-64) 
             else:                                                                       raise Exception('Error field!')
             
-        name_raw_status = None if name==None else f'{name}_raw_status'
+        name_raw_status = None if name==None else f'{name}'
         name_enable     = None if name==None else f'{name}_enable'
-        self.add(sub_space=reg_raw_statue, offset=offset, name=name_raw_status)
-        self.add(sub_space=reg_enable, offset=offset+4, name=name_enable)
+        self.add(sub_space=reg_enable, offset=offset, name=name_enable)
         if sub_space.reg_type==IntrMask:
             name_mask       = None if name==None else f'{name}_mask'
-            self.add(sub_space=reg_mask, offset=offset+8, name=name_mask)
+            self.add(sub_space=reg_mask, offset=offset+4, name=name_mask)
+            self.add(sub_space=reg_raw_status, offset=offset+8, name=name_raw_status)
+        elif sub_space.reg_type==Intr:
+            self.add(sub_space=reg_raw_status, offset=offset+4, name=name_raw_status)
+        else:
+            raise Exception("interrupt register reg type error")
+        
+
+
+
+
 
 
     #########################################################################################
