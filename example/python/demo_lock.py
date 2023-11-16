@@ -22,4 +22,5 @@ reg_bank_B.add(reg_locker, 0x12, 'reg_locker')
 reg_bank_B.add(reg_B,0x4,'internal_reg')
 reg_bank_B.add(reg_locker, 0x8, 'reg_locker_2')
 reg_bank_B.generate('build/example')
+# reg_bank_B.check('build/example')
 

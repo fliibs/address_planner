@@ -134,8 +134,8 @@ IntrMask    = RegType.IntrMask
 
 @unique
 class IntrBitWidth(Enum):
-    Intr     = 64
-    IntrMask = 96
+    Intr     = 128
+    IntrMask = 160
 
 
 key = 0

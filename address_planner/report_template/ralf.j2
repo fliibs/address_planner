@@ -6,7 +6,11 @@ block {{space.module_name}} {
         {% for field in ss.field_list -%}
         {%- if field.sw_access.value != "reserved" -%}
         {% if field.is_external == False -%}
+        {%- if field.sw_access.value in ["W1P", "W0P"] -%}
+        field {{field.name}} @{{field.bit_offset}} {
+        {%- else -%}
         field {{field.name}} ({{wrapper_inst}}{{ss.module_name}}_{{field.name}}) @{{field.bit_offset}} {
+        {%- endif -%}
             bits {{field.bit|int}};
             {%- if field.sw_access.value == "W1P" %}
             access {{"W1C"|lower}};

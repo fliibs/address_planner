@@ -9,7 +9,7 @@ reg_bank_B = RegSpace(name='reg_bank_tables_demo',size=8*KB,description='reg_ban
 reg_B = Register(name='internal_reg',bit=32, description='reg0',reg_type=Normal)
 
 reg_B.add(Field(name='field0',bit=1,sw_access=ReadOnly, hw_access=ReadWrite,init_value=0,description='fied0, software read only.' ),offset=0)
-reg_B.add(Field(name='field1',bit=2,sw_access=Write1Clean,hw_access=ReadWrite,init_value=0,description='fied1, software write only.'),offset=1)
+reg_B.add(Field(name='field1',bit=2,sw_access=Write1Clean,hw_access=Null,init_value=0,description='fied1, software write only.'),offset=1)
 reg_B.add(Field(name='field2',bit=1,sw_access=ReadWrite,hw_access=ReadWrite,init_value=0,description='fied2, software read write.'),offset=3)
 reg_B.add(Field(name='field3',bit=3,sw_access=ReadWrite,hw_access=ReadOnly, init_value=0,description='fied3, hardware read only.' ),offset=6)
 

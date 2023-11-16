@@ -27,7 +27,10 @@ def test_multifile_reg():
 def test_write_pulse():
     importlib.import_module('example.python.demo_w1p')
 
-
+def test_lock_and_magic():
+    importlib.import_module('example.python.demo_lock')
+    importlib.import_module('example.python.demo_magic_and_lock')
+    importlib.import_module('example.python.demo_magicnum_and_lockbit')
 
 
 

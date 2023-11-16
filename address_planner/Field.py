@@ -404,7 +404,7 @@ class MagicNumber(Field):
 
 class IntrField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
-        super().__init__(name, bit, ReadWrite, ReadWrite, init_value, f'{name} interrupt status field {description}')
+        super().__init__(name, bit, ReadOnly, ReadWrite, init_value, f'{name} interrupt status field {description}')
 
 class IntrEnableField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
@@ -413,3 +413,14 @@ class IntrEnableField(Field):
 class IntrMaskField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
         super().__init__(name, bit, ReadWrite, ReadOnly, init_value, f'{name} interrupt mask field {description}')
+
+class IntrClearField(FieldRoot):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write1Pulse, Null, init_value, f'{name} interrupt clear field {description}')
+        self.is_external = False
+
+class IntrSetField(FieldRoot):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write1Pulse, Null, init_value, f'{name} interrupt Set field {description}')
+        self.is_external = False
+ 

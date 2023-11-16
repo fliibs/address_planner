@@ -27,7 +27,7 @@ reg_B.add_incr(Field(name='field15',bit=1,sw_access=Null,hw_access=Null,descript
 reg_B.add_incr(Field(name='field16',bit=1,sw_access=ReadOnly,hw_access=Null,description='sw write zero toggle.'))
 reg_B.add_incr(Field(name='field17',bit=1,sw_access=ReadWrite,hw_access=Null,description='sw write zero toggle.'))
 reg_B.add_incr(Field(name='field18',bit=1,sw_access=Null,hw_access=ReadOnly,description='sw write zero toggle.'))
-reg_B.add_incr(Field(name='field18',bit=1,sw_access=Null,hw_access=ReadWrite,description='sw write zero toggle.'))
+reg_B.add_incr(Field(name='field19',bit=1,sw_access=Null,hw_access=ReadWrite,description='sw write zero toggle.'))
 
 
 reg_C = Register(name='regC',bit=32,description='test for software, contain many regs.')
@@ -41,6 +41,9 @@ reg_C.add_incr(Field(name='field21',bit=2,sw_access=Write1SetReadClean,hw_access
 reg_C.add_incr(Field(name='field22',bit=2,sw_access=Write0SetReadClean,hw_access=ReadWrite,description='sw write 0 set read clean.'))
 reg_C.add_incr(Field(name='field23',bit=2,sw_access=WriteOnce,hw_access=ReadWrite,description='sw write once.'))
 reg_C.add_incr(Field(name='field24',bit=2,sw_access=WriteOnlyOnce,hw_access=ReadWrite,description='sw write only once.'))
+reg_C.add_incr(Field(name='field25',bit=2,sw_access=Write1Pulse,hw_access=ReadOnly,description='sw write once.'))
+reg_C.add_incr(Field(name='field26',bit=2,sw_access=Write0Pulse,hw_access=ReadOnly,description='sw write only once.'))
+
 
 # reg_bank_C = RegSpace(name='hardware_all_kinds',size=1*KB,description='reg_bank_C,contain many regs.')
 reg_D = Register(name='regD',bit=32,description='test for software, contain many fields.')
@@ -84,6 +87,7 @@ reg_bank_B.add_incr(reg_E,'reg3')
 # reg_bank_B.path = ('example_build/%s' % reg_bank_B.module_name)
 
 reg_bank_B.generate('build/example')
+reg_bank_B.check('build/example')
 # reg_bank_C.path = ('example_build/%s' % reg_bank_C.module_name)
 # reg_bank_C.report_json()
 # reg_bank_C.report_rtl()
