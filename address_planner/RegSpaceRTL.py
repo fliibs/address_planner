@@ -95,10 +95,13 @@ class Regbank(Component):
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
-                reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
-
                 reg_rrdy += UInt(1,1)
-                reg_rvld += BitAnd(BitAnd(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+
+                if get_sw_writevalid(sub_space):
+                    print(sub_space.module_name)
+                    reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
+                    reg_rvld += BitAnd(BitAnd(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                
                 rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
                 rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
             

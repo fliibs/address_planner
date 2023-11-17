@@ -16,6 +16,12 @@ def get_sw_writeable(sub_space_list, writeable=False):
                 return True  
     return writeable
 
+def get_sw_writevalid(sub_space, writevalid=False):
+    for field in sub_space.filled_field_list:
+        if field.sw_read_clean or field.sw_read_set or field.is_external:
+            return True 
+    return writevalid
+
 def byte_mask(data, mask):
     mask_data = []
     for i in range(mask.width):

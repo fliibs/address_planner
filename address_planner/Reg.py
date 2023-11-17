@@ -118,6 +118,10 @@ class Register(RegSpace):
         return res
     
     @property
+    def bit_offset(self):
+        return self.offset
+
+    @property
     def hex_offset(self):
         hex_value = hex(int(self.reg_offset/8))
         if hex_value == '0x0':
