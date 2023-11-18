@@ -408,11 +408,11 @@ class IntrField(Field):
 
 class IntrEnableField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
-        super().__init__(name, bit, ReadWrite, ReadOnly, init_value, f'{name} interrupt enable field {description}')
+        super().__init__(name, bit, ReadWrite, Null, init_value, f'{name} interrupt enable field {description}')
 
 class IntrMaskField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
-        super().__init__(name, bit, ReadWrite, ReadOnly, init_value, f'{name} interrupt mask field {description}')
+        super().__init__(name, bit, ReadWrite, Null, init_value, f'{name} interrupt mask field {description}')
 
 class IntrClearField(FieldRoot):
     def __init__(self, name, bit, init_value=0, description=''):

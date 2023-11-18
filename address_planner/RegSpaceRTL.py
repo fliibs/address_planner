@@ -141,7 +141,6 @@ class Regbank(Component):
                     rdat_list.append(UInt(field.bit,0))
                 elif field.reserved:
                     rdat_list.append(UInt(field.bit,0))
-
                 # External Register Software Access
                 elif field.is_external:
                     field_name = "%s_sw_%s" % (sub_space.module_name, field.module_name)
@@ -168,9 +167,9 @@ class Regbank(Component):
 
                 # write one pulse field
                 elif field.sw_write_one_pulse or field.sw_write_zero_pulse:
-                    rdat_list.append(UInt(field.bit,0))
+                    
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                    field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+                    
                     field_hw_rdat_reg = self.set("%s" % field_name, Wire(UInt(field.bit)))
 
                     lock_intf_list = []
@@ -179,12 +178,16 @@ class Regbank(Component):
                         if hasattr(self, lock_field_name):  lock_intf_list.append(Fanout(getattr(self, lock_field_name),field_hw_rdat_reg.width))
                         else:                               lock_intf_list.append(Fanout(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)),field_hw_rdat_reg.width))
                     
-                    field_lock_ena = self.set('%s_lock_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
+                    field_lock_ena = self.set('%s_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
                     field_lock_ena += BitAnd(Fanout(reg_wvld,field_hw_rdat_reg.width),*lock_intf_list)
 
                     if field.sw_write_one_pulse:    field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], field_lock_ena)
                     else:                           field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_lock_ena)
-                    field_hw_rdat += field_hw_rdat_reg  
+                    
+                    if field.hw_readable:
+                        field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+                        field_hw_rdat += field_hw_rdat_reg 
+                    rdat_list.append(field_hw_rdat_reg) 
 
                 # Internal Register  
                 else:
@@ -193,8 +196,7 @@ class Regbank(Component):
                     reg_val = EmptyWhen()
 
                     if field.hw_writeable:
-                        if not (field.hw_write_clean or field.hw_write_set):
-                            field_hw_wdat = self.set("%s_wdat" % field_name , Input(UInt(field.bit)))
+                        if not is_hw_write_clean_or_set:    field_hw_wdat = self.set("%s_wdat" % field_name , Input(UInt(field.bit)))
                         field_hw_wena = self.set("%s_wena" % field_name , Input(UInt(1)))
 
                         if field.hw_write_clean:
@@ -272,10 +274,18 @@ class Regbank(Component):
                     else:
                         rdat_list.append(UInt(field.bit,0))
 
+                    # for clear and set interrupt register 
+                    if sub_space.reg_type in [Intr, IntrMask]:
+                        field_set       = getattr(self, "%s_set_%s"% (sub_space.module_name,field.module_name))
+                        field_clear     = getattr(self, "%s_clear_%s"% (sub_space.module_name,field.module_name))
+                        reg_val.when(SelfOr(field_set)).then(field_set)
+                        reg_val.when(SelfOr(field_clear)).then(BitAnd(field_reg,Inverse(field_clear)))
+
                     field_reg += reg_val
                                         
             ### Interrupt register logic
             if get_sw_readable(self._cfg.sub_space_list):
+                print(sub_space.module_name, sub_space.reg_type==Intr)
                 rdat_list.reverse()
                 if sub_space.reg_type==Intr:        reg_rdat += BitAnd(Combine(*rdat_list),getattr(self,f'{sub_space.module_name}_enable_rdat'))
                 elif sub_space.reg_type==IntrMask:  reg_rdat += BitAnd(Combine(*rdat_list),getattr(self,f'{sub_space.module_name}_enable_rdat'),Inverse(getattr(self,f'{sub_space.module_name}_mask_rdat')))
