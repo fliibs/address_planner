@@ -1,4 +1,4 @@
-{% for ss in space.sub_space_list %}
+{% for ss in space.sorted_subspace_list %}
 //==========================================================
 // Definition of reg {{ss.module_name_until_regbank.upper()}}
 //==========================================================
@@ -18,7 +18,7 @@
     #define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{builtins.hex((ss.offset/8)|int)}}
 
 #endif
-{% for field in ss.field_list %}
+{% for field in ss.sorted_field_list %}
 #ifndef OFFSET_{{field.module_name_until_regbank.upper()}}
     #define {{field.module_name_until_regbank.upper()}}_OFFSET  {{field.bit_offset}}
     #define {{field.module_name_until_regbank.upper()}}_WIDTH   {{field.bit}}

@@ -1,16 +1,16 @@
 block {{space.module_name}} {
     bytes {{(space.data_width/8)|int}};
-    {% for ss in space.sub_space_list -%}
+    {% for ss in space.sorted_subspace_list -%}
     register {{ss.module_name}} @{{ss.hex_offset}} {
         bytes {{(ss.bit/8)|int}};
-        {% for field in ss.field_list -%}
+        {% for field in ss.sorted_field_list -%}
         {%- if field.sw_access.value != "reserved" -%}
         {% if field.is_external == False -%}
         {%- if field.sw_access.value in ["W1P", "W0P"] -%}
         field {{field.name}} @{{field.bit_offset}} {
-        {%- else -%}
+        {%- else %}
         field {{field.name}} ({{wrapper_inst}}{{ss.module_name}}_{{field.name}}) @{{field.bit_offset}} {
-        {%- endif -%}
+        {%- endif %}
             bits {{field.bit|int}};
             {%- if field.sw_access.value == "W1P" %}
             access {{"W1C"|lower}};

@@ -63,7 +63,10 @@ class AddressSpace(AddressLogicRoot):
             return '\'h0'
         else:
             return '\'h'+hex_value.lstrip('0x')
-
+    
+    @property
+    def sorted_subspace_list(self):
+        return sorted(self.sub_space_list, key=lambda x: x.bit_offset)
 
 
     def add(self,sub_space,offset,name):
@@ -223,11 +226,11 @@ class AddressSpace(AddressLogicRoot):
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "sys"
         json_dict["name"]       = self.module_name
-        json_dict["start_addr"] = ConvertSize(self.start_address, is_byte=True)
-        json_dict["end_addr"]   = ConvertSize(self.end_address+1, is_byte=True)
+        json_dict["start_addr"] = hex(int(self.start_address/8))
+        json_dict["end_addr"]   = hex(int(self.end_address/8))
         json_dict["size"]       = ConvertSize(self.size, is_byte=True)
         json_dict["description"]= self.description
-        json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
+        json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
         return json_dict
     
 

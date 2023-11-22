@@ -91,16 +91,20 @@ class Register(RegSpace):
         return self.father.module_name + '_' + self.module_name
 
     @property
+    def sorted_field_list(self):
+        return sorted(self.field_list, key=lambda x: x.bit_offset)
+
+    @property
     def filled_field_list(self):
         res = []
         previous_field = None
-        sorted_field_list = sorted(self.field_list, key=lambda x: x.bit_offset)
+        # sorted_field_list = sorted(self.field_list, key=lambda x: x.bit_offset)
 
-        if sorted_field_list[0].bit_offset != 0:
-                filled_field = FilledField(bit=sorted_field_list[0].bit_offset)
+        if self.sorted_field_list[0].bit_offset != 0:
+                filled_field = FilledField(bit=self.sorted_field_list[0].bit_offset)
                 res.append(filled_field)
 
-        for field in sorted_field_list:
+        for field in self.sorted_field_list:
             if previous_field != None and field.start_bit > previous_field.end_bit + 1:
 
                 filled_field = FilledField(bit=field.start_bit - previous_field.end_bit - 1)
@@ -110,7 +114,7 @@ class Register(RegSpace):
             res.append(field)
             previous_field = field
         
-        if sorted_field_list[-1].end_bit < 31:
+        if self.sorted_field_list[-1].end_bit < 31:
             filled_field = FilledField(32 - previous_field.end_bit - 1)
             filled_field.bit_offset = previous_field.end_bit + 1
             res.append(filled_field)
@@ -187,14 +191,14 @@ class Register(RegSpace):
         json_dict["type"]       = "reg"
         json_dict["name"]       = self.module_name 
         if self.start_address < self.father.bit_offset:
-            json_dict["start_addr"] = Convert2Byte(self.start_address)
-            json_dict["end_addr"]   = Convert2Byte(self.end_address+1)
+            json_dict["start_addr"] = hex(int(self.start_address/8))
+            json_dict["end_addr"]   = hex(int(self.end_address/8))
         else:
-            json_dict["start_addr"] = Convert2Byte(self.start_address-self.father.bit_offset)
-            json_dict["end_addr"]   = Convert2Byte(self.end_address-self.father.bit_offset+1)
+            json_dict["start_addr"] = hex(int(self.start_address-self.father.bit_offset/8))
+            json_dict["end_addr"]   = hex(int(self.end_address-self.father.bit_offset/8))
         json_dict["size"]       = ConvertSize(self.bit)
         json_dict["description"]= self.description
-        json_dict["fields"]     = [c.report_json_core() for c in self.field_list if c.report_json_core() is not Null]
+        json_dict["fields"]     = [c.report_json_core() for c in self.sorted_field_list if c.report_json_core() is not Null]
         return json_dict
 
 

@@ -285,7 +285,6 @@ class Regbank(Component):
                                         
             ### Interrupt register logic
             if get_sw_readable(self._cfg.sub_space_list):
-                print(sub_space.module_name, sub_space.reg_type==Intr)
                 rdat_list.reverse()
                 if sub_space.reg_type==Intr:        reg_rdat += BitAnd(Combine(*rdat_list),getattr(self,f'{sub_space.module_name}_enable_rdat'))
                 elif sub_space.reg_type==IntrMask:  reg_rdat += BitAnd(Combine(*rdat_list),getattr(self,f'{sub_space.module_name}_enable_rdat'),Inverse(getattr(self,f'{sub_space.module_name}_mask_rdat')))
