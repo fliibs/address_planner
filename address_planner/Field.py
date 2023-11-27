@@ -101,8 +101,9 @@ class FieldRoot(AddressLogicRoot):
                self.sw_access == Write0SetReadClean or \
                self.sw_access == Write1Toggle or \
                self.sw_access == Write0Toggle or \
-               self.sw_access == WriteOnce
-               
+               self.sw_access == WriteOnce or \
+               self.sw_access == Write1Pulse or \
+               self.sw_access == Write0Pulse
 
     @property
     def sw_writeable(self):

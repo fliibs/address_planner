@@ -61,6 +61,8 @@ class Regbank(Component):
             self.wreq_addr      += self.p.addr
             self.wreq_data      += self.p.wdata
 
+            pulse_wvld          = BitAnd(self.p.write, self.p.sel, self.p.enable)
+
         else:
             self.rreq_addr = Input(UInt(self._cfg.bus_width))
             self.rreq_vld  = Input(UInt(1))
@@ -75,6 +77,8 @@ class Regbank(Component):
             self.wreq_vld  = Input(UInt(1))
             self.wreq_rdy  = Output(UInt(1))
 
+            pulse_wvld     = self.wreq_vld
+
             if get_sw_readable(self._cfg.sub_space_list):   self.rreq_rdy += BitAnd(self.rreq_vld, self.rack_rdy,self.rack_vld)
             else:                                           self.rreq_rdy += UInt(1,0)
 
@@ -88,7 +92,9 @@ class Regbank(Component):
         #########################################################################################################
         for sub_space in self._cfg.sub_space_list:
             ####
-            just_write_clean_or_set = get_sw_write_clean_and_set(sub_space)
+            just_write_clean_or_set     = get_sw_write_clean_and_set(sub_space)
+            sub_space_writeable         = get_sw_writeable(sub_space.field_list, outer=False)
+            sub_space_all_write_pulse   = get_sw_all_pulse(sub_space.field_list, outer=False)
             ####
 
             if sub_space.start_address >= sub_space.father.offset:  start_address = int((sub_space.start_address - sub_space.father.offset)/8)
@@ -109,7 +115,7 @@ class Regbank(Component):
                 
             
             if get_sw_writeable(self._cfg.sub_space_list):
-                if just_write_clean_or_set:
+                if just_write_clean_or_set and sub_space_writeable:
                     reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                     reg_wdat += self.wreq_data[sub_space.bit-1:0]
 
@@ -118,8 +124,9 @@ class Regbank(Component):
                     if hasattr(self,f'{magic.module_name}_rdat'):   magic_intf_list.append(Equal(getattr(self,f'{magic.module_name}_rdat'), UInt(32,magic.field_list[0].password,'hex')))
                     else:                                           magic_intf_list.append(Equal(self.set('%s_rdat' % magic.module_name, Wire(UInt(magic.bit))), UInt(magic.bit,magic.field_list[0].password,'hex')))
 
-                reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
-                reg_wvld += BitAnd(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list)
+                if sub_space_writeable and not sub_space_all_write_pulse:
+                    reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
+                    reg_wvld += BitAnd(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list)
 
                 if not is_apb3:
                     reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1)))
@@ -159,8 +166,10 @@ class Regbank(Component):
                         field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
                         field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
-                        field_sw_wvld += reg_wvld
+                        if just_write_clean_or_set and sub_space_writeable:
+                            field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                        if sub_space_writeable:
+                            field_sw_wvld += reg_wvld
                 
                 elif not field.field_reg_write:
                     rdat_list.append(UInt(field.bit,field.init_value))
@@ -179,7 +188,7 @@ class Regbank(Component):
                         else:                               lock_intf_list.append(Fanout(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)),field_hw_rdat_reg.width))
                     
                     field_lock_ena = self.set('%s_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
-                    field_lock_ena += BitAnd(Fanout(reg_wvld,field_hw_rdat_reg.width),*lock_intf_list)
+                    field_lock_ena += BitAnd(Fanout(BitAnd(pulse_wvld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list),field_hw_rdat_reg.width),*lock_intf_list)
 
                     if field.sw_write_one_pulse:    field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], field_lock_ena)
                     else:                           field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_lock_ena)
@@ -229,6 +238,7 @@ class Regbank(Component):
                             if hasattr(self, lock_field_name):  lock_intf_list.append(getattr(self, lock_field_name))
                             else:                               lock_intf_list.append(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)))
                         
+                        print(field.name)
                         field_write_enable = self.set('%s_sw_wren'% field_name, Wire(UInt(1)))
                         field_write_enable += BitAnd(reg_wvld, *lock_intf_list)
 
