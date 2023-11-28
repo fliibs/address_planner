@@ -26,6 +26,6 @@ reg_D.add_intr_field(name='field3',bit=3,init_value=0, enable_init_value=0, mask
 # print('///')
 # for field in reg_D.field_list:
 #     print(field,field.bit_offset)
-reg_bank_B.add_intr(reg_D,0x4+16)
+reg_bank_B.add_intr(reg_D,0x4+20)
 
 reg_bank_B.generate('build/example')

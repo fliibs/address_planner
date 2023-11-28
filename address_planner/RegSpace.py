@@ -61,7 +61,8 @@ class RegSpace(AddressSpace):
         if not self.intr_detect(sub_space):
             raise Exception('Intr err')
         
-        reg_raw_status  = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
+        reg_raw_status  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=IntrStatus)
+        reg_intr        = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
         reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=Normal)
         reg_clear       = Register(name=f'{sub_space.module_name}_clear',bit=32,description=f'interrupt clear register {sub_space.description}',reg_type=Normal)
         reg_set         = Register(name=f'{sub_space.module_name}_set',bit=32,description=f'interrupt set register {sub_space.description}',reg_type=Normal)
@@ -69,14 +70,16 @@ class RegSpace(AddressSpace):
             reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal)
         
         for field in sub_space.field_list:
-            if isinstance(field, IntrField):                                            reg_raw_status.add(field, field.bit_offset)
-            elif isinstance(field, IntrEnableField):                                    reg_enable.add(field, field.bit_offset-32)
-            elif isinstance(field, IntrClearField):                                     reg_clear.add(field, field.bit_offset-64)
-            elif isinstance(field, IntrSetField):                                       reg_set.add(field, field.bit_offset-96)
-            elif sub_space.reg_type==IntrMask and isinstance(field, IntrMaskField):     reg_mask.add(field, field.bit_offset-128) 
+            if isinstance(field, IntrStatusField):                                      reg_raw_status.add(field, field.bit_offset)
+            elif isinstance(field, IntrField):                                          reg_intr.add(field, field.bit_offset-32)
+            elif isinstance(field, IntrEnableField):                                    reg_enable.add(field, field.bit_offset-64)
+            elif isinstance(field, IntrClearField):                                     reg_clear.add(field, field.bit_offset-96)
+            elif isinstance(field, IntrSetField):                                       reg_set.add(field, field.bit_offset-128)
+            elif sub_space.reg_type==IntrMask and isinstance(field, IntrMaskField):     reg_mask.add(field, field.bit_offset-160) 
             else:                                                                       raise Exception('Error field!')
             
-        name_raw_status = None if name==None else f'{name}'
+        name_raw_status = None if name==None else f'{name}_raw_status'
+        name_intr       = None if name==None else f'{name}'
         name_enable     = None if name==None else f'{name}_enable'
         name_clear      = None if name==None else f'{name}_clear'
         name_set        = None if name==None else f'{name}_set'
@@ -87,10 +90,12 @@ class RegSpace(AddressSpace):
             self.add(sub_space=reg_set, offset=offset+8, name=name_set)
             self.add(sub_space=reg_mask, offset=offset+12, name=name_mask)
             self.add(sub_space=reg_raw_status, offset=offset+16, name=name_raw_status)
+            self.add(sub_space=reg_intr, offset=offset+20, name=name_intr)
         elif sub_space.reg_type==Intr:
             self.add(sub_space=reg_clear, offset=offset+4, name=name_clear)
             self.add(sub_space=reg_set, offset=offset+8, name=name_set)
             self.add(sub_space=reg_raw_status, offset=offset+12, name=name_raw_status)
+            self.add(sub_space=reg_intr, offset=offset+16, name=name_intr)
         else:
             raise Exception("interrupt register reg type error")
         
