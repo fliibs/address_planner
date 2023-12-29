@@ -39,6 +39,16 @@ class FieldRoot(AddressLogicRoot):
         bin_str = '0' * (self.father.bit - self.bit - self.bit_offset) + '1' * self.bit + '0' * self.bit_offset
         integer = int(bin_str,2)
         return hex(integer)
+    
+    @property
+    def mask_vh(self):
+        bin_str = '0' * (self.father.bit - self.bit - self.bit_offset) + '1' * self.bit + '0' * self.bit_offset
+        integer = int(bin_str,2)
+        hex_value = hex(integer)
+        if hex_value == '0x0':
+            return '%d\'h0'%(self.father.bit)
+        else:
+            return '%d\'h'%(self.father.bit)+hex_value.lstrip('0x')
 
     @property
     def hex_value(self):

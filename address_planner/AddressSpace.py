@@ -37,6 +37,10 @@ class AddressSpace(AddressLogicRoot):
         return self.size*8
 
     @property
+    def global_size(self):
+        return self.size*8 if self.father is None else self.father.bit_size
+
+    @property
     def global_offset(self):
         return 0 if self.father is None else self.father.global_offset + self.bit_offset
 
@@ -89,7 +93,6 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
         
 
-
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True
         elif    (space_A.start_address <= space_B.end_address   ) and (space_B.end_address   <= space_A.end_address ): return True
@@ -98,6 +101,7 @@ class AddressSpace(AddressLogicRoot):
         else:                                                                                                return False
 
     def inclusion_detect(self,other):
+        print(self.module_name, other.module_name, self.start_address, other.start_address, self.end_address, other.end_address, (self.start_address <= other.start_address), (other.end_address <= self.end_address))
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
     
     def intr_detect(self,space):
@@ -139,6 +143,15 @@ class AddressSpace(AddressLogicRoot):
         if not isinstance(reg.field_list[0], MagicNumber):
             raise Exception(f'field in magic list is not MagicNumber Type')
         
+
+    def hex_transform(self, value):
+        if not isinstance(value, str):
+            hex_value = hex(value)
+        if hex_value == '0x0':
+            return '%d\'h0'%(self.global_size)
+        else:
+            return '%d\'h'%(self.global_size)+hex_value.lstrip('0x')
+
 
 
     #########################################################################################

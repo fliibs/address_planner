@@ -5,9 +5,9 @@
     {%- set def_prefix = '`' -%}
 {%- endif -%}
 {{def_prefix}}ifndef     ADDR_{{space.module_name.upper()}}
-    {{def_prefix}}define {{ '%-45s' % 'ADDR_%s' % space.module_name.upper()}} {{builtins.hex((space.start_address/8)|int)}}
-    {{def_prefix}}define {{ '%-45s' % 'SIZE_%s' % space.module_name.upper()}} {{builtins.hex(space.size)}}
-    {{def_prefix}}define {{ '%-45s' % 'OFFSET_%s' % space.module_name.upper()}} {{builtins.hex(space.offset)}}
+    {{def_prefix}}define {{ '%-45s' % 'ADDR_%s' % space.module_name.upper()}} {{ss.hex_transform((space.start_address/8)|int)}}
+    {{def_prefix}}define {{ '%-45s' % 'SIZE_%s' % space.module_name.upper()}} {{ss.hex_transform(space.size)}}
+    {{def_prefix}}define {{ '%-45s' % 'OFFSET_%s' % space.module_name.upper()}} {{ss.hex_transform(space.offset)}}
 {{def_prefix}}endif
 {%- endmacro -%}
 

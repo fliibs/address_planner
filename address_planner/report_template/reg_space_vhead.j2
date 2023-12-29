@@ -19,9 +19,9 @@
         logic [{{ss.bit-1}}:0] val;
     } {{ss.module_name_until_regbank.upper()}};
 
-    `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{builtins.hex((ss.global_start_address/8)|int)}}
-    `define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{builtins.hex(ss.size)}}
-    `define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{builtins.hex((ss.offset/8)|int)}}
+    `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.global_start_address/8)|int)}}
+    `define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform(ss.size)}}
+    `define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
 
 `endif
 
@@ -29,8 +29,8 @@
 `ifndef OFFSET_{{field.module_name_until_regbank.upper()}}
     `define {{field.module_name_until_regbank.upper()}}_OFFSET  {{field.bit_offset}}
     `define {{field.module_name_until_regbank.upper()}}_WIDTH   {{field.bit}}
-    `define {{field.module_name_until_regbank.upper()}}_MASK    {{field.mask}}
-    `define {{field.module_name_until_regbank.upper()}}_RST_VAL {{field.mask}}
+    `define {{field.module_name_until_regbank.upper()}}_MASK    {{field.mask_vh}}
+    `define {{field.module_name_until_regbank.upper()}}_RST_VAL {{field.mask_vh}}
 `endif
 {% endfor %}
 {% endfor %}

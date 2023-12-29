@@ -298,7 +298,7 @@ class Regbank(Component):
                     if sub_space.reg_type in [IntrStatus]:
                         field_set       = getattr(self, "%s_set_%s"% (sub_space.module_name.rstrip('_raw_status'),field.module_name))
                         field_clear     = getattr(self, "%s_clear_%s"% (sub_space.module_name.rstrip('_raw_status'),field.module_name))
-                        reg_val.when(SelfOr(field_set)).then(field_set)
+                        reg_val.when(SelfOr(field_set)).then(BitOr(field_reg,field_set))
                         reg_val.when(SelfOr(field_clear)).then(BitAnd(field_reg,Inverse(field_clear)))
 
                     if field.field_reg_write:
