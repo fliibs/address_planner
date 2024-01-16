@@ -117,6 +117,11 @@ Write1Pulse          = FieldAccess.Write1Pulse
 Write0Pulse          = FieldAccess.Write0Pulse
 
 
+def get_field_access_by_value(value):
+    for member in FieldAccess:
+        if member.value == value.upper():
+            return member
+
 @unique
 class RegType(Enum):
     Normal      = 'Normal'

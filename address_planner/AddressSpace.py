@@ -1,7 +1,9 @@
 from copy               import deepcopy
 from functools          import reduce
+from tkinter            import Tcl
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
+from .ralf_parser.ralf_parse import build_addrspace
 
 import os
 import builtins
@@ -73,11 +75,12 @@ class AddressSpace(AddressLogicRoot):
         return sorted(self.sub_space_list, key=lambda x: x.bit_offset)
 
 
-    def add(self,sub_space,offset,name):
+    def add(self,sub_space,offset,name=None):
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = offset
         sub_space_copy.father = self
-        sub_space_copy.module_name = name
+        # sub_space_copy.module_name = name
+        sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
         if not self.inclusion_detect(sub_space_copy):
             raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
@@ -91,7 +94,18 @@ class AddressSpace(AddressLogicRoot):
 
     def add_incr(self,sub_space,name):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
-        
+
+
+    def add_ralf(self,ralf_file,offset,name=None):
+        with open(ralf_file,'r') as f:
+            env_tcl_code = f.read()
+
+        tcl_interpreter = Tcl()
+        tcl_interpreter.eval("source address_planner/ralf_parser/ralf_parser.tcl")
+        tcl_interpreter.eval(env_tcl_code)
+        reg_copy = build_addrspace(tcl_interpreter)
+        self.add(reg_copy, offset, name)
+
 
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True
@@ -101,17 +115,12 @@ class AddressSpace(AddressLogicRoot):
         else:                                                                                                return False
 
     def inclusion_detect(self,other):
-        print(self.module_name, other.module_name, self.start_address, other.start_address, self.end_address, other.end_address, (self.start_address <= other.start_address), (other.end_address <= self.end_address))
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
     
     def intr_detect(self,space):
         if space.reg_type==Intr and space.bit!=IntrBitWidth.IntrFull.value:             return False 
         elif space.reg_type==IntrMask and space.bit!=IntrBitWidth.IntrFull.value:   return False
         else:                                                                       return True
-
-    # def reg_bit_detect(self, sub_space):
-    #     if sub_space.bit%32!=0: return False 
-    #     else:                   return True
 
     def search_field(self, reg_name, field_name):
         for sub_space in self.sub_space_list:

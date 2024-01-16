@@ -20,7 +20,7 @@ class RegSpace(AddressSpace):
         return self.module_name
 
     def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
-        bit_offset = offset*8
+        bit_offset     = offset*8
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
