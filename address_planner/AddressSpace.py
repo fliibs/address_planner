@@ -157,9 +157,9 @@ class AddressSpace(AddressLogicRoot):
         if not isinstance(value, str):
             hex_value = hex(value)
         if hex_value == '0x0':
-            return '%d\'h0'%(self.global_size)
+            return '\'h0'
         else:
-            return '%d\'h'%(self.global_size)+hex_value.lstrip('0x')
+            return '\'h'+hex_value.lstrip('0x')
 
 
 

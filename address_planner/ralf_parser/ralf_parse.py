@@ -30,7 +30,6 @@ def build_addrspace(tcl_interpreter):
     keys_array = tcl_interpreter.eval('set keys [dict keys $result]')
     key_list = keys_array.split(' ')
     tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
-    print(py_dict)
 
     #### build rb
     from ..RegSpace import RegSpace
@@ -38,7 +37,6 @@ def build_addrspace(tcl_interpreter):
     reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
     # reg_bank_B_copy.generate('build/ralf')
     reg_bank_B_copy = minimum_size(reg_bank_B_copy)
-    print(reg_bank_B_copy.__dict__)
     return reg_bank_B_copy
 
 
@@ -53,7 +51,6 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
         for key in dict_.keys():   
             father_copy = build_subspace_recur(dict_[key], father_copy, tcl_interpreter)
         father_copy = minimum_size(father_copy)
-        print(father_copy.__dict__)
 
     else:
         # recur field dict

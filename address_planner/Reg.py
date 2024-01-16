@@ -146,6 +146,13 @@ class Register(RegSpace):
         real_magic_list = [reg_space.search_magic(magic) for magic in self.magic_list]
 
         return real_magic_list
+    
+    @property
+    def init_value(self):
+        bin_str = 0
+        for field in self.filled_field_list:
+            bin_str += 2**(field.bit_offset)*field.init_value
+        return bin_str
 
 
     #########################################################################################

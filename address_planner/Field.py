@@ -46,9 +46,9 @@ class FieldRoot(AddressLogicRoot):
         integer = int(bin_str,2)
         hex_value = hex(integer)
         if hex_value == '0x0':
-            return '%d\'h0'%(self.father.bit)
+            return '\'h0'
         else:
-            return '%d\'h'%(self.father.bit)+hex_value.lstrip('0x')
+            return '\'h'+hex_value.lstrip('0x')
 
     @property
     def hex_value(self):

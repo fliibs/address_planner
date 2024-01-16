@@ -21,7 +21,8 @@
 
     `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.global_start_address/8)|int)}}
     `define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform(ss.size)}}
-    `define {{ '%-40s' % '%s_OFFSET' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
+    `define {{ '%-40s' % '%s_OFFSET'  % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
+    `define {{ '%-40s' % '%s_RST_VAL' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.init_value)|int)}}
 
 `endif
 
@@ -30,7 +31,7 @@
     `define {{field.module_name_until_regbank.upper()}}_OFFSET  {{field.bit_offset}}
     `define {{field.module_name_until_regbank.upper()}}_WIDTH   {{field.bit}}
     `define {{field.module_name_until_regbank.upper()}}_MASK    {{field.mask_vh}}
-    `define {{field.module_name_until_regbank.upper()}}_RST_VAL {{field.mask_vh}}
+    `define {{field.module_name_until_regbank.upper()}}_RST_VAL {{field.init_value}}
 `endif
 {% endfor %}
 {% endfor %}
