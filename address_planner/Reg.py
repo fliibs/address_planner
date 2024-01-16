@@ -197,12 +197,13 @@ class Register(RegSpace):
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "reg"
         json_dict["name"]       = self.module_name 
-        if self.start_address < self.father.bit_offset:
-            json_dict["start_addr"] = hex(int(self.start_address/8))
-            json_dict["end_addr"]   = hex(int(self.end_address/8))
+        if self.start_address <= self.father.bit_offset:
+            json_dict["start_addr"] = hex(int(self.start_address))
+            json_dict["end_addr"]   = hex(int(self.end_address))
         else:
             json_dict["start_addr"] = hex(int(self.start_address-self.father.bit_offset/8))
             json_dict["end_addr"]   = hex(int(self.end_address-self.father.bit_offset/8))
+        
         json_dict["size"]       = ConvertSize(self.bit)
         json_dict["description"]= self.description
         json_dict["fields"]     = [c.report_json_core() for c in self.sorted_field_list if c.report_json_core() is not Null]

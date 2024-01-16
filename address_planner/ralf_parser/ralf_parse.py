@@ -168,8 +168,9 @@ def convert_reset(reset):
 
 def minimum_size(father):
     from ..Reg import Register
-    father_copy = deepcopy(father)
-    end_element = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
-    if isinstance(end_element,Register):    father_copy.size=int(end_element.offset/8+end_element.bit/8)
+    father_copy   = deepcopy(father)
+    end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
+    start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
+    if isinstance(end_element,Register):    father_copy.size=int(end_element.offset/8+end_element.bit/8-start_element.start_address/8)
     else:                                   father_copy.size=end_element.offset+end_element.size
     return father_copy

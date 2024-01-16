@@ -38,7 +38,7 @@ block B2 {
 }
 
 system sys1 {
-    block B1 @0;
+    block B1 @1;
     block B2 @70000;
 }
 
@@ -46,7 +46,7 @@ system sys1 {
 
 #parray DEF
 # puts [array names DEF]
-puts [set DEF(B1)]
+puts [set DEF(sys1)]
 #sputs "wer"
 #puts $def_L1
 

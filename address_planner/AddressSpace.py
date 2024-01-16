@@ -250,6 +250,7 @@ class AddressSpace(AddressLogicRoot):
         json_dict["name"]       = self.module_name
         json_dict["start_addr"] = hex(int(self.start_address/8))
         json_dict["end_addr"]   = hex(int(self.end_address/8))
+        
         json_dict["size"]       = ConvertSize(self.size, is_byte=True)
         json_dict["description"]= self.description
         json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
