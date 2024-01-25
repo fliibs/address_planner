@@ -80,6 +80,13 @@ def byte_mask(data, mask):
     mask_data.reverse()
     return Combine(*mask_data)
 
+def strb_extend(strb):
+    mask_data = []
+    for i in range(strb.width):
+        mask_data.append(Fanout(strb[i],8))
+    mask_data.reverse()
+    return Combine(*mask_data)
+
 def perfect_get_io(component, string):
         match_io_list = []
         for io in component.io_list:

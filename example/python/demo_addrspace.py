@@ -3,7 +3,7 @@ sys.path.append('.')
 from address_planner import *
 
 
-reg_bank_B = RegSpace(name='reg_bank_tables_demo',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb')
+reg_bank_B = RegSpace(name='reg_bank_tables_demo',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb4')
 
 
 reg_B = Register(name='internal_reg',bit=32, description='reg0',reg_type=Normal)

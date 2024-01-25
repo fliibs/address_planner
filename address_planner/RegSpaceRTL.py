@@ -2,7 +2,7 @@
 
 from .uhdl.uhdl import *
 from .Field import *
-from .address_planner_rtl.APBInterface import APB3
+from .address_planner_rtl.APBInterface import APB3, APB4
 from .address_planner_rtl.Common import *
 
 
@@ -27,12 +27,19 @@ class Regbank(Component):
 
         ####
         is_apb3             = True if "apb" in self._cfg.software_interface else False
+        is_apb4             = True if "apb4" in self._cfg.software_interface else False
         apb3_has_rack_hsk   = get_sw_read_clean_and_set(sub_space=self._cfg, outer=True) or get_field_external(sub_space=self._cfg, outer=True)
         ####
 
         if "apb" in self._cfg.software_interface:
-            self.p              =  APB3(addr_width=self._cfg.bus_width)
-            self.p.slverr       += UInt(1,0)
+            if is_apb4:
+                self.p          =  APB4(addr_width=self._cfg.bus_width)
+                self.p_unmask =  Wire(UInt(self._cfg.data_width))
+                self.p_mask   =  Wire(UInt(self._cfg.data_width))
+                self.p_unmask += strb_extend(self.p.strb)
+                self.p_mask   += Inverse(self.p_unmask)
+            else:
+                self.p          =  APB3(addr_width=self._cfg.bus_width)
 
             self.rreq_addr      = Wire(UInt(self._cfg.bus_width))
             # self.rreq_vld       = Wire(UInt(1))
@@ -43,7 +50,6 @@ class Regbank(Component):
                 self.rack_vld       = Wire(UInt(1))
                 self.rack_rdy       = Wire(UInt(1))
                 self.rack_rdy       += BitAnd(Inverse(self.p.write), self.p.sel, self.p.enable)
-
 
             self.wreq_addr      = Wire(UInt(self._cfg.bus_width))
             self.wreq_data      = Wire(UInt(self._cfg.data_width))
@@ -56,11 +62,12 @@ class Regbank(Component):
 
             self.p.rdata        += self.rack_data
             self.p.ready        += UInt(1,1)
+            self.p.slverr       += UInt(1,0)
 
             self.wreq_vld       += BitAnd(self.p.write, self.p.sel, Inverse(self.p.enable))  
             self.wreq_addr      += self.p.addr
             self.wreq_data      += self.p.wdata
-
+            
             pulse_wvld          = BitAnd(self.p.write, self.p.sel, self.p.enable)
 
         else:
@@ -117,7 +124,7 @@ class Regbank(Component):
             if get_sw_writeable(self._cfg.sub_space_list):
                 if just_write_clean_or_set and sub_space_writeable:
                     reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
-                    reg_wdat += self.wreq_data[sub_space.bit-1:0]
+                    reg_wdat += self.wreq_data
 
                 magic_intf_list = []
                 for magic in sub_space.get_magic_list:
@@ -142,6 +149,7 @@ class Regbank(Component):
             for field in sub_space.filled_field_list:
                 ####
                 is_hw_write_clean_or_set = field.hw_write_clean or field.hw_write_set
+                is_sw_write_clean_or_set = field.sw_write_clean or field.sw_write_set
                 ####
                 if isinstance(field, FilledField):
                     rdat_list.append(UInt(field.bit,0))
@@ -165,21 +173,19 @@ class Regbank(Component):
                         field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
                         field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        if just_write_clean_or_set and sub_space_writeable:
+                        if just_write_clean_or_set and sub_space_writeable: 
                             field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                            
                         if sub_space_writeable:
                             field_sw_wvld += reg_wvld
-                
-                # elif not field.field_reg_write:
-                #     rdat_list.append(UInt(field.bit,field.init_value))
-                #     if field.hw_access!=Null:
-                        
+
+                        if is_apb4:
+                            field_sw_strb =  self.set('%s_wmask' % field_name, Output(UInt(field.bit)))
+                            field_sw_strb += self.p_mask[field.end_bit:field.start_bit]
 
                 # write one pulse field
                 elif field.sw_write_one_pulse or field.sw_write_zero_pulse:
-                    
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                    
                     field_hw_rdat_reg = self.set("%s" % field_name, Wire(UInt(field.bit)))
 
                     lock_intf_list = []
@@ -192,8 +198,14 @@ class Regbank(Component):
                     field_lock_ena = self.set('%s_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
                     field_lock_ena += BitAnd(Fanout(BitAnd(pulse_wvld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list),field_hw_rdat_reg.width),*lock_intf_list)
 
-                    if field.sw_write_one_pulse:    field_hw_rdat_reg+=BitAnd(reg_wdat[field.end_bit:field.start_bit], field_lock_ena)
-                    else:                           field_hw_rdat_reg+=BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_lock_ena)
+                    field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
+                    if is_apb4:
+                        field_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_mask[field.end_bit:field.start_bit])
+                    else:
+                        field_wdat += reg_wdat[field.end_bit:field.start_bit]
+
+                    if field.sw_write_one_pulse:    field_hw_rdat_reg+=BitAnd(field_wdat, field_lock_ena)
+                    else:                           field_hw_rdat_reg+=BitAnd(Inverse(field_wdat), field_lock_ena)
                     
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
@@ -245,28 +257,39 @@ class Regbank(Component):
                         field_write_enable = self.set('%s_sw_wren'% field_name, Wire(UInt(1)))
                         field_write_enable += BitAnd(reg_wvld, *lock_intf_list)
 
+                        if not is_sw_write_clean_or_set:
+                            field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
+                            if is_apb4:
+                                field_masked_wdat   = self.set('%s_masked_wdat'% field_name, Wire(UInt(field.bit)))
+                                field_unmasked_wdat = self.set('%s_unmasked_wdat'% field_name, Wire(UInt(field.bit)))
+                                field_masked_wdat   += BitAnd(field_reg, self.p_mask[field.end_bit:field.start_bit])
+                                field_unmasked_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
+                                field_wdat += BitOr(field_masked_wdat, field_unmasked_wdat)
+                            else:
+                                field_wdat += reg_wdat[field.end_bit:field.start_bit]
+
                         if field.sw_write_clean:
                             reg_val.when(field_write_enable).then(UInt(field.bit,0))
                         elif field.sw_write_one_to_clean:
-                            reg_val.when(field_write_enable).then(BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(field_write_enable).then(BitAnd(field_wdat, field_reg))
                         elif field.sw_write_zero_to_clean:
-                            reg_val.when(field_write_enable).then(BitAnd(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(field_write_enable).then(BitAnd(field_wdat, field_reg))
                         elif field.sw_write_set:
                             reg_val.when(field_write_enable).then(UInt(field.bit,2**(field.bit)-1))
                         elif field.sw_write_one_to_set:
-                            reg_val.when(field_write_enable).then(BitOr(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(field_write_enable).then(BitOr(field_wdat, field_reg))
                         elif field.sw_write_zero_to_set:
-                            reg_val.when(field_write_enable).then(BitOr(Inverse(reg_wdat[field.end_bit:field.start_bit]), field_reg))
+                            reg_val.when(field_write_enable).then(BitOr(Inverse(field_wdat), field_reg))
                         elif field.sw_write_one_to_toggle:
-                            reg_val.when(field_write_enable).then(BitXor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(field_write_enable).then(BitXor(field_wdat, field_reg))
                         elif field.sw_write_zero_to_toggle:
-                            reg_val.when(field_write_enable).then(BitXnor(reg_wdat[field.end_bit:field.start_bit], field_reg))
+                            reg_val.when(field_write_enable).then(BitXnor(field_wdat, field_reg))
                         elif field.sw_write_once:
                             sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
                             sw_flag += when(field_write_enable).then(UInt(1,1))
-                            reg_val.when(BitAnd(field_write_enable, Inverse(sw_flag))).then(reg_wdat[field.end_bit:field.start_bit])
+                            reg_val.when(BitAnd(field_write_enable, Inverse(sw_flag))).then(field_wdat)
                         else:
-                            reg_val.when(field_write_enable).then(reg_wdat[field.end_bit:field.start_bit])
+                            reg_val.when(field_write_enable).then(field_wdat)
 
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
@@ -366,7 +389,7 @@ class Regbank(Component):
 #         # rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
 #         # self.p_rdata_r      += rdata_ff
 #         # self.p.rdata        += self.p_rdata_r
-#         self.p.rdata        += self.rs.rack_data
+#         self.p.rdata        += self.rs. 
 
 #         self.p_rready       += And(self.rs.rreq_vld, self.rs.rreq_rdy)
 #         self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
@@ -375,7 +398,7 @@ class Regbank(Component):
 
 #         self.rs.wreq_vld    += And(self.p.write, self.p.sel, self.p.enable)  
 #         self.rs.wreq_addr   += self.p.addr
-#         self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
+        # self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
 
         
 #         # ready_ff = EmptyWhen()
