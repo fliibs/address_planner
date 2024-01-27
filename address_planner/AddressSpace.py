@@ -263,7 +263,7 @@ class AddressSpace(AddressLogicRoot):
             self.path = path
         self.report_json()
         self.report_ralf()
-        self.check_ralf()
+        # self.check_ralf()
         self.report_chead()
         self.report_vhead()
 

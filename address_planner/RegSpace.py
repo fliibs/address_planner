@@ -243,7 +243,7 @@ class RegSpace(AddressSpace):
         print("\n################################################################################")
         print("[Check Ralf] Check ralf file: %s"% output_file)
         print("################################################################################\n")
-        command = f'ralgen -full64 -uvm -q -t {self.module_name} {output_file} > ralgen_output.log'
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file} > ralgen_output.log'
 
         # if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
         if os.system(command)==0: os.system(f'mv ral_{self.module_name}.sv {output_path}')
