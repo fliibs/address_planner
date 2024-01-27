@@ -248,8 +248,8 @@ class AddressSpace(AddressLogicRoot):
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "sys"
         json_dict["name"]       = self.module_name
-        json_dict["start_addr"] = hex(int(self.start_address/8))
-        json_dict["end_addr"]   = hex(int(self.end_address/8))
+        json_dict["start_addr"] = hex(int((self.global_start_address)/8))
+        json_dict["end_addr"]   = hex(int(self.global_end_address/8))
         
         json_dict["size"]       = ConvertSize(self.size, is_byte=True)
         json_dict["description"]= self.description
@@ -263,6 +263,7 @@ class AddressSpace(AddressLogicRoot):
             self.path = path
         self.report_json()
         self.report_ralf()
+        self.check_ralf()
         self.report_chead()
         self.report_vhead()
 

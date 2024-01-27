@@ -198,11 +198,12 @@ class Register(RegSpace):
         json_dict["type"]       = "reg"
         json_dict["name"]       = self.module_name 
         if self.start_address <= self.father.bit_offset:
+            json_dict["start_addr"] = hex(int(self.start_address+self.father.start_address/8))
+            json_dict["end_addr"]   = hex(int(self.end_address+self.father.end_address/8))
+        else:
             json_dict["start_addr"] = hex(int(self.start_address))
             json_dict["end_addr"]   = hex(int(self.end_address))
-        else:
-            json_dict["start_addr"] = hex(int(self.start_address-self.father.bit_offset/8))
-            json_dict["end_addr"]   = hex(int(self.end_address-self.father.bit_offset/8))
+        print(self.module_name, json_dict["start_addr"], json_dict["end_addr"], self.start_address, self.end_address)
         
         json_dict["size"]       = ConvertSize(self.bit)
         json_dict["description"]= self.description

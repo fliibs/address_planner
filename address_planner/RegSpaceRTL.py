@@ -200,7 +200,7 @@ class Regbank(Component):
 
                     field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
                     if is_apb4:
-                        field_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_mask[field.end_bit:field.start_bit])
+                        field_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
                     else:
                         field_wdat += reg_wdat[field.end_bit:field.start_bit]
 

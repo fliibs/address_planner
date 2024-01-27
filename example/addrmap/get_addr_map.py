@@ -5,8 +5,8 @@ from address_planner import *
 demo_w1p = import_inst('example/python/demo_w1p.py','reg_bank_B')
 
 u_ap = AddressSpace(name='block', size=40*KB, description='00')
-u_ap.add(import_inst(get_full_path('$ICDIR/example/python/demo_lock.py'),'reg_bank_B'), 2*KB, 'regbank_lock')
-u_ap.add(import_inst(get_full_path('$ICDIR/example/python/demo_lock.py'),'reg_bank_B'), 10*KB, 'regbank_lock_1')
+u_ap.add(import_inst(get_full_path('./example/python/demo_lock.py'),'reg_bank_B'), 2*KB, 'regbank_lock')
+u_ap.add(import_inst(get_full_path('./example/python/demo_lock.py'),'reg_bank_B'), 10*KB, 'regbank_lock_1')
 u_ap.add(demo_w1p,  20*KB, 'regbank_w1p')
 u_ap.add(import_inst('build/reg_bank_table_rf_gen.py','regBank'), 30*KB, 'excel_parse')
 
