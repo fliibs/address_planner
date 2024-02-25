@@ -7,10 +7,12 @@ APG_DATA_WIDTH = APG_BUS_WIDTH
 APG_ADDR_WIDTH = 32
 APG_HTML_FILE_ADDR_SPACE            = 'addr_space_html.j2'
 APG_HTML_FILE_REG_SPACE             = 'reg_space_html.j2'
-APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
+APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_vhead.j2'
+APG_VHEAD_GLB_FILE_REG_SPACE        = 'reg_space_global_vhead.j2'
 APG_VHEAD_FILE_REG_SPACE            = 'reg_space_vhead.j2'
 APG_CHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
 APG_CHEAD_FILE_REG_SPACE            = 'reg_space_chead.j2'
+APG_CHEAD_GLB_FILE_REG_SPACE        = 'reg_space_global_chead.j2'
 APG_ADDR_RMODEL_FILE_REG_SPACE      = 'ral_model.j2'
 APG_ADDR_RMDEFINE_FILE_REG_SPACE    = 'addr_ral_model_define.j2'
 APG_ADDR_RMCSV_FILE_REG_SPACE       = 'addr_ral_model_csv.j2'
@@ -220,13 +222,17 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
 #         print("[ImportError]", err)
 
 def import_inst(file_path, module_name='regBank'):
-    try:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return getattr(module, module_name)
-    except ImportError as err:
-        print("[ImportError]", err)
+    file_path = get_full_path(file_path)
+    if '.py' in file_path:
+        try:
+            spec = importlib.util.spec_from_file_location(module_name, file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return getattr(module, module_name)
+        except ImportError as err:
+            print("[ImportError]", err)
+    else:
+        return file_path
 
 def get_full_path(path):
     return os.path.expandvars(path)

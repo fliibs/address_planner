@@ -89,7 +89,7 @@ class Register(RegSpace):
     @property
     def module_name_until_regbank(self):
         return self.father.module_name + '_' + self.module_name
-
+    
     @property
     def sorted_field_list(self):
         return sorted(self.field_list, key=lambda x: x.bit_offset)
@@ -101,12 +101,11 @@ class Register(RegSpace):
         # sorted_field_list = sorted(self.field_list, key=lambda x: x.bit_offset)
 
         if self.sorted_field_list[0].bit_offset != 0:
-                filled_field = FilledField(bit=self.sorted_field_list[0].bit_offset)
-                res.append(filled_field)
+            filled_field = FilledField(bit=self.sorted_field_list[0].bit_offset)
+            res.append(filled_field)
 
         for field in self.sorted_field_list:
             if previous_field != None and field.start_bit > previous_field.end_bit + 1:
-
                 filled_field = FilledField(bit=field.start_bit - previous_field.end_bit - 1)
                 filled_field.bit_offset = previous_field.end_bit + 1
 
@@ -171,6 +170,12 @@ class Register(RegSpace):
     def report_vhead_core(self):
         return []
     
+    def report_vhead_global_core(self, file):
+        pass
+
+    def report_chead_global_core(self, file):
+        pass
+    
     def add_field(self, name, bit, sw_access=ReadWrite, hw_access=ReadWrite, init_value=0, description=''):
         self.add_incr(Field(name, bit, sw_access, hw_access, init_value, description))
         return self
@@ -203,7 +208,6 @@ class Register(RegSpace):
         else:
             json_dict["start_addr"] = hex(int(self.start_address))
             json_dict["end_addr"]   = hex(int(self.end_address))
-        print(self.module_name, json_dict["start_addr"], json_dict["end_addr"], self.start_address, self.end_address)
         
         json_dict["size"]       = ConvertSize(self.bit)
         json_dict["description"]= self.description

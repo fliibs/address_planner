@@ -13,15 +13,8 @@ u_ap.add(import_inst('build/reg_bank_table_rf_gen.py','regBank'), 30*KB, 'excel_
 u_ap.generate('build/addrmap')
 
 
-def import_inst(file_path, module_name='regBank'):
-    try:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return getattr(module, module_name)
-    except ImportError as err:
-        print("[ImportError]", err)
-
-def get_full_path(path):
-    return os.path.expandvars(path)
+for addr in u_ap.filled_sub_space_list:
+    print("%s, %#x, %#x"%(addr.module_name, addr.offset, addr.offset+addr.size), hex(u_ap.size))
+    # for sub in addr.filled_sub_space_list:
+    #     print(sub.module_name, sub.offset, sub.size)
 

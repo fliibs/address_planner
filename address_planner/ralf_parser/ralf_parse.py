@@ -13,7 +13,6 @@ py_dict = {}
 
 def search_longest_string(tcl_interpreter):
     keys =  tcl_interpreter.eval('array names DEF')
-    data = tcl_interpreter.eval(f'set result [dict get $DEF(sys1)]')
     max_length_key  = max(keys.split(' '),key=lambda k: len(tcl_interpreter.eval(f'set result [dict get $DEF({k})]')))
     return max_length_key
 

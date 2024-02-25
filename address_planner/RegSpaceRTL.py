@@ -258,7 +258,7 @@ class Regbank(Component):
                         field_write_enable += BitAnd(reg_wvld, *lock_intf_list)
 
                         if not is_sw_write_clean_or_set:
-                            field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
+                            field_wdat = self.set('%s_field_wdat'% field_name, Wire(UInt(field.bit)))
                             if is_apb4:
                                 field_masked_wdat   = self.set('%s_masked_wdat'% field_name, Wire(UInt(field.bit)))
                                 field_unmasked_wdat = self.set('%s_unmasked_wdat'% field_name, Wire(UInt(field.bit)))

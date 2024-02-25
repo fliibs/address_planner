@@ -1,8 +1,8 @@
 {% for ss in space.sorted_subspace_list %}
 //==========================================================
-// Definition of reg {{ss.module_name_until_regbank.upper()}}
+// Definition of reg {{ss.init_name.upper()}}
 //==========================================================
-`ifndef ADDR_{{ss.module_name_until_regbank.upper()}}
+`ifndef ADDR_{{ss.init_name.upper()}}
 
     typedef union packed {
         struct packed {
@@ -17,12 +17,11 @@
         {% endfor %}
             } bits;
         logic [{{ss.bit-1}}:0] val;
-    } {{ss.module_name_until_regbank.upper()}};
+    } {{ss.init_name.upper()}};
 
-    `define {{ '%-40s' % '%s_ADDR' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.global_start_address/8)|int)}}
-    `define {{ '%-40s' % '%s_SIZE' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform(ss.size)}}
-    `define {{ '%-40s' % '%s_OFFSET'  % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
-    `define {{ '%-40s' % '%s_RST_VAL' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.init_value)|int)}}
+    `define {{ '%-40s' % '%s_SIZE' % ss.init_name.upper()}} {{ss.hex_transform(ss.size)}}
+    `define {{ '%-40s' % '%s_OFFSET'  % ss.init_name.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
+    `define {{ '%-40s' % '%s_RST_VAL' % ss.init_name.upper()}} {{ss.hex_transform((ss.init_value)|int)}}
 
 `endif
 

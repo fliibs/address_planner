@@ -3,8 +3,9 @@ sys.path.append('.')
 from address_planner import *
 
 
-reg_bank_B = RegSpace(name='reg_bank_tables_demo',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb4')
+addr_space = AddressSpace(name='total', size = 8*MB)
 
+reg_bank_B = RegSpace(name='reg_bank_tables_demo',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb4')
 
 reg_B = Register(name='internal_reg',bit=32, description='reg0',reg_type=Normal)
 
@@ -23,4 +24,15 @@ reg_C.add(ExternalField(name='field3',bit=4,sw_access=ReadWrite,hw_access=ReadOn
 reg_bank_B.add(reg_B,0x4,'internal_reg')
 reg_bank_B.add(reg_C,0xc,'external_reg')
 
-reg_bank_B.generate('build/example')
+
+addr_space.add(reg_bank_B, 8*KB, 'sub_1')
+p
+
+
+for addr in addr_space.filled_sub_space_list:
+    print(addr.module_name, hex(int(addr.global_offset/8)), addr.size)
+    for sub in addr.filled_sub_space_list:
+        print(sub.module_name, hex(int(sub.global_offset/8)), sub.size)
+
+
+addr_space.generate('build/example')

@@ -99,10 +99,7 @@ class RegSpace(AddressSpace):
         else:
             raise Exception("interrupt register reg type error")
         
-
-
-
-
+    
 
 
     #########################################################################################
@@ -123,8 +120,6 @@ class RegSpace(AddressSpace):
         os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
         with open(self.chead_path,'w') as f:
             f.write(text)
-        for ss in self.sub_space_list:
-            chead_name_list += ss.report_chead_core()
         return chead_name_list
 
     def report_vhead_core(self):
@@ -133,9 +128,37 @@ class RegSpace(AddressSpace):
         os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
         with open(self.vhead_path,'w') as f:
             f.write(text)
-        for ss in self.sub_space_list:
-            vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
+    
+    def report_chead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
+            file = open(self.chead_global_path,'w')
+        if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
+            text = self.report_from_template(APG_CHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        elif not self.detect_reg(self.sub_space_list):
+            for ss in self.filled_sub_space_list:
+                ss.report_chead_global_core(file)
+    
+    def report_vhead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            file = open(self.vhead_global_path,'w')
+        if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
+            text = self.report_from_template(APG_VHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        elif not self.detect_reg(self.sub_space_list):
+            for ss in self.sub_space_list:
+                ss.report_vhead_global_core(file)
+
+    def detect_reg(self, sub_space_list):
+        from .Reg import Register
+        for sub_space in sub_space_list:
+            if isinstance(sub_space, Register):
+                return True 
+        return False
+            
 
     # report and check ralf ==============================================
     def report_ralf(self):

@@ -60,7 +60,7 @@ class FieldRoot(AddressLogicRoot):
 
     @property
     def module_name_until_regbank(self):
-        return self.father.module_name_until_regbank + '_' + self.module_name
+        return self.father.init_name + '_' + self.name
     
     @property
     def get_lock_list(self):

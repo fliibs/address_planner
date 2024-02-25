@@ -73,7 +73,42 @@ class AddressSpace(AddressLogicRoot):
     @property
     def sorted_subspace_list(self):
         return sorted(self.sub_space_list, key=lambda x: x.bit_offset)
+    
+    @property
+    def filled_sub_space_list(self):
+        from .RegSpace import RegSpace
+        reserve_idx = 0
+        res = []
+        previous_space = None
 
+        if self.sorted_subspace_list == []:
+            return []
+
+        if self.sorted_subspace_list[0].bit_offset != 0:
+            filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = self.sorted_subspace_list[0].offset)
+            filled_subspace.offset = 0
+            filled_subspace.father = self
+            res.append(filled_subspace)
+            reserve_idx += 1
+
+        for space in self.sorted_subspace_list:
+            if previous_space != None and space.start_address > previous_space.end_address + 1:
+                filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = int((space.start_address - previous_space.end_address - 1)/8))
+                filled_subspace.offset = int(previous_space.end_address/8) + 1
+                filled_subspace.father = self
+                res.append(filled_subspace)
+                reserve_idx += 1
+            res.append(space)
+            previous_space = space
+
+        if self.sorted_subspace_list[-1].end_address < self.bit_size - 1:
+            filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = int((self.bit_size - previous_space.end_address - 1)/8))
+            filled_subspace.offset = int(previous_space.end_address/8) + 1
+            filled_subspace.father = self
+            res.append(filled_subspace)
+        
+        return res
+        
 
     def add(self,sub_space,offset,name=None):
         sub_space_copy = deepcopy(sub_space)
@@ -99,6 +134,9 @@ class AddressSpace(AddressLogicRoot):
     def add_ralf(self,ralf_file,offset,name=None):
         with open(ralf_file,'r') as f:
             env_tcl_code = f.read()
+
+        env_tcl_code = env_tcl_code.replace("[","").replace("]","")
+        env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
 
         tcl_interpreter = Tcl()
         tcl_interpreter.eval("source address_planner/ralf_parser/ralf_parser.tcl")
@@ -160,6 +198,8 @@ class AddressSpace(AddressLogicRoot):
             return '\'h0'
         else:
             return '\'h'+hex_value.lstrip('0x')
+        
+    
 
 
 
@@ -178,10 +218,12 @@ class AddressSpace(AddressLogicRoot):
 
     def report_chead(self):
         chead_name_list = self.report_chead_core()
+        chead_name_list += [self.chead_global_name]
+        self.report_chead_global_core()
+        chead_name_list = list(set(chead_name_list))
         with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
-    
 
     def report_chead_core(self):
         if self.sub_space_list == []:
@@ -195,11 +237,25 @@ class AddressSpace(AddressLogicRoot):
             for ss in self.sub_space_list:
                 chead_name_list += ss.report_chead_core()
             return chead_name_list
+        
+    def report_chead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.chead_global_path), exist_ok=True)
+            file = open(self.chead_global_path,'w')
+        if self.sub_space_list == []:
+            text = self.report_from_template(APG_CHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        else:
+            for ss in self.filled_sub_space_list:
+                ss.report_chead_global_core(file)
 
 
     # report v head.==============================================
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
+        vhead_name_list += [self.vhead_global_name]
+        self.report_vhead_global_core()
+        vhead_name_list = list(set(vhead_name_list))
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % os.path.join(self._vhead_dir, vhead_name))
@@ -217,6 +273,17 @@ class AddressSpace(AddressLogicRoot):
             for ss in self.sub_space_list:
                 vhead_name_list += ss.report_vhead_core()
             return vhead_name_list
+    
+    def report_vhead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            file = open(self.vhead_global_path,'w')
+        if self.sub_space_list == []:
+            text = self.report_from_template(APG_VHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        else:
+            for ss in self.filled_sub_space_list:
+                ss.report_vhead_global_core(file)
         
 
     # report and check ralf ==============================================
@@ -224,7 +291,6 @@ class AddressSpace(AddressLogicRoot):
         output_path = self._ralf_dir+'/'
         self.recursive_report_ralf_core(output_path)
 
-    
     def recursive_report_ralf_core(self, output_dir):
         for ss in self.sub_space_list:
             if hasattr(ss,'report_ralf_core'):
@@ -232,7 +298,7 @@ class AddressSpace(AddressLogicRoot):
             else:
                 ss.recursive_report_ralf_core(output_dir)
 
-    
+
     # report and check json ==========================================
     def report_json(self):
         json_list= [self.report_json_core()]
@@ -241,7 +307,6 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         
-    
 
     def report_json_core(self):
         json_dict={}

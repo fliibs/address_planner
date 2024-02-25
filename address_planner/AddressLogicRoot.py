@@ -8,7 +8,8 @@ import shutil
 class AddressLogicRoot(object):
 
     def __init__(self,name,description='',path='./'):
-        self.module_name = name
+        self.init_name   = name     # real module name
+        self.module_name = name     # initiate name 
         self.inst_name   = ''
         self.description = description
         self.path        = path
@@ -17,7 +18,7 @@ class AddressLogicRoot(object):
 
     @property
     def global_name(self):
-        return self.module_name if self.father == None else '%s%s%s' % (self.father.global_name,'_',self.inst_name)
+        return self.module_name if self.father == None else '%s%s%s' % (self.father.global_name,'_',self.module_name)
 
     def join_name(self,*args,join_str='_'):
         return join_str.join([x for x in args if x is not None])
@@ -98,6 +99,14 @@ class AddressLogicRoot(object):
         return os.path.join(self._vhead_dir,self.vhead_name)
     
     @property
+    def chead_global_path(self):
+        return os.path.join(self._chead_dir,self.chead_global_name)
+    
+    @property
+    def vhead_global_path(self):
+        return os.path.join(self._vhead_dir,self.vhead_global_name)
+    
+    @property
     def json_path(self):
         return os.path.join(self._html_dir, 'data.json')
 
@@ -108,11 +117,19 @@ class AddressLogicRoot(object):
 
     @property
     def chead_name(self):
-        return '%s_%s.h' % (self._name_prefix,self.module_name)
+        return '%s_%s.h' % (self._name_prefix,self.init_name)
 
     @property
     def vhead_name(self):
-        return '%s_%s.vh' % (self._name_prefix,self.module_name)
+        return '%s_%s.vh' % (self._name_prefix,self.init_name)
+    
+    @property
+    def chead_global_name(self):
+        return 'all_reg.h'
+
+    @property
+    def vhead_global_name(self):
+        return 'all_reg.vh'
     
 
     #########################################################################################

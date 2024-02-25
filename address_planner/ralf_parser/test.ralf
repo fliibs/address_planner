@@ -37,16 +37,55 @@ block B2 {
     }
 }
 
+
+block B4 {
+    register L1 @1 {
+        bits 1;
+        field TXE @0;
+        field TXD @4 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+        
+    }
+}
+
+
+block B5 {
+    register TXD @1 {
+        field TXE @0;
+        field TXD @4 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+        
+    }
+}
+
+block B3 {
+    bytes 2
+    memory FSP {
+        size 'h10000;
+        bits 16;
+        access rw;
+    }
+}
+
 system sys1 {
     block B1 @1;
     block B2 @70000;
+    block B3 (u_core) @'h80000;
+    block B4 @'h80500;
+    block B5 @'h81000;
 }
 
 #puts [info vars]
 
 #parray DEF
 # puts [array names DEF]
-puts [set DEF(sys1)]
+# puts [set DEF(sys1)]
 #sputs "wer"
 #puts $def_L1
 

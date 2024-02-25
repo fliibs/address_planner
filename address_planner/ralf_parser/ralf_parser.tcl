@@ -30,6 +30,8 @@ proc size   {args} { uplevel "set var_size   [lindex $args 0]" }
 proc endian {args} { uplevel "set var_endian [lindex $args 0]" }
 proc attributes {args} { }
 
+proc memory {args} { }
+
 proc parse_proc_arguments {-args args results} {
     upvar $results options
 
@@ -68,26 +70,28 @@ proc field {args} {
     set FIELD_DICT [dict create]
     set ADDR_DICT  [dict create]
 
+    puts "$param(name).field: $param(is_inst)"
+
     if {$param(is_def)} {
         eval $param(def_code)
 
         # create def_var data struct
         set payload [dict create]
-        dict set payload name   $param(name)
+        dict set payload name   "$param(name)"
         dict set payload bits   $var_bits
         dict set payload access $var_access
         dict set payload reset  $var_reset
         # define def_var in up level stack.
-        set_def $param(name) $payload
+        set_def "$param(name).field" $payload
     }
 
     if {$param(is_inst)} {
         # search define in up level scope, add name in def dict.
-        set inst_dict [get_def $param(name)]
+        set inst_dict [get_def "$param(name).field"]
         dict set inst_dict addr $param(inst_addr)
 
         # add inst to uplevel field_dict
-        uplevel "dict set FIELD_DICT $param(name) {$inst_dict}"
+        uplevel "dict set FIELD_DICT $param(name).field {$inst_dict}"
     }
 }
 
@@ -98,28 +102,30 @@ proc register {args} {
     set FIELD_DICT [dict create]
     set ADDR_DICT  [dict create]
 
+
     if {$param(is_def)} {
         eval $param(def_code)
 
         # define data struct
         set payload [dict create]
-        dict set payload name         $param(name)
+        dict set payload name         "$param(name)"
         dict set payload FIELD_DICT   "$FIELD_DICT"
         dict set payload ADDR_DICT    "$ADDR_DICT"
 
         # define def_var in up level stack.
-        set_def $param(name) $payload
+        set_def "$param(name).register" $payload
     }
 
 
     if {$param(is_inst)} {
         # search define in up level scope, add name in def dict.
-        set inst_dict [get_def $param(name)]
+        set inst_dict [get_def "$param(name).register"]
         dict set inst_dict addr $param(inst_addr)
 
         # add inst to uplevel field_dict
-        uplevel "dict set ADDR_DICT $param(name) {$inst_dict}"
+        uplevel "dict set ADDR_DICT $param(name).register {$inst_dict}"
     }
+    puts "$param(name).register: $param(is_inst); $inst_dict"
 
 }
 
@@ -134,22 +140,22 @@ proc block {args} {
 
         # define data struct
         set payload [dict create]
-        dict set payload name         $param(name)
+        dict set payload name         "$param(name)"
         dict set payload FIELD_DICT   "$FIELD_DICT"
         dict set payload ADDR_DICT    "$ADDR_DICT"
 
         # define def_var in up level stack.
-        set_def $param(name) $payload
+        set_def "$param(name).block" $payload
     }
 
 
     if {$param(is_inst)} {
         # search define in up level scope, add name in def dict.
-        set inst_dict [get_def $param(name)]
+        set inst_dict [get_def "$param(name).block"]
         dict set inst_dict addr $param(inst_addr)
 
         # add inst to uplevel field_dict
-        uplevel "dict set ADDR_DICT $param(name) {$inst_dict}"
+        uplevel "dict set ADDR_DICT $param(name).block {$inst_dict}"
     }
 
 }
@@ -165,22 +171,22 @@ proc system {args} {
 
         # define data struct
         set payload [dict create]
-        dict set payload name         $param(name)
+        dict set payload name         "$param(name)"
         dict set payload FIELD_DICT   "$FIELD_DICT"
         dict set payload ADDR_DICT    "$ADDR_DICT"
 
         # define def_var in up level stack.
-        set_def $param(name) $payload
+        set_def "$param(name).system" $payload
     }
 
 
     if {$param(is_inst)} {
         # search define in up level scope, add name in def dict.
-        set inst_dict [get_def $param(name)]
+        set inst_dict [get_def "$param(name).system"]
         dict set inst_dict addr $param(inst_addr)
 
         # add inst to uplevel field_dict
-        uplevel "dict set ADDR_DICT $param(name) {$inst_dict}"
+        uplevel "dict set ADDR_DICT $param(name).system {$inst_dict}"
     }
 
 }
