@@ -1,0 +1,26 @@
+internal_reg_0
+{'OffsetAddress': '0x20', 'RegType': 'Normal', 'Description': 'reg0_0', 'MagicNumberDep': ['magic_reg_0', 'magic_reg_1'], 'Field': {'field0': {'Position': '[0:0]', 'offset': '0', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadOnly', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied0, software read only.'}, 'field1': {'Position': '[2:1]', 'offset': '1', 'bit': 2, 'FieldType': 'Internal', 'SoftwareAccess': 'WriteOnly', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied1, software write only.'}, 'field2': {'Position': '[3:3]', 'offset': '3', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied2, software read write.'}, 'field3': {'Position': '[6:4]', 'offset': '4', 'bit': 3, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadOnly', 'initValue': '0b0', 'Description': 'fied3, hardware read only.'}}}
+internal_reg_1
+{'OffsetAddress': '0x24', 'RegType': 'Normal', 'Description': 'reg0_1', 'LockDep': ['lock_reg_0.lock_field_0'], 'MagicNumberDep': ['magic_reg_1'], 'Field': {'field0': {'Position': '[0:0]', 'offset': '0', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'Write1Pulse', 'HardwareAccess': 'ReadOnly', 'initValue': '0b0', 'Description': 'fied0, write one pulse.', 'LockDep': ['lock_reg_0.lock_field_1']}, 'field1': {'Position': '[1:1]', 'offset': '1', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'Write0Pulse', 'HardwareAccess': 'ReadOnly', 'initValue': '0b0', 'Description': 'fied1, write zero pulse.', 'LockDep': ['lock_reg_1.lock_field_0']}, 'field2': {'Position': '[3:3]', 'offset': '3', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied2, software read write.'}, 'field3': {'Position': '[6:4]', 'offset': '4', 'bit': 3, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadOnly', 'initValue': '0b0', 'Description': 'fied3, hardware read only.'}}}
+internal_reg_2
+{'OffsetAddress': '0x28', 'RegType': 'Normal', 'Description': 'reg0_2', 'MagicNumberDep': ['magic_reg_0'], 'Field': {'field0': {'Position': '[0:0]', 'offset': '0', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadOnly', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied0, software read only.'}, 'field1': {'Position': '[2:1]', 'offset': '1', 'bit': 2, 'FieldType': 'Internal', 'SoftwareAccess': 'WriteOnly', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied1, software write only.'}, 'field2': {'Position': '[3:3]', 'offset': '3', 'bit': 1, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadWrite', 'initValue': '0b0', 'Description': 'fied2, software read write.'}, 'field3': {'Position': '[6:4]', 'offset': '4', 'bit': 3, 'FieldType': 'Internal', 'SoftwareAccess': 'ReadWrite', 'HardwareAccess': 'ReadOnly', 'initValue': '0b0', 'Description': 'fied3, hardware read only.', 'LockDep': ['lock_reg_1.lock_field_1']}}}
+magic_reg_0
+{'OffsetAddress': '0x80', 'RegType': 'Magic', 'Position': '[31:0]', 'offset': '0', 'bit': 32, 'initValue': '0b0', 'Description': 'magic 0', 'MagicValue': '0xff'}
+magic_reg_1
+{'OffsetAddress': '0x84', 'RegType': 'Magic', 'Position': '[31:0]', 'offset': '0', 'bit': 32, 'initValue': '0b0', 'Description': 'magic 1', 'MagicValue': '0xff'}
+lock_reg_0
+{'OffsetAddress': '0x88', 'RegType': 'Lock', 'Description': 'lock 0', 'Field': {'lock_field_0': {'Position': '[0:0]', 'offset': '0', 'bit': 1, 'initValue': '', 'Description': 'lock field 0'}, 'lock_field_1': {'Position': '[7:7]', 'offset': '7', 'bit': 1, 'initValue': '', 'Description': 'lock field 1'}}}
+lock_reg_1
+{'OffsetAddress': '0x8c', 'RegType': 'Lock', 'Description': 'lock 0', 'Field': {'lock_field_0': {'Position': '[0:0]', 'offset': '0', 'bit': 1, 'initValue': '', 'Description': 'lock field 0'}, 'lock_field_1': {'Position': '[6:6]', 'offset': '6', 'bit': 1, 'initValue': '', 'Description': 'lock field 1'}}}
+name
+reg_bank_table
+size
+8
+interface
+apb
+width
+16
+check
+false
+description
+reg_bank_B,contain many regs.

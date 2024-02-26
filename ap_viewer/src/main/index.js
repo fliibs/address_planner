@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 const fs = require('fs')
+const { Menu } = require("electron");
 
 function createWindow() {
   // Create the browser window.
@@ -10,36 +11,75 @@ function createWindow() {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
-  })
 
-  ipcMain.on('read-json', (event, val) => {
-    console.log(val)
-    dialog.showOpenDialog({
-      filters: [
-        { name: 'Json', extensions: ['json'] },
-        { name: 'All Files', extensions: ['*'] }
-      ],
-      properties: ['openFile']
-    })
-      .then(result => {
-        const data_json = fs.readFileSync(result.filePaths[0], "utf-8");
-        const data = JSON.parse(data_json);
-        mainWindow.webContents.send('update-data', data);
-        // console.log(data);
-      }).catch(err => {
-        console.log(err);
-      })
   })
+  // 1. 引入Electron中的Menu模块
+
+  // 2. 创建一个菜单数组
+  let menuTemplate = [
+    // 一级菜单
+    {
+      label: "file",
+      // 二级菜单 submenu
+      submenu: [
+        {
+          label: "open json",
+          click:function(){
+            dialog.showOpenDialog({
+              filters: [
+                { name: 'Json', extensions: ['json'] },
+                { name: 'All Files', extensions: ['*'] }
+              ],
+              properties: ['openFile']
+            })
+              .then(result => {
+                const data_json = fs.readFileSync(result.filePaths[0], "utf-8");
+                const data = JSON.parse(data_json);
+                mainWindow.webContents.send('update-data', data);
+                // console.log(data);
+              }).catch(err => {
+                console.log(err);
+              })
+          }
+          
+        },
+       
+      ]
+    },
+  ];
+
+  
+
+  // ipcMain.on('read-json', (event, val) => {
+  //   console.log(val)
+  //   dialog.showOpenDialog({
+  //     filters: [
+  //       { name: 'Json', extensions: ['json'] },
+  //       { name: 'All Files', extensions: ['*'] }
+  //     ],
+  //     properties: ['openFile']
+  //   })
+  //     .then(result => {
+  //       const data_json = fs.readFileSync(result.filePaths[0], "utf-8");
+  //       const data = JSON.parse(data_json);
+  //       mainWindow.webContents.send('update-data', data);
+  //       // console.log(data);
+  //     }).catch(err => {
+  //       console.log(err);
+  //     })
+  // })
 
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    let menuBuilder = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menuBuilder);
   })
 
 
