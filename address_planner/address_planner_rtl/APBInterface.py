@@ -50,7 +50,6 @@ class APB3Reverse(Bundle):
         self.rdata  = Input(UInt(self.data_width))
         self.slverr = Input(UInt(1))
 
-
 class APB4(Bundle):
     def __init__(self, data_width=APG_DATA_WIDTH, addr_width=APG_ADDR_WIDTH):
         super().__init__()

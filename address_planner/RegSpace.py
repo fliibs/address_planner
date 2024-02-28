@@ -177,10 +177,11 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
-    def generate(self, path=None, report_dv=False):
+    def generate(self, path=None, report_dv=False, check=True):
         super().generate(path)
         self.report_rtl()
         if report_dv: self.report_dv()
+        if check:     self.check()
 
 
     def check(self, path=None):

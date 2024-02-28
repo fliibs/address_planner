@@ -26,7 +26,6 @@ reg_bank_B.add(reg_C,0xc,'external_reg')
 
 
 addr_space.add(reg_bank_B, 8*KB, 'sub_1')
-p
 
 
 for addr in addr_space.filled_sub_space_list:

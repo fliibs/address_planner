@@ -33,7 +33,7 @@ class Regbank(Component):
 
         if "apb" in self._cfg.software_interface:
             if is_apb4:
-                self.p          =  APB4(addr_width=self._cfg.bus_width)
+                self.p        =  APB4(addr_width=self._cfg.bus_width)
                 self.p_unmask =  Wire(UInt(self._cfg.data_width))
                 self.p_mask   =  Wire(UInt(self._cfg.data_width))
                 self.p_unmask += strb_extend(self.p.strb)
@@ -122,7 +122,7 @@ class Regbank(Component):
                 
             
             if get_sw_writeable(self._cfg.sub_space_list):
-                if just_write_clean_or_set and sub_space_writeable:
+                if just_write_clean_or_set or sub_space_writeable:
                     reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                     reg_wdat += self.wreq_data
 
@@ -173,7 +173,7 @@ class Regbank(Component):
                         field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
                         field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        if just_write_clean_or_set and sub_space_writeable: 
+                        if just_write_clean_or_set or sub_space_writeable: 
                             field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
                             
                         if sub_space_writeable:
