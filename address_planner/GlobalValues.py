@@ -26,6 +26,10 @@ KB = 1024 * B
 MB = 1024 * KB
 GB = 1024 * MB
 
+
+class Options:
+    MultiPortOption = False
+
 # @unique
 # class FieldSoftwareAccess(Enum):
 #     ReadOnly    = 'Read Only'

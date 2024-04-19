@@ -24,13 +24,14 @@ class Register(RegSpace):
         for member in lock_list:
             if member not in field.lock_list:
                 field.lock_list.append(member)
-            
-        if not self.inclusion_detect(field):
-            raise Exception('Field inclusion detect')
 
-        for exist_field in self.field_list:
-            if self.collision_detect(exist_field,field):
-                raise Exception('Field collision detect')
+        if not Options.MultiPortOption:  
+            if not self.inclusion_detect(field):
+                raise Exception('Field inclusion detect')
+
+            for exist_field in self.field_list:
+                if self.collision_detect(exist_field,field):
+                    raise Exception('Field collision detect')
         self.field_list.append(field)
 
         self._next_offset = offset + field.bit
