@@ -30,7 +30,9 @@ proc size   {args} { uplevel "set var_size   [lindex $args 0]" }
 proc endian {args} { uplevel "set var_endian [lindex $args 0]" }
 proc attributes {args} { }
 
-proc memory {args} { }
+# proc doc {args} { uplevel "set var_doc [lindex $args 0]" }  
+proc doc {args} { }  
+
 
 proc parse_proc_arguments {-args args results} {
     upvar $results options
@@ -70,7 +72,7 @@ proc field {args} {
     set FIELD_DICT [dict create]
     set ADDR_DICT  [dict create]
 
-    puts "$param(name).field: $param(is_inst)"
+    # puts "$param(name).field: $param(is_inst)"
 
     if {$param(is_def)} {
         eval $param(def_code)
@@ -81,6 +83,11 @@ proc field {args} {
         dict set payload bits   $var_bits
         dict set payload access $var_access
         dict set payload reset  $var_reset
+        # if {[info exists var_doc]} {
+        #     dict set payload doc $var_doc 
+        # } else {
+        #     dict set payload doc "$param(name)"
+        # }
         # define def_var in up level stack.
         set_def "$param(name).field" $payload
     }
@@ -125,7 +132,7 @@ proc register {args} {
         # add inst to uplevel field_dict
         uplevel "dict set ADDR_DICT $param(name).register {$inst_dict}"
     }
-    puts "$param(name).register: $param(is_inst); $inst_dict"
+    # puts "$param(name).register: $param(is_inst); $inst_dict"
 
 }
 
@@ -190,4 +197,37 @@ proc system {args} {
     }
 
 }
+
+proc memory {args} {
+    parse_proc_arguments -args $args param
+
+    set ADDR_DICT [dict create]
+
+    if {$param(is_def)} {
+        set payload [dict create]
+        eval $param(def_code)
+        dict set payload name       "$param(name)"
+        dict set payload size       "$var_size"
+        dict set payload is_memory  1
+        dict set payload addr       0
+
+        set_def "$param(name).memory" $payload
+    }
+    if {$param(is_inst)} {
+        set payload [dict create]
+        eval $param(def_code)
+        dict set payload name       "$param(name)"
+        dict set payload size       "$var_size"
+        dict set payload is_memory  1
+        dict set payload addr       $inst_addr
+
+        set_def "$param(name).memory" $payload
+        
+    }
+    set inst_dict [get_def "$param(name).memory"]
+    puts  $inst_dict
+    uplevel "dict set ADDR_DICT $param(name).memory {$inst_dict}"
+
+}
+
 

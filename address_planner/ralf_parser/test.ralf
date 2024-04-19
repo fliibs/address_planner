@@ -60,7 +60,33 @@ block B5 {
             access rw;
             reset 0;
         }
-        
+    }
+    register TXD_2 @1 {
+        field TXE @0;
+        field TXD @4 {
+            bits 1;
+            access wo;
+            reset 0;
+        }
+    }
+    register TXD_3 @1 {
+        field TXE @0;
+        field TXD @4 {
+            bits 1;
+            access ro;
+            reset 0;
+        }
+    }
+
+}
+
+block memory_block {
+    endian little;
+    bytes 2;
+    memory dwc_ddrphy_top_DCCM {
+        size 0x4000;
+        bits 16;
+        access rw;
     }
 }
 
@@ -73,12 +99,28 @@ block B3 {
     }
 }
 
+block B7 {
+    bytes 2
+    register TXD @1 {
+        field TXD @0 {
+            bits 1;
+            access rw;
+            reset 0;
+            doc {
+                this is.
+            }
+        }
+    }
+}
+
 system sys1 {
     block B1 @1;
     block B2 @70000;
     block B3 (u_core) @'h80000;
-    block B4 @'h80500;
-    block B5 @'h81000;
+    block B4 @'ha0500;
+    block B5 @'ha1000;
+    block B7 @'ha2000;
+    block memory_block @'ha4000;
 }
 
 #puts [info vars]

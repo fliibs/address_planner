@@ -365,6 +365,7 @@ class FieldRoot(AddressLogicRoot):
         field_dict["External"]          = "%s" % self.is_external
         field_dict["Software Access"]   = self.sw_access.name
         field_dict["Hardware Access"]   = self.hw_access.name
+        field_dict["defaut_value"]      = self.init_value
         field_dict["description"]       = self.description
         return field_dict 
 

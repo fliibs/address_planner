@@ -7,7 +7,7 @@ import shutil
 
 class AddressLogicRoot(object):
 
-    def __init__(self,name,description='',path='./'):
+    def __init__(self,name,description='',path='./', multi_port=False):
         self.init_name   = name     # real module name
         self.module_name = name     # initiate name 
         self.inst_name   = ''
@@ -15,6 +15,8 @@ class AddressLogicRoot(object):
         self.path        = path
         self.father      = None
         self._name_prefix = 'addr'
+        
+        self.multi_port   = multi_port
 
     @property
     def global_name(self):

@@ -28,10 +28,4 @@ reg_bank_B.add(reg_C,0xc,'external_reg')
 addr_space.add(reg_bank_B, 8*KB, 'sub_1')
 
 
-for addr in addr_space.filled_sub_space_list:
-    print(addr.module_name, hex(int(addr.global_offset/8)), addr.size)
-    for sub in addr.filled_sub_space_list:
-        print(sub.module_name, hex(int(sub.global_offset/8)), sub.size)
-
-
 addr_space.generate('build/example')

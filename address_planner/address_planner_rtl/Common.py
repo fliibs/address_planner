@@ -52,12 +52,12 @@ def get_sw_read_clean_and_set(sub_space, read_valid=False, outer=False):
 def get_sw_write_clean_and_set(sub_space, write_valid=False, outer=False):
     if not outer:
         for field in sub_space.field_list:
-            if not (field.sw_write_clean or field.sw_write_set):
+            if (not (field.sw_write_clean or field.sw_write_set)) and field.sw_writeable:
                 return True 
     else:
         for sub in sub_space.sub_space_list:
             for field in sub.field_list:
-                if not (field.sw_write_clean or field.sw_write_set):
+                if (not (field.sw_write_clean or field.sw_write_set)) and field.sw_writeable:
                     return True 
     return write_valid 
 

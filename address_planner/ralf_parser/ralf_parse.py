@@ -29,6 +29,7 @@ def build_addrspace(tcl_interpreter):
     keys_array = tcl_interpreter.eval('set keys [dict keys $result]')
     key_list = keys_array.split(' ')
     tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
+    print(py_dict)
 
     #### build rb
     from ..RegSpace import RegSpace
@@ -51,6 +52,11 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
             father_copy = build_subspace_recur(dict_[key], father_copy, tcl_interpreter)
         father_copy = minimum_size(father_copy)
 
+    elif 'is_memory' in dict_.keys():
+        # for memory block
+        mem_B = AddressSpace(name=dict_['name'], size=dict_['size'])
+        if isinstance(father_copy, RegSpace):   father_copy = AddressSpace(name=father_copy.module_name, size=1e20*GB)
+        father_copy.add(sub_space=mem_B, name=dict_['name'], offset=int(dict_['addr']))
     else:
         # recur field dict
         if dict_['FIELD_DICT']!=None:  
@@ -120,6 +126,8 @@ def tcl_dict_recur(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             tcl_dict_recur(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, dict_)
         elif  key == 'addr':                                              dict_[key]= convert_address(value)
         elif  key == 'name':                                              dict_[key]=value  
+        elif  key == 'size':                                              dict_[key]=convert_address(value)
+        elif  key == "is_memory":                                         dict_[key]=value
         else:
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
@@ -149,6 +157,10 @@ def convert_address(address):
         return int(clean_address[1:], 16)
     elif clean_address.startswith('b'):
         return int(clean_address[1:], 2)
+    elif clean_address.startswith('0x'):
+        return int(clean_address[2:], 16)
+    elif clean_address.startswith('0b'):
+        return int(clean_address[2:], 2)
     else:
         return int(clean_address)
     
@@ -168,8 +180,12 @@ def convert_reset(reset):
 def minimum_size(father):
     from ..Reg import Register
     father_copy   = deepcopy(father)
-    end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
-    start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
+    if father_copy.sub_space_list != []:
+        end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
+        start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
+    else:
+        print(father_copy.__dict__)
+        return father_copy
     if isinstance(end_element,Register):    father_copy.size=int(end_element.offset/8+end_element.bit/8-start_element.start_address/8)
     else:                                   father_copy.size=end_element.offset+end_element.size
     return father_copy
