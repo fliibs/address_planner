@@ -153,16 +153,22 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
 def convert_address(address):
     clean_address = address.replace("@", "").replace("'", "")
 
-    if clean_address.startswith('h'):
-        return int(clean_address[1:], 16)
-    elif clean_address.startswith('b'):
-        return int(clean_address[1:], 2)
+    # if clean_address.startswith('h'):
+    #     return int(clean_address[1:], 16)
+    # elif clean_address.startswith('b'):
+    #     return int(clean_address[1:], 2)
+    radix_pos = clean_address.find('h') if 'h' in clean_address else clean_address.find('b')
+    if radix_pos != -1:
+        base = 16 if clean_address[radix_pos] == 'h' else 2 
+        number_part = clean_address[radix_pos+1:]
+        return int(number_part, base)
     elif clean_address.startswith('0x'):
         return int(clean_address[2:], 16)
     elif clean_address.startswith('0b'):
         return int(clean_address[2:], 2)
     else:
         return int(clean_address)
+    
     
 def convert_reset(reset):
     mb = re.match('([0-9]*)(\'[bB])([01_]+)'        ,reset)
