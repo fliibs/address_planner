@@ -217,6 +217,8 @@ class Regbank(Component):
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
                     if field.field_reg_write:
                         field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,self.rst_n))
+                    else:
+                        field_reg = UInt(field.bit,field.init_value)
                     reg_val = EmptyWhen()
 
                     if field.hw_writeable:
@@ -307,6 +309,7 @@ class Regbank(Component):
                             field_hw_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_{field.module_name}'), getattr(self,f'{sub_space.module_name}_enable_{field.module_name}'))
                         else:
                             field_hw_rdat += field_reg
+                          
                         
                     if field.sw_readable:
                         if field.sw_read_clean:     reg_val.when(reg_rvld).then(UInt(field.bit,0))
@@ -341,8 +344,11 @@ class Regbank(Component):
             self.rack_data += rack_dat_read_mux
 
             if (not is_apb3) or apb3_has_rack_hsk:
-                rack_read_mux.otherwise(UInt(1,0))
-                self.rack_vld  += rack_read_mux
+                if not is_apb3:
+                    self.rack_vld += UInt(1,1)
+                else:
+                    rack_read_mux.otherwise(UInt(1,0))
+                    self.rack_vld  += rack_read_mux
         else:
             self.rack_data += UInt(self._cfg.data_width,0)
             if(not is_apb3) and apb3_has_rack_hsk:  self.rack_vld += UInt(1,0)
