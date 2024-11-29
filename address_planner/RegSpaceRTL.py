@@ -64,7 +64,7 @@ class Regbank(Component):
             self.p.ready        += UInt(1,1)
             self.p.slverr       += UInt(1,0)
 
-            self.wreq_vld       += BitAnd(self.p.write, self.p.sel, Inverse(self.p.enable))  
+            self.wreq_vld       += BitAnd(self.p.write, self.p.sel, self.p.enable)  
             self.wreq_addr      += self.p.addr
             self.wreq_data      += self.p.wdata
             
@@ -339,6 +339,8 @@ class Regbank(Component):
                 
         
         ##########################################################################################################
+        #  Register Level Interface 
+        ##########################################################################################################
         if get_sw_readable(self._cfg.sub_space_list):
             rack_dat_read_mux.otherwise(UInt(self._cfg.data_width,2**(self._cfg.data_width)-2,'hex'))
             self.rack_data += rack_dat_read_mux
@@ -351,7 +353,7 @@ class Regbank(Component):
                     self.rack_vld  += rack_read_mux
         else:
             self.rack_data += UInt(self._cfg.data_width,0)
-            if(not is_apb3) and apb3_has_rack_hsk:  self.rack_vld += UInt(1,0)
+            if (not is_apb3) and apb3_has_rack_hsk:  self.rack_vld += UInt(1,0)
 
         if not is_apb3:
             if get_sw_writeable(self._cfg.sub_space_list):
@@ -363,71 +365,6 @@ class Regbank(Component):
 
 
         
-
-# class RegSpaceAPB(Component):
-#     def __init__(self, cfg):
-#         super().__init__()
-#         self._cfg = cfg
-#         self.rs = RegSpaceBase(cfg=cfg)
-
-#         self.clk    = Input(UInt(1))
-#         self.rst_n  = Input(UInt(1))
-
-
-#         self.rs.clk     += self.clk
-#         self.rs.rst_n   += self.rst_n
-
-#         # if self._cfg.
-#         self.p          = APB(addr_width=self._cfg.bus_width)
-#         self.p.slverr  += UInt(1,0)
-
-#         # self.p_ready_r = Reg(UInt(1,0), self.clk, self.rst_n)
-#         self.p_rready  = Wire(UInt(1))
-#         self.p_wready  = Wire(UInt(1))
-        
-#         # Software Input
-#         self.rs.rreq_vld    += And(Not(self.p.write), self.p.sel)
-#         self.rs.rack_rdy    += And(Not(self.p.write), self.p.sel, self.p.enable)
-#         self.rs.rreq_addr   += self.p.addr
-
-#         # self.p_rdata_r = Reg(UInt(self.p.rdata.width,0), self.clk, self.rst_n)
-#         # rdata_ff = EmptyWhen()
-#         # rdata_ff.when(And(self.rs.rreq_vld, self.rs.rreq_rdy)).then(self.rs.rack_data).otherwise(UInt(self.p.rdata.width,0))
-#         # self.p_rdata_r      += rdata_ff
-#         # self.p.rdata        += self.p_rdata_r
-#         self.p.rdata        += self.rs. 
-
-#         self.p_rready       += And(self.rs.rreq_vld, self.rs.rreq_rdy)
-#         self.p_wready       += And(self.rs.wreq_rdy,self.p.enable)
-#         self.p.ready        += Or(self.p_rready, self.p_wready)
-        
-
-#         self.rs.wreq_vld    += And(self.p.write, self.p.sel, self.p.enable)  
-#         self.rs.wreq_addr   += self.p.addr
-        # self.rs.wreq_data   += byte_mask(self.p.wdata,self.p.strb)
-
-        
-#         # ready_ff = EmptyWhen()
-#         # ready_ff.when(Or(self.p_rready, self.p_wready)).then(UInt(1,1)).otherwise(UInt(1,0))
-#         # self.p_ready_r += ready_ff
-#         # self.p.ready   += self.p_ready_r
-        
-
-#         for sub_space in cfg.sub_space_list:
-#             for field in sub_space.filled_field_list:
-#                  if isinstance(field, FilledField):
-#                     pass
-#                  else:
-#                     # Internal Hardware Field
-#                     for attr_in in INTERNAL_FIELD_DICT:
-#                         self.expose_io(perfect_get_io(self.rs, "%s_%s_%s"% (sub_space.module_name, field.name, attr_in)))
-#                     # Software External Field
-#                     for attr_ex in EXTERNAL_FIELD_DICT:
-#                         self.expose_io(perfect_get_io(self.rs, "%s_sw_%s_%s"% (sub_space.module_name, field.name, attr_ex)))
-                    
-
-    
-
 
 
                 

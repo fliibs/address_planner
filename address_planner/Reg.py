@@ -5,7 +5,7 @@ import math
 
 class Register(RegSpace):
 
-    def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH,reg_type=Normal,lock_list=[]):
+    def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH, reg_type=Normal, lock_list=[], parity=False):
         size = math.ceil(bit/bus_width)
         super().__init__(name=name, size=size, description=description, path='./', bus_width=bus_width)
         self.bit            = bit
@@ -14,6 +14,7 @@ class Register(RegSpace):
         self.reg_type       = reg_type
         self.lock_list      = lock_list
         self.magic_list     = []
+        self.parity         = parity
 
     def add(self,field,offset=0,name=None, lock_list=[]):
         field.bit_offset    = offset
@@ -153,6 +154,28 @@ class Register(RegSpace):
         for field in self.filled_field_list:
             bin_str += 2**(field.bit_offset)*field.init_value
         return bin_str
+
+
+    #########################################################################################
+    # for parity
+    #########################################################################################
+
+    @property 
+    def parity_sw_type_list(self):
+        type_list = []
+        for field in self.filled_field_list:
+            for i in range(field.bit):
+                type_list.append(field.sw_access)
+        return type_list
+    
+    @property 
+    def parity_hw_type_list(self):
+        type_list = []
+        for field in self.filled_field_list:
+            for i in range(field.bit):
+                type_list.append(field.hw_access)
+        return type_list
+
 
 
     #########################################################################################
