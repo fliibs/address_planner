@@ -61,11 +61,11 @@ class RegSpace(AddressSpace):
         if not self.intr_detect(sub_space):
             raise Exception('Intr err')
         
-        reg_raw_status  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=IntrStatus)
-        reg_intr        = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type)
-        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=Normal)
-        reg_clear       = Register(name=f'{sub_space.module_name}_clear',bit=32,description=f'interrupt clear register {sub_space.description}',reg_type=Normal)
-        reg_set         = Register(name=f'{sub_space.module_name}_set',bit=32,description=f'interrupt set register {sub_space.description}',reg_type=Normal)
+        reg_raw_status  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=IntrStatus,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_intr        = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_clear       = Register(name=f'{sub_space.module_name}_clear',bit=32,description=f'interrupt clear register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_set         = Register(name=f'{sub_space.module_name}_set',bit=32,description=f'interrupt set register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
         if sub_space.reg_type==IntrMask:
             reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal)
         
