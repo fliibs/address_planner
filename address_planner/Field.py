@@ -17,10 +17,13 @@ class FieldRoot(AddressLogicRoot):
         self.sw_access          = sw_access
         self.hw_access          = hw_access
         self.is_external        = False
-        self.bit_offset         = 0
-        self.init_value         = init_value     
+        self.bit_offset         = 0     
         self.lock_list          = []
 
+        if (sw_access==Null and hw_access==Null):     self.init_value = 0
+        elif sw_access in [Write1Pulse,Write0Pulse]:  self.init_value = 0
+        elif hw_access in [Write1Pulse,Write0Pulse]:  self.init_value = 0
+        else:                                         self.init_value = init_value
 
     @property
     def name(self):
@@ -83,7 +86,7 @@ class FieldRoot(AddressLogicRoot):
             raise Exception("detect write pulse field: %s, but it must be internal field"% self._name)
         if self.hw_access==Write1Pulse or self.hw_access==Write0Pulse:
             raise Exception("detect pulse on hardware access of field: %s, hardware has no pulse type"% self._name)
-        
+
     def lock_self_detect(self):
         pass
 

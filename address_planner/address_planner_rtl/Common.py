@@ -73,6 +73,11 @@ def get_field_external(sub_space, outer=False):
                     return True 
     return False   
 
+def get_reg_parity(sub_space_list):
+    for sub_space in sub_space_list:
+        if sub_space.parity:    return True
+    return False
+
 def byte_mask(data, mask):
     mask_data = []
     for i in range(mask.width):

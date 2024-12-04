@@ -2,6 +2,7 @@
 
 from .uhdl.uhdl import *
 from .Field import *
+from .Parity import *
 from .address_planner_rtl.APBInterface import APB3, APB4
 from .address_planner_rtl.Common import *
 
@@ -23,7 +24,11 @@ class Regbank(Component):
         super().__init__()
         self._cfg      = cfg
         self.clk       = Input(UInt(1))
-        self.rst_n     = Input(UInt(1))
+        # self.rst_n     = Input(UInt(1))
+        # generate reset domain
+        for sub_space in self._cfg.sub_space_list:
+            if not hasattr(self, sub_space.rst_domain):     
+                self.set(f'{sub_space.rst_domain}', Input(UInt(1)))
 
         ####
         is_apb3             = True if "apb" in self._cfg.software_interface else False
@@ -90,14 +95,19 @@ class Regbank(Component):
             else:                                           self.rreq_rdy += UInt(1,0)
 
 
-        rack_dat_read_mux = EmptyWhen()
-        rack_read_mux     = EmptyWhen()
-        wreq_rdy_mux      = EmptyWhen()
+        if get_reg_parity(self._cfg.sub_space_list):        setattr(self, f"parity_sw_check_err", Output(UInt(1)))
+
+        rack_dat_read_mux    = EmptyWhen()
+        rack_read_mux        = EmptyWhen()
+        wreq_rdy_mux         = EmptyWhen()
+        parity_check_err_mux = EmptyWhen()
         
         #########################################################################################################
         #   Reg box
         #########################################################################################################
         for sub_space in self._cfg.sub_space_list:
+            rst = getattr(self, sub_space.rst_domain)
+
             ####
             just_write_clean_or_set     = get_sw_write_clean_and_set(sub_space)
             sub_space_writeable         = get_sw_writeable(sub_space.field_list, outer=False)
@@ -155,35 +165,53 @@ class Regbank(Component):
                     rdat_list.append(UInt(field.bit,0))
                 elif field.reserved:
                     rdat_list.append(UInt(field.bit,0))
+                #===============================================================
                 # External Register Software Access
+                #===============================================================
                 elif field.is_external:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
-                    if get_sw_readable(self._cfg.sub_space_list):
+                    if field.sw_readable:
                         field_sw_rdat  = self.set('%s_rdat' % field_name, Input(UInt(field.bit)))
                         field_sw_rvld  = self.set('%s_rvld' % field_name, Output(UInt(1)))
-                        field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
+                        # field_sw_rrdy  = self.set('%s_rrdy' % field_name, Input(UInt(1)))
                         
                         field_sw_rvld += reg_rvld
                         rdat_list.append(field_sw_rdat)
                     else:
                         rdat_list.append(UInt(field.bit,0))
 
-                    if get_sw_writeable(self._cfg.sub_space_list):
+                    if field.sw_writeable:
                         field_sw_wdat  = self.set('%s_wdat' % field_name, Output(UInt(field.bit)))
                         field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
-                        field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
+                        # field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        if just_write_clean_or_set or sub_space_writeable: 
-                            field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
-                            
-                        if sub_space_writeable:
-                            field_sw_wvld += reg_wvld
+                        field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                        field_sw_wvld += reg_wvld
 
                         if is_apb4:
                             field_sw_strb =  self.set('%s_wmask' % field_name, Output(UInt(field.bit)))
                             field_sw_strb += self.p_mask[field.end_bit:field.start_bit]
 
+                    if sub_space.parity:
+                        if field.hw_read_clean or field.hw_read_set:
+                            field_ext_hw_rena = self.set("%s_parity_hw_rena" % field_name , Input(UInt(1)))
+
+                        if field.hw_writeable:
+                            if not is_hw_write_clean_or_set:    field_ext_hw_wdat = self.set("%s_parity_hw_wdat" % field_name , Input(UInt(field.bit)))
+                            field_ext_hw_wena = self.set("%s_parity_hw_wena" % field_name , Input(UInt(1)))
+
+                        if field.sw_read_clean or field.sw_read_set:
+                            field_ext_sw_wena = self.set("%s_parity_sw_rena" % field_name , Input(UInt(1)))
+
+                        if field.sw_writeable:
+                            if not is_sw_write_clean_or_set:    field_ext_sw_wdat = self.set("%s_parity_sw_wdat" % field_name , Input(UInt(field.bit)))
+                            field_ext_sw_wena = self.set("%s_parity_sw_wena" % field_name , Input(UInt(1)))
+
+                        field_ext_data = self.set(f'{field_name}_parity_field', Input(UInt(field.bit,field.init_value)))
+                
+                #===============================================================
                 # write one pulse field
+                #===============================================================
                 elif field.sw_write_one_pulse or field.sw_write_zero_pulse:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
                     field_hw_rdat_reg = self.set("%s" % field_name, Wire(UInt(field.bit)))
@@ -192,7 +220,7 @@ class Regbank(Component):
                     for lock in field.get_lock_list:
                         lock_field_name = f'{lock[0].module_name}_{lock[1].name}'
                         if hasattr(self, lock_field_name):  field_lock_inv = Inverse(Fanout(getattr(self, lock_field_name),field_hw_rdat_reg.width))
-                        else:                               field_lock_inv = Inverse(Fanout(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)),field_hw_rdat_reg.width))
+                        else:                               field_lock_inv = Inverse(Fanout(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,rst)),field_hw_rdat_reg.width))
                         lock_intf_list.append(field_lock_inv)
 
                     field_lock_ena = self.set('%s_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
@@ -211,12 +239,15 @@ class Regbank(Component):
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
                         field_hw_rdat += field_hw_rdat_reg 
                     rdat_list.append(field_hw_rdat_reg) 
-
+                
+                #===============================================================
                 # Internal Register  
+                #===============================================================
                 else:
                     field_name = "%s_%s" % (sub_space.module_name, field.module_name)
+
                     if field.field_reg_write:
-                        field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,self.rst_n))
+                        field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,rst))
                     else:
                         field_reg = UInt(field.bit,field.init_value)
                     reg_val = EmptyWhen()
@@ -242,7 +273,7 @@ class Regbank(Component):
                         elif field.hw_write_zero_to_toggle:
                             reg_val.when(field_hw_wena).then(BitXnor(field_hw_wdat, field_reg))
                         elif field.hw_write_once:
-                            hw_flag = self.set("%s_hw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
+                            hw_flag = self.set("%s_hw_flag" % field_name, Reg(UInt(1,0),self.clk,rst))
                             hw_flag += when(field_hw_wena).then(UInt(1,1))
                             reg_val.when(BitAnd(field_hw_wena, Inverse(hw_flag))).then(field_hw_wdat)
                         else:
@@ -253,7 +284,7 @@ class Regbank(Component):
                         for lock in field.get_lock_list:
                             lock_field_name = f'{lock[0].module_name}_{lock[1].name}'
                             if hasattr(self, lock_field_name):  field_lock_inv = Inverse(getattr(self, lock_field_name))
-                            else:                               field_lock_inv = Inverse(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,self.rst_n)))
+                            else:                               field_lock_inv = Inverse(self.set(lock_field_name, Reg(UInt(lock[1].bit,lock[1].init_value),self.clk,rst)))
                             lock_intf_list.append(field_lock_inv)
 
                         field_write_enable = self.set('%s_sw_wren'% field_name, Wire(UInt(1)))
@@ -287,7 +318,7 @@ class Regbank(Component):
                         elif field.sw_write_zero_to_toggle:
                             reg_val.when(field_write_enable).then(BitXnor(field_wdat, field_reg))
                         elif field.sw_write_once:
-                            sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,self.rst_n))
+                            sw_flag = self.set("%s_sw_flag" % field_name, Reg(UInt(1,0),self.clk,rst))
                             sw_flag += when(field_write_enable).then(UInt(1,1))
                             reg_val.when(BitAnd(field_write_enable, Inverse(sw_flag))).then(field_wdat)
                         else:
@@ -316,7 +347,13 @@ class Regbank(Component):
                         elif field.sw_read_set:     reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))   
                         
                         if field.field_reg_write:   rdat_list.append(field_reg)
-                        else:                       rdat_list.append(UInt(field.bit,0))
+                        else:        
+                            if hasattr(self, f"{field_name}_rdat"):
+                                field_sw_rdat = getattr(self, f"{field_name}_rdat")
+                            else:
+                                field_sw_rdat = self.set("%s_rdat" % field_name , Wire(UInt(field.bit)))
+                                field_sw_rdat += UInt(field.bit,field.init_value)
+                            rdat_list.append(field_sw_rdat)
                     else:
                         rdat_list.append(UInt(field.bit,0))
 
@@ -329,15 +366,69 @@ class Regbank(Component):
 
                     if field.field_reg_write:
                         field_reg += reg_val
+                        
 
-            ### Interrupt register logic
+            #===============================================================
+            #  Interrupt register logic
+            #===============================================================
             if get_sw_readable(self._cfg.sub_space_list):
                 rdat_list.reverse()
                 if sub_space.reg_type==Intr:        reg_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_rdat'),getattr(self,f'{sub_space.module_name}_enable_rdat'))
                 elif sub_space.reg_type==IntrMask:  reg_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_rdat'),getattr(self,f'{sub_space.module_name}_enable_rdat'),Inverse(getattr(self,f'{sub_space.module_name}_mask_rdat')))
                 else:                               reg_rdat += Combine(*rdat_list)
-                
-        
+
+            
+            #===============================================================
+            #  Add Parity logic 
+            #===============================================================
+            if sub_space.parity:
+                # generate parity update always block
+                parity_when = EmptyWhen()
+
+                for sig in ['hw_wena', 'hw_rena', 'sw_wena', 'sw_rena']:
+                    parity_list = getattr(sub_space, f'parity_{sig}_list')(self)
+                    data_list   = getattr(sub_space, f'parity_{sig}_data_list')(self)
+                    if parity_list!=[]:
+                        ena  = self.set(f"{sub_space.module_name}_parity_{sig}", Wire(UInt(1)))
+                        data = self.set(f"{sub_space.module_name}_parity_{sig}_wdata", Wire(UInt(self._cfg.data_width)))
+                        parity_update = self.set(f"{sub_space.module_name}_parity_{sig}_update", Wire(UInt(int(self._cfg.data_width/8))))
+
+                        ena           += Or(*parity_list)
+                        data          += Combine(*data_list)
+                        update_list   = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
+                        update_list.reverse()
+                        parity_update += Combine(*update_list)
+                        parity_when.when(ena).then(parity_update) 
+
+                if parity_when._attribute != None:      
+                    parity_bit = self.set(f"{sub_space.module_name}_parity_bit", Reg(UInt(int(self._cfg.data_width/8), sub_space.parity_init_value), self.clk, rst))
+                    parity_bit += parity_when
+                else:                                   
+                    parity_bit = self.set(f"{sub_space.module_name}_parity_bit", Wire(UInt(int(self._cfg.data_width/8), sub_space.parity_init_value)))
+                    parity_bit += parity_bit.attribute
+
+                # generate parity check 
+                parity_check_bit = self.set(f"{sub_space.module_name}_parity_check_bit", Wire(UInt(int(self._cfg.data_width/8))))
+                check_data       = self.set(f"{sub_space.module_name}_parity_check_wdata", Wire(UInt(self._cfg.data_width)))
+                check_data_list  = getattr(sub_space, f'parity_hw_rena_data_list')(self)
+                check_data += Combine(*check_data_list)
+                check_list = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
+                check_list.reverse()
+                parity_check_bit += Combine(*check_list)
+                parity_check_err = self.set(f"{sub_space.module_name}_parity_check_err", Wire(UInt(1)))
+                parity_check_err += NotEqual(parity_check_bit, parity_bit)
+                # hardware
+                parity_hw_check_err = self.set(f"{sub_space.module_name}_parity_hw_check_err", Output(UInt(1)))
+                parity_hw_check_err += parity_check_err
+                # software
+                parity_check_err_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(parity_check_err)
+
+        if hasattr(self, f"parity_sw_check_err"): 
+            parity_check_err_mux.otherwise(UInt(1,0))  
+            parity_sw_check_err = getattr(self, f"parity_sw_check_err")
+            parity_sw_check_err += parity_check_err_mux
+
+
         ##########################################################################################################
         #  Register Level Interface 
         ##########################################################################################################

@@ -1,11 +1,15 @@
 from .GlobalValues  import *
 from .RegSpace      import RegSpace
 from .Field         import *
+from .Parity        import *
 import math
+from functools import reduce
+import copy
+
 
 class Register(RegSpace):
 
-    def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH, reg_type=Normal, lock_list=[], parity=False):
+    def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH, reg_type=Normal, lock_list=[], parity=False, rst_domain='rst_n'):
         size = math.ceil(bit/bus_width)
         super().__init__(name=name, size=size, description=description, path='./', bus_width=bus_width)
         self.bit            = bit
@@ -15,6 +19,7 @@ class Register(RegSpace):
         self.lock_list      = lock_list
         self.magic_list     = []
         self.parity         = parity
+        self.rst_domain     = rst_domain
 
     def add(self,field,offset=0,name=None, lock_list=[]):
         field.bit_offset    = offset
@@ -176,7 +181,78 @@ class Register(RegSpace):
                 type_list.append(field.hw_access)
         return type_list
 
+    @property
+    def parity_field_list(self):
+        field_list = []
+        reg_idx = 0
+        for field in self.filled_field_list:
+            for i in range(field.bit):
+                init_value_bit = int((field.init_value>>i)&0b1)
+                field_bit = ParityField(self.module_name, field.module_name, field.is_external, i, reg_idx, init_value_bit)
+                field_bit.set_type(field.sw_access, field.hw_access)
+                field_list.append(field_bit)
+                reg_idx += 1
+        return field_list
 
+    @property
+    def parity_init_value(self):
+        init_value_bit = 0
+        for field in self.filled_field_list:
+            init_value_bit = (init_value_bit | (field.init_value << field.start_bit))
+
+        result = 0
+        for i in range(4):
+            result |= bin((init_value_bit >> (i * 8)) & 0xFF).count('1') % 2 << i
+        return int(result)
+
+
+    def parity_hw_wena_list(self, module):
+        hw_wena_list = []
+        for field in self.parity_field_list:
+            sig_wena = field.hw.get_wenable(module)
+            if sig_wena != None and sig_wena not in hw_wena_list:
+                hw_wena_list.append(sig_wena)
+        return hw_wena_list
+    
+    def parity_hw_wena_data_list(self, module):
+        data_list = [i.get_hw_wena_wdata(module) for i in reversed(self.parity_field_list)]
+        return data_list
+
+    def parity_hw_rena_list(self, module):
+        hw_rena_list = []
+        for field in self.parity_field_list:
+            sig_rena = field.hw.get_renable(module)
+            if sig_rena != None and sig_rena not in hw_rena_list:
+                hw_rena_list.append(sig_rena)
+        return hw_rena_list
+    
+    def parity_hw_rena_data_list(self, module):
+        data_list = [ i.get_hw_rena_wdata(module) for i in reversed(self.parity_field_list)]
+        return data_list
+    
+    def parity_sw_wena_list(self, module):
+        sw_wena_list = []
+        for field in self.parity_field_list:
+            sig_wena = field.sw.get_wenable(module)
+            if sig_wena != None and sig_wena not in sw_wena_list:
+                sw_wena_list.append(sig_wena)
+        return sw_wena_list
+    
+    def parity_sw_wena_data_list(self, module):
+        data_list = [ i.get_sw_wena_wdata(module) for i in reversed(self.parity_field_list)]
+        return data_list
+    
+    def parity_sw_rena_list(self, module):
+        sw_rena_list = []
+        for field in self.parity_field_list:
+            sig_rena = field.sw.get_renable(module)
+            if sig_rena != None and sig_rena not in sw_rena_list:
+                sw_rena_list.append(sig_rena)
+        return sw_rena_list
+
+    def parity_sw_rena_data_list(self, module):
+        data_list = [ i.get_sw_rena_wdata(module) for i in reversed(self.parity_field_list)]
+        return data_list
 
     #########################################################################################
     # output generate
@@ -240,11 +316,12 @@ class Register(RegSpace):
 
 
 class InterruptRegister(Register):
-    def __init__(self, name, description='',bus_width=APG_BUS_WIDTH,reg_type=Intr, lock_list=[]):
+    def __init__(self, name, description='',bus_width=APG_BUS_WIDTH,reg_type=Intr, lock_list=[], parity=False, rst_domain='rst_n'):
         if reg_type==Intr:       bit_ = IntrBitWidth.IntrFull.value
         elif reg_type==IntrMask: bit_ = IntrBitWidth.IntrFull.value
-        else:                    raise Exception()
-        super().__init__(name,bit_,description,bus_width,reg_type,lock_list)
+        else:                    raise Exception('Invalid Interrupt reg_type.')
+        if lock_list != []:      raise Exception('Interrupt Register does not support lock bit.')
+        super().__init__(name,bit_,description,bus_width,reg_type,lock_list,parity,rst_domain)
 
     def add_intr_field(self, name, bit, init_value=0, enable_init_value=0, mask_init_value=0, description='', offset=0):
         self.add(field=IntrStatusField(name=name,bit=bit,init_value=init_value,description=description),offset=offset)
