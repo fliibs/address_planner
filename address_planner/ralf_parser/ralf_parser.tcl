@@ -30,9 +30,10 @@ proc size   {args} { uplevel "set var_size   [lindex $args 0]" }
 proc endian {args} { uplevel "set var_endian [lindex $args 0]" }
 proc attributes {args} { }
 
-# proc doc {args} { uplevel "set var_doc [lindex $args 0]" }  
-proc doc {args} { }  
-
+proc doc {args} {
+    uplevel [list set var_doc [lindex $args 0]]
+}
+# proc doc {args} { }
 
 proc parse_proc_arguments {-args args results} {
     upvar $results options
@@ -62,7 +63,6 @@ proc parse_proc_arguments {-args args results} {
     } else {
         error "Error arg number, Expected 2 or 3. "
     }
-
 }
 
 
@@ -76,18 +76,17 @@ proc field {args} {
 
     if {$param(is_def)} {
         eval $param(def_code)
-
         # create def_var data struct
         set payload [dict create]
         dict set payload name   "$param(name)"
         dict set payload bits   $var_bits
         dict set payload access $var_access
         dict set payload reset  $var_reset
-        # if {[info exists var_doc]} {
-        #     dict set payload doc $var_doc 
-        # } else {
-        #     dict set payload doc "$param(name)"
-        # }
+        if { [info exists var_doc] } {
+            dict set payload doc "$var_doc" 
+        } else {
+            dict set payload doc "No Comments"
+        }
         # define def_var in up level stack.
         set_def "$param(name).field" $payload
     }
@@ -118,6 +117,16 @@ proc register {args} {
         dict set payload name         "$param(name)"
         dict set payload FIELD_DICT   "$FIELD_DICT"
         dict set payload ADDR_DICT    "$ADDR_DICT"
+        if { [info exists var_bytes] } {
+            dict set payload width    "$var_bytes"
+        } else {
+            dict set payload width    4
+        }
+        if { [info exists var_doc] } {
+            dict set payload doc "$var_doc" 
+        } else {
+            dict set payload doc "No Comments"
+        }
 
         # define def_var in up level stack.
         set_def "$param(name).register" $payload
@@ -225,7 +234,6 @@ proc memory {args} {
         
     }
     set inst_dict [get_def "$param(name).memory"]
-    puts  $inst_dict
     uplevel "dict set ADDR_DICT $param(name).memory {$inst_dict}"
 
 }

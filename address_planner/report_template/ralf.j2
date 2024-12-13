@@ -20,18 +20,21 @@ block {{space.module_name}} {
             access {{field.sw_access.value|lower}};
             {% endif -%}
             reset {{field.init_value|int}};
+            doc {{ '{' }} {{ field.description }} {{ '}' }}
         }
         {% elif field.is_external -%}
         field {{field.name}} @{{field.bit_offset}} {
             bits {{field.bit|int}};
             access {{field.sw_access.value|lower}};
             reset {{field.init_value|int}};
+            doc {{ '{' }} {{ field.description }} {{ '}' }}
         }
         {% elif field.is_external -%}
         field {{field.name}} @{{field.bit_offset}} {
             bits {{field.bit|int}};
             access {{field.sw_access.value|lower}};
             reset {{field.init_value|int}};
+            doc {{ '{' }} {{ field.description }} {{ '}' }}
         }
         {% endif -%}
         {% endif -%}

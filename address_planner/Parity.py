@@ -133,6 +133,11 @@ class ParityField(ParityFieldRoot):
         self.sw.is_external = self.is_external
         self.hw.is_external = self.is_external
 
+    def get_field_data_bit(self, module):
+        if not isinstance(self.get_field_data(module), UInt):
+            return self.get_field_data(module)[self.index]
+        else:
+            return self.get_field_data(module)
 
     def get_hw_wena_wdata(self, module):
         if not isinstance(self.hw.get_wena_wdata(module), UInt):

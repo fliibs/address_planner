@@ -205,6 +205,9 @@ class Register(RegSpace):
             result |= bin((init_value_bit >> (i * 8)) & 0xFF).count('1') % 2 << i
         return int(result)
 
+    def parity_field_data_list(self, module):
+        data_list = [i.get_field_data_bit(module) for i in reversed(self.parity_field_list)]
+        return data_list
 
     def parity_hw_wena_list(self, module):
         hw_wena_list = []

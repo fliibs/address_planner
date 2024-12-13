@@ -61,7 +61,7 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
         # recur field dict
         if dict_['FIELD_DICT']!=None:  
             
-            reg_B = Register(name=dict_['name'])  
+            reg_B = Register(name=dict_['name'], bit=dict_['width'], description=dict_['doc'])  
             reg_B_copy = build_field_recur(dict_['FIELD_DICT'], reg_B, tcl_interpreter)
             father_copy.add(sub_space=reg_B_copy,offset=int(dict_['addr']))
             
@@ -83,7 +83,7 @@ def build_field_recur(dict_, father, tcl_interpreter):
     else:
         from ..Field    import Field
         sw_access = get_field_access_by_value(dict_['access'])
-        father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset'])),offset=int(dict_['addr']))
+        father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset']), description=dict_['doc']),offset=int(dict_['addr']))
     
     return father_copy
     
@@ -128,6 +128,8 @@ def tcl_dict_recur(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
         elif  key == 'name':                                              dict_[key]=value  
         elif  key == 'size':                                              dict_[key]=convert_address(value)
         elif  key == "is_memory":                                         dict_[key]=value
+        elif  key == "width":                                             dict_[key]=int(value)*8
+        elif  key == 'doc':                                               dict_[key]=value; print(dict_[key])
         else:
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
@@ -147,6 +149,7 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             tcl_dict_field(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, father)
         elif  key == 'addr':        dict_[key]=convert_address(value)
         elif  key == 'reset':       dict_[key]=convert_reset(value)
+        elif  key == 'doc':         dict_[key]=value; print(dict_[key])
         else:                       dict_[key]=value 
 
 
@@ -190,7 +193,6 @@ def minimum_size(father):
         end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
         start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
     else:
-        print(father_copy.__dict__)
         return father_copy
     if isinstance(end_element,Register):    father_copy.size=int(end_element.offset/8+end_element.bit/8-start_element.start_address/8)
     else:                                   father_copy.size=end_element.offset+end_element.size

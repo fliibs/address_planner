@@ -11,21 +11,21 @@ field TXE {
 
 block B1 {
     bytes 4;
-    register L1 @1 {
-        bytes 4;
+    register L1 @0x1 {
+        bytes 2;
         field TXE @0;
         field TXD @4 {
             bits 1;
             access ro;
             reset 1'h1;
-        attributes { NO_REG_TEST 1 }
+        attributes { NO_REG_TEST 1 };
         }
         
     }
 }
 
 block B2 {
-    register L1 @1 {
+    register L1 @'h1 {
         bits 1;
         field TXE @0;
         field TXD @4 {
@@ -63,7 +63,7 @@ block B5 {
     }
     register TXD_2 @1 {
         field TXE @0;
-        field TXD @4 {
+        field TXD @32'h4 {
             bits 1;
             access wo;
             reset 0;
@@ -102,6 +102,7 @@ block B3 {
 block B7 {
     bytes 2
     register TXD @1 {
+        bytes 2
         field TXD @0 {
             bits 1;
             access rw;
