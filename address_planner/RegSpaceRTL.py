@@ -294,10 +294,15 @@ class Regbank(Component):
                             field_wdat = self.set('%s_field_wdat'% field_name, Wire(UInt(field.bit)))
                             if is_apb4:
                                 field_masked_wdat   = self.set('%s_masked_wdat'% field_name, Wire(UInt(field.bit)))
-                                field_unmasked_wdat = self.set('%s_unmasked_wdat'% field_name, Wire(UInt(field.bit)))
-                                field_masked_wdat   += BitAnd(field_reg, self.p_mask[field.end_bit:field.start_bit])
-                                field_unmasked_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
-                                field_wdat += BitOr(field_masked_wdat, field_unmasked_wdat)
+                                field_masked_wdat   += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
+                                if field.sw_write_zero_to_clean or field.sw_write_zero_to_set or field.sw_write_zero_to_toggle:
+                                    field_wdat  += BitOr(field_masked_wdat, self.p_mask[field.end_bit:field.start_bit])
+                                elif field.sw_write_one_to_clean or field.sw_write_one_to_set or field.sw_write_one_to_toggle:
+                                    field_wdat  += field_masked_wdat
+                                else:
+                                    field_masked = self.set('%s_masked_field'% field_name, Wire(UInt(field.bit)))
+                                    field_masked += BitAnd(field_reg, self.p_mask[field.end_bit:field.start_bit])
+                                    field_wdat   += BitOr(field_masked, field_masked_wdat)
                             else:
                                 field_wdat += reg_wdat[field.end_bit:field.start_bit]
 

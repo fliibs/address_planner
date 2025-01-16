@@ -2,10 +2,11 @@ from .uhdl.uhdl import *
 from .GlobalValues import *
 
 class ParityFieldRoot(object):
-    def __init__(self, reg_name, field_name, is_external):
+    def __init__(self, reg_name, field_name, is_external, init_value):
         self.reg_name   = reg_name
         self.field_name = field_name 
         self.is_external = is_external
+        self.init_value  = init_value
 
     @property
     def full_field_name(self):
@@ -24,7 +25,7 @@ class ParityFieldRoot(object):
         elif hasattr(module, f'{self.field_name_until_reg}_rdat'):
             return getattr(module, f'{self.field_name_until_reg}_rdat') 
         else:
-            return UInt(1,0)
+            return UInt(1,self.init_value)
     
     def get_wdata(self, module):
         raise Exception('software/hardware access is not writeable.')
@@ -61,7 +62,7 @@ class ParityFieldRoot(object):
 
 class ParityField(ParityFieldRoot):
     def __init__(self, reg_name, field_name, is_external=False, index=0, offset=0, init_value=0):
-        super().__init__(reg_name, field_name, is_external)
+        super().__init__(reg_name, field_name, is_external, init_value)
         self.index = index
         self.offset = offset
         self.init_value = init_value
@@ -70,64 +71,64 @@ class ParityField(ParityFieldRoot):
         # for sw
         if      hw_type in [Write1Pulse,Write0Pulse]:  self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
         elif    sw_type == Null:                self.sw = ParitySwNull(self.reg_name, self.field_name, self.init_value)
-        elif    sw_type == ReadWrite:           self.sw = ParitySwWrite(self.reg_name, self.field_name)
-        elif    sw_type == ReadOnly:            self.sw = ParitySwReadOnly(self.reg_name, self.field_name)
-        elif    sw_type == ReadClean:           self.sw = ParitySwReadClean(self.reg_name, self.field_name)
-        elif    sw_type == ReadSet:             self.sw = ParitySwReadSet(self.reg_name, self.field_name)
-        elif    sw_type == WriteReadClean:      self.sw = ParitySwWriteReadClean(self.reg_name, self.field_name)
-        elif    sw_type == WriteReadSet:        self.sw = ParitySwWriteReadSet(self.reg_name, self.field_name)
-        elif    sw_type == WriteOnly:           self.sw = ParitySwWrite(self.reg_name, self.field_name)
-        elif    sw_type == WriteOnlyClean:      self.sw = ParitySwWriteClean(self.reg_name, self.field_name)
-        elif    sw_type == WriteOnlySet:        self.sw = ParitySwWriteSet(self.reg_name, self.field_name)
-        elif    sw_type == WriteClean:          self.sw = ParitySwWriteClean(self.reg_name, self.field_name)
-        elif    sw_type == WriteSet:            self.sw = ParitySwWriteSet(self.reg_name, self.field_name)
-        elif    sw_type == WriteSetReadClean:   self.sw = ParitySwWriteSetReadClean(self.reg_name, self.field_name)
-        elif    sw_type == WriteCleanReadSet:   self.sw = ParitySwWriteCleanReadSet(self.reg_name, self.field_name)
-        elif    sw_type == Write1Clean:         self.sw = ParitySwWrite1Clean(self.reg_name, self.field_name)
-        elif    sw_type == Write1CleanReadSet:  self.sw = ParitySwWrite1CleanReadSet(self.reg_name, self.field_name)
-        elif    sw_type == Write0Clean:         self.sw = ParitySwWrite0Clean(self.reg_name, self.field_name)
-        elif    sw_type == Write0CleanReadSet:  self.sw = ParitySwWrite0CleanReadSet(self.reg_name, self.field_name)
-        elif    sw_type == Write1Set:           self.sw = ParitySwWrite1Set(self.reg_name, self.field_name)
-        elif    sw_type == Write1SetReadClean:  self.sw = ParitySwWrite1SetReadClean(self.reg_name, self.field_name)
-        elif    sw_type == Write0Set:           self.sw = ParitySwWrite0Set(self.reg_name, self.field_name)
-        elif    sw_type == Write0SetReadClean:  self.sw = ParitySwWrite0SetReadClean(self.reg_name, self.field_name)
-        elif    sw_type == Write0Toggle:        self.sw = ParitySwWrite0Toggle(self.reg_name, self.field_name)
-        elif    sw_type == Write1Toggle:        self.sw = ParitySwWrite1Toggle(self.reg_name, self.field_name)
-        elif    sw_type == WriteOnce:           self.sw = ParitySwWriteOnce(self.reg_name, self.field_name)
-        elif    sw_type == WriteOnlyOnce:       self.sw = ParitySwWriteOnce(self.reg_name, self.field_name)
-        elif    sw_type == Write1Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
-        elif    sw_type == Write0Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
+        elif    sw_type == ReadWrite:           self.sw = ParitySwWrite(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == ReadOnly:            self.sw = ParitySwReadOnly(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == ReadClean:           self.sw = ParitySwReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == ReadSet:             self.sw = ParitySwReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteReadClean:      self.sw = ParitySwWriteReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteReadSet:        self.sw = ParitySwWriteReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteOnly:           self.sw = ParitySwWrite(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteOnlyClean:      self.sw = ParitySwWriteClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteOnlySet:        self.sw = ParitySwWriteSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteClean:          self.sw = ParitySwWriteClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteSet:            self.sw = ParitySwWriteSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteSetReadClean:   self.sw = ParitySwWriteSetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteCleanReadSet:   self.sw = ParitySwWriteCleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1Clean:         self.sw = ParitySwWrite1Clean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1CleanReadSet:  self.sw = ParitySwWrite1CleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0Clean:         self.sw = ParitySwWrite0Clean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0CleanReadSet:  self.sw = ParitySwWrite0CleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1Set:           self.sw = ParitySwWrite1Set(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1SetReadClean:  self.sw = ParitySwWrite1SetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0Set:           self.sw = ParitySwWrite0Set(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0SetReadClean:  self.sw = ParitySwWrite0SetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0Toggle:        self.sw = ParitySwWrite0Toggle(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1Toggle:        self.sw = ParitySwWrite1Toggle(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteOnce:           self.sw = ParitySwWriteOnce(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == WriteOnlyOnce:       self.sw = ParitySwWriteOnce(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write0Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name, self.init_value)
         else:   raise Exception(f'not support software type: {sw_type}.')
         # for hw
         if      sw_type in [Write1Pulse,Write0Pulse]:  self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
         elif    hw_type == Null:                self.hw = ParityHwNull(self.reg_name, self.field_name, self.init_value)
-        elif    hw_type == ReadWrite:           self.hw = ParityHwWrite(self.reg_name, self.field_name)
-        elif    hw_type == ReadOnly:            self.hw = ParityHwReadOnly(self.reg_name, self.field_name)
-        elif    hw_type == ReadClean:           self.hw = ParityHwReadClean(self.reg_name, self.field_name)
-        elif    hw_type == ReadSet:             self.hw = ParityHwReadSet(self.reg_name, self.field_name)
-        elif    hw_type == WriteReadClean:      self.hw = ParityHwWriteReadClean(self.reg_name, self.field_name)
-        elif    hw_type == WriteReadSet:        self.hw = ParityHwWriteReadSet(self.reg_name, self.field_name)
-        elif    hw_type == WriteOnly:           self.hw = ParityHwWrite(self.reg_name, self.field_name)
-        elif    hw_type == WriteOnlyClean:      self.hw = ParityHwWriteClean(self.reg_name, self.field_name)
-        elif    hw_type == WriteOnlySet:        self.hw = ParityHwWriteSet(self.reg_name, self.field_name)
-        elif    hw_type == WriteClean:          self.hw = ParityHwWriteClean(self.reg_name, self.field_name)
-        elif    hw_type == WriteSet:            self.hw = ParityHwWriteSet(self.reg_name, self.field_name)
-        elif    hw_type == WriteSetReadClean:   self.hw = ParityHwWriteSetReadClean(self.reg_name, self.field_name)
-        elif    hw_type == WriteCleanReadSet:   self.hw = ParityHwWriteCleanReadSet(self.reg_name, self.field_name)
-        elif    hw_type == Write1Clean:         self.hw = ParityHwWrite1Clean(self.reg_name, self.field_name)
-        elif    hw_type == Write1CleanReadSet:  self.hw = ParityHwWrite1CleanReadSet(self.reg_name, self.field_name)
-        elif    hw_type == Write0Clean:         self.hw = ParityHwWrite0Clean(self.reg_name, self.field_name)
-        elif    hw_type == Write0CleanReadSet:  self.hw = ParityHwWrite0CleanReadSet(self.reg_name, self.field_name)
-        elif    hw_type == Write1Set:           self.hw = ParityHwWrite1Set(self.reg_name, self.field_name)
-        elif    hw_type == Write1SetReadClean:  self.hw = ParityHwWrite1SetReadClean(self.reg_name, self.field_name)
-        elif    hw_type == Write0Set:           self.hw = ParityHwWrite0Set(self.reg_name, self.field_name)
-        elif    hw_type == Write0SetReadClean:  self.hw = ParityHwWrite0SetReadClean(self.reg_name, self.field_name)
-        elif    hw_type == Write0Toggle:        self.hw = ParityHwWrite0Toggle(self.reg_name, self.field_name)
-        elif    hw_type == Write1Toggle:        self.hw = ParityHwWrite1Toggle(self.reg_name, self.field_name)
-        elif    hw_type == WriteOnce:           self.hw = ParityHwWriteOnce(self.reg_name, self.field_name)
-        elif    hw_type == WriteOnlyOnce:       self.hw = ParityHwWriteOnce(self.reg_name, self.field_name)
-        elif    hw_type == Write1Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
-        elif    hw_type == Write0Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
+        elif    hw_type == ReadWrite:           self.hw = ParityHwWrite(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == ReadOnly:            self.hw = ParityHwReadOnly(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == ReadClean:           self.hw = ParityHwReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == ReadSet:             self.hw = ParityHwReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteReadClean:      self.hw = ParityHwWriteReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteReadSet:        self.hw = ParityHwWriteReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteOnly:           self.hw = ParityHwWrite(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteOnlyClean:      self.hw = ParityHwWriteClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteOnlySet:        self.hw = ParityHwWriteSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteClean:          self.hw = ParityHwWriteClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteSet:            self.hw = ParityHwWriteSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteSetReadClean:   self.hw = ParityHwWriteSetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteCleanReadSet:   self.hw = ParityHwWriteCleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1Clean:         self.hw = ParityHwWrite1Clean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1CleanReadSet:  self.hw = ParityHwWrite1CleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0Clean:         self.hw = ParityHwWrite0Clean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0CleanReadSet:  self.hw = ParityHwWrite0CleanReadSet(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1Set:           self.hw = ParityHwWrite1Set(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1SetReadClean:  self.hw = ParityHwWrite1SetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0Set:           self.hw = ParityHwWrite0Set(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0SetReadClean:  self.hw = ParityHwWrite0SetReadClean(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0Toggle:        self.hw = ParityHwWrite0Toggle(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1Toggle:        self.hw = ParityHwWrite1Toggle(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteOnce:           self.hw = ParityHwWriteOnce(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == WriteOnlyOnce:       self.hw = ParityHwWriteOnce(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write0Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name, self.init_value)
         else:   raise Exception(f'not support hardware type: {hw_type}.')
 
         self.sw.is_external = self.is_external
@@ -165,8 +166,8 @@ class ParityField(ParityFieldRoot):
 
 
 class ParitySwFieldRoot(ParityFieldRoot):
-    def __init__(self, reg_name, field_name, sel_read, sel_write):
-        super().__init__(reg_name, field_name, False)
+    def __init__(self, reg_name, field_name, sel_read, sel_write, init_value):
+        super().__init__(reg_name, field_name, False, init_value)
         self.sel_read  = sel_read
         self.sel_write = sel_write
 
@@ -218,8 +219,8 @@ class ParitySwFieldRoot(ParityFieldRoot):
     
 
 class ParityHwFieldRoot(ParityFieldRoot):
-    def __init__(self, reg_name, field_name, sel_read, sel_write):
-        super().__init__(reg_name, field_name, False)
+    def __init__(self, reg_name, field_name, sel_read, sel_write, init_value):
+        super().__init__(reg_name, field_name, False, init_value)
         self.sel_read  = sel_read
         self.sel_write = sel_write
 
@@ -275,7 +276,7 @@ class ParityHwFieldRoot(ParityFieldRoot):
 ###############################################################
 class ParitySwNull(ParitySwFieldRoot):
     def __init__(self, reg_name, field_name, init_value=0):
-        super().__init__(reg_name, field_name, False, False)
+        super().__init__(reg_name, field_name, False, False, init_value)
         self.init_value = init_value 
 
     def get_wena_wdata(self, module):
@@ -286,7 +287,7 @@ class ParitySwNull(ParitySwFieldRoot):
 
 class ParityHwNull(ParityHwFieldRoot):
     def __init__(self, reg_name, field_name, init_value=0):
-        super().__init__(reg_name, field_name, False, False)
+        super().__init__(reg_name, field_name, False, False, init_value)
         self.init_value = init_value 
 
     def get_wena_wdata(self, module):
@@ -299,16 +300,16 @@ class ParityHwNull(ParityHwFieldRoot):
 # readwrite/writeonly
 ###############################################################
 class ParitySwWrite(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
 
 
 class ParityHwWrite(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -317,28 +318,28 @@ class ParityHwWrite(ParityHwFieldRoot):
 # readonly
 ###############################################################
 class ParitySwReadOnly(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, False, init_value)
 
     
 class ParityHwReadOnly(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, False, init_value)
 
 ###############################################################
 # read clean
 ###############################################################
 class ParitySwReadClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, False, init_value)
 
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
         return self.get_rmux(module, self.rsig_name, UInt(width,0))
 
 class ParityHwReadClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, False, init_value)
 
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -348,16 +349,16 @@ class ParityHwReadClean(ParityHwFieldRoot):
 # read set
 ###############################################################
 class ParitySwReadSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, False, init_value)
 
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
         return self.get_rmux(module, self.rsig_name, UInt(width,2**width - 1))
 
 class ParityHwReadSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, False, init_value)
 
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -367,8 +368,8 @@ class ParityHwReadSet(ParityHwFieldRoot):
 # write read set
 ###############################################################
 class ParitySwWriteReadSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -378,8 +379,8 @@ class ParitySwWriteReadSet(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width,2**width - 1))
 
 class ParityHwWriteReadSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -392,8 +393,8 @@ class ParityHwWriteReadSet(ParityHwFieldRoot):
 # write read clean
 ###############################################################
 class ParitySwWriteReadClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -403,8 +404,8 @@ class ParitySwWriteReadClean(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width,0))
 
 class ParityHwWriteReadClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -417,16 +418,16 @@ class ParityHwWriteReadClean(ParityHwFieldRoot):
 # writeonly clean / write clean
 ###############################################################
 class ParitySwWriteClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
         return self.get_wmux(module, self.wsig_name, UInt(width,0))
 
 class ParityHwWriteClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -436,16 +437,16 @@ class ParityHwWriteClean(ParityHwFieldRoot):
 # writeonly set / write set
 ###############################################################
 class ParitySwWriteSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
         return self.get_wmux(module, self.wsig_name, UInt(width, 2**width-1))
 
 class ParityHwWriteSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -455,8 +456,8 @@ class ParityHwWriteSet(ParityHwFieldRoot):
 # write set read clean
 ###############################################################
 class ParitySwWriteSetReadClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -467,8 +468,8 @@ class ParitySwWriteSetReadClean(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width, 0))
 
 class ParityHwWriteSetReadClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -482,8 +483,8 @@ class ParityHwWriteSetReadClean(ParityHwFieldRoot):
 # write clean read set
 ###############################################################
 class ParitySwWriteCleanReadSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -494,8 +495,8 @@ class ParitySwWriteCleanReadSet(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width, 2**width-1))
 
 class ParityHwWriteCleanReadSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
@@ -510,8 +511,8 @@ class ParityHwWriteCleanReadSet(ParityHwFieldRoot):
 # write 1 clean
 ###############################################################
 class ParitySwWrite1Clean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat = getattr(module, self.wsig_name)
@@ -519,8 +520,8 @@ class ParitySwWrite1Clean(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitAnd(Inverse(sig_wdat), sig_field))
 
 class ParityHwWrite1Clean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat = getattr(module, self.wsig_name)
@@ -531,8 +532,8 @@ class ParityHwWrite1Clean(ParityHwFieldRoot):
 # write 1 clean read set
 ###############################################################
 class ParitySwWrite1CleanReadSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -544,8 +545,8 @@ class ParitySwWrite1CleanReadSet(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width, 2**width-1))
 
 class ParityHwWrite1CleanReadSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -560,8 +561,8 @@ class ParityHwWrite1CleanReadSet(ParityHwFieldRoot):
 # write 0 clean
 ###############################################################
 class ParitySwWrite0Clean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -569,8 +570,8 @@ class ParitySwWrite0Clean(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitAnd(sig_wdat, sig_field))
 
 class ParityHwWrite0Clean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -581,8 +582,8 @@ class ParityHwWrite0Clean(ParityHwFieldRoot):
 # write 0 clean read set
 ###############################################################
 class ParitySwWrite0CleanReadSet(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -591,11 +592,11 @@ class ParitySwWrite0CleanReadSet(ParitySwFieldRoot):
     
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
-        return self.get_wmux(module, self.rsig_name, UInt(width, 2**width-1))
+        return self.get_rmux(module, self.rsig_name, UInt(width, 2**width-1))
 
 class ParityHwWrite0CleanReadSet(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -604,14 +605,14 @@ class ParityHwWrite0CleanReadSet(ParityHwFieldRoot):
     
     def get_rena_wdata(self, module):
         width    = getattr(module, self.full_field_name).attribute.width
-        return self.get_wmux(module, self.rsig_name, UInt(width, 2**width-1))
+        return self.get_rmux(module, self.rsig_name, UInt(width, 2**width-1))
 
 ###############################################################
 # write 1 set
 ###############################################################
 class ParitySwWrite1Set(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -619,8 +620,8 @@ class ParitySwWrite1Set(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitOr(sig_wdat, sig_field))
 
 class ParityHwWrite1Set(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -631,8 +632,8 @@ class ParityHwWrite1Set(ParityHwFieldRoot):
 # write 1 set read clean
 ###############################################################
 class ParitySwWrite1SetReadClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -644,8 +645,8 @@ class ParitySwWrite1SetReadClean(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width, 0))
 
 class ParityHwWrite1SetReadClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -660,8 +661,8 @@ class ParityHwWrite1SetReadClean(ParityHwFieldRoot):
 # write 0 set
 ###############################################################
 class ParitySwWrite0Set(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -669,8 +670,8 @@ class ParitySwWrite0Set(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitOr(Inverse(sig_wdat), sig_field))
 
 class ParityHwWrite0Set(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -681,8 +682,8 @@ class ParityHwWrite0Set(ParityHwFieldRoot):
 # write 0 set read clean
 ###############################################################
 class ParitySwWrite0SetReadClean(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -694,8 +695,8 @@ class ParitySwWrite0SetReadClean(ParitySwFieldRoot):
         return self.get_rmux(module, self.rsig_name, UInt(width, 0))
 
 class ParityHwWrite0SetReadClean(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, True, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, True, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -710,8 +711,8 @@ class ParityHwWrite0SetReadClean(ParityHwFieldRoot):
 # write 1 toggle
 ###############################################################
 class ParitySwWrite1Toggle(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -719,8 +720,8 @@ class ParitySwWrite1Toggle(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitXor(sig_wdat, sig_field))
     
 class ParityHwWrite1Toggle(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -732,8 +733,8 @@ class ParityHwWrite1Toggle(ParityHwFieldRoot):
 # write 0 toggle
 ###############################################################
 class ParitySwWrite0Toggle(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -741,8 +742,8 @@ class ParitySwWrite0Toggle(ParitySwFieldRoot):
         return self.get_wmux(module, self.wsig_name, BitXnor(sig_wdat, sig_field))
     
 class ParityHwWrite0Toggle(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         sig_wdat  = getattr(module, self.wsig_name)
@@ -754,8 +755,8 @@ class ParityHwWrite0Toggle(ParityHwFieldRoot):
 # write once/ write once only
 ###############################################################
 class ParitySwWriteOnce(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -768,8 +769,8 @@ class ParitySwWriteOnce(ParitySwFieldRoot):
             return BitAnd(getattr(module, self.wsig_ena_name), Inverse(getattr(module, flag_name)))
     
 class ParityHwWriteOnce(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, True)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
 
     def get_wena_wdata(self, module):
         return self.get_wmux(module, self.wsig_name)
@@ -786,16 +787,16 @@ class ParityHwWriteOnce(ParityHwFieldRoot):
 # write once/ write once only
 ###############################################################
 class ParitySwWritePulse(ParitySwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, False, init_value)
 
     def get_field_data(self, module):
         return UInt(1,0)
 
     
 class ParityHwWritePulse(ParityHwFieldRoot):
-    def __init__(self, reg_name, field_name):
-        super().__init__(reg_name, field_name, False, False)
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, False, init_value)
 
     def get_field_data(self, module):
         return UInt(1,0)
