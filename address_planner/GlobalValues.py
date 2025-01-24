@@ -162,13 +162,13 @@ def ADD_KEY():
 def ConvertSize(size, is_byte=False):
     if is_byte: bit = 1
     else:       bit = 8
-        
-    if size/bit   > KB-1:
-        return "%.1fKB"% float(size / KB / bit)
+
+    if size/bit > GB-1:
+        return "%.1fGB"% float(size / GB / bit)
     elif size/bit > MB-1:
         return "%.1fMB"% float(size / MB / bit)
-    elif size/bit > GB-1:
-        return "%.1fGB"% float(size / GB / bit)
+    elif size/bit   > KB-1:
+        return "%.1fKB"% float(size / KB / bit)
     elif size/bit >=1:
         return "%dB"% int(size / bit)
     else:

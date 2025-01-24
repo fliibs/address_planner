@@ -188,7 +188,7 @@ class Register(RegSpace):
         for field in self.filled_field_list:
             for i in range(field.bit):
                 init_value_bit = int((field.init_value>>i)&0b1)
-                field_bit = ParityField(self.module_name, field.module_name, field.is_external, i, reg_idx, init_value_bit)
+                field_bit = ParityField(self.module_name, field.module_name, field.is_external, i, reg_idx, init_value_bit, self.reg_type)
                 field_bit.set_type(field.sw_access, field.hw_access)
                 field_list.append(field_bit)
                 reg_idx += 1

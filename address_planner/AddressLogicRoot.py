@@ -72,6 +72,10 @@ class AddressLogicRoot(object):
         return os.path.join(self.output_path+'/html')
     
     @property
+    def _json_dir(self):
+        return os.path.join(self.output_path+'/json')
+    
+    @property
     def _rtl_dir(self):
         return os.path.join(self.output_path+'/rtl')
     
@@ -110,7 +114,10 @@ class AddressLogicRoot(object):
     @property
     def json_path(self):
         return os.path.join(self._html_dir, 'data.json')
-
+    
+    @property
+    def matrix_path(self):
+        return os.path.join(self._json_dir, 'matrix.json')
 
     @property
     def html_name(self):

@@ -61,18 +61,23 @@ class ParityFieldRoot(object):
 
 
 class ParityField(ParityFieldRoot):
-    def __init__(self, reg_name, field_name, is_external=False, index=0, offset=0, init_value=0):
+    def __init__(self, reg_name, field_name, is_external=False, index=0, offset=0, init_value=0, reg_type=Normal):
         super().__init__(reg_name, field_name, is_external, init_value)
         self.index = index
         self.offset = offset
         self.init_value = init_value
+        self.reg_type   = reg_type
 
     def set_type(self, sw_type=Null, hw_type=Null):
         # for sw
+        self.sw_type = sw_type
+        self.hw_type = hw_type
         if      hw_type in [Write1Pulse,Write0Pulse]:  self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
         elif    sw_type == Null:                self.sw = ParitySwNull(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == ReadWrite:           self.sw = ParitySwWrite(self.reg_name, self.field_name, self.init_value)
-        elif    sw_type == ReadOnly:            self.sw = ParitySwReadOnly(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == ReadOnly:            
+            if self.reg_type == IntrStatus:     self.sw = ParitySwRAWStatus(self.reg_name, self.field_name, self.init_value)
+            else:                               self.sw = ParitySwReadOnly(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == ReadClean:           self.sw = ParitySwReadClean(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == ReadSet:             self.sw = ParitySwReadSet(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == WriteReadClean:      self.sw = ParitySwWriteReadClean(self.reg_name, self.field_name, self.init_value)
@@ -135,7 +140,9 @@ class ParityField(ParityFieldRoot):
         self.hw.is_external = self.is_external
 
     def get_field_data_bit(self, module):
-        if not isinstance(self.get_field_data(module), UInt):
+        if isinstance(self.sw, ParitySwWritePulse) or isinstance(self.hw, ParityHwWritePulse):
+            return UInt(1,0)
+        elif not isinstance(self.get_field_data(module), UInt):
             return self.get_field_data(module)[self.index]
         else:
             return self.get_field_data(module)
@@ -802,3 +809,48 @@ class ParityHwWritePulse(ParityHwFieldRoot):
         return UInt(1,0)
 
   
+###############################################################
+# interrupt raw status register
+###############################################################
+class ParitySwRAWStatus(ParitySwFieldRoot):
+    def __init__(self, reg_name, field_name, init_value=0):
+        super().__init__(reg_name, field_name, False, True, init_value)
+
+    @property
+    def field_set_name(self):
+        return "%s_set_%s"% (self.reg_name.rstrip('_raw_status'),self.field_name)
+    
+
+    @property
+    def field_clear_name(self): 
+        return "%s_clear_%s"% (self.reg_name.rstrip('_raw_status'),self.field_name)
+
+    def get_wenable(self, module):
+        if self.sel_write:
+            return Or(SelfOr(getattr(module, self.field_set_name)), SelfOr(getattr(module, self.field_clear_name)))
+        else:
+            return None
+
+    def get_wena_wdata(self, module):
+        if not hasattr(module, f'{self.wsig_name}_parity'):
+            res_sig  = module.set(f'{self.wsig_name}_parity', Wire(getattr(module, self.full_field_name).attribute))
+            sig_mux  = EmptyWhen()
+
+            # for set field
+            set_sig      = getattr(module, self.field_set_name)
+            set_sig_val  = BitOr(getattr(module, self.full_field_name), set_sig)
+            print(set_sig_val, SelfOr(set_sig))
+            sig_mux.when(SelfOr(set_sig)).then(set_sig_val)
+
+            # for clear field
+            clear_sig      = getattr(module, self.field_clear_name)
+            clear_sig_val  = BitAnd(getattr(module, self.full_field_name), Inverse(clear_sig))
+            sig_mux.when(SelfOr(clear_sig)).then(clear_sig_val)
+
+            sig_mux.otherwise(self.get_field_data(module))
+            res_sig += sig_mux
+            return res_sig
+        else:
+            return getattr(module, f'{self.wsig_name}_parity')
+
+

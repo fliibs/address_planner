@@ -13,7 +13,7 @@ import re
 
 class AddressSpace(AddressLogicRoot):
 
-    def __init__(self,name,size,description='',path='./'):
+    def __init__(self,name,size=None,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
         self.size           = size
         self.sub_space_list = []
@@ -27,6 +27,7 @@ class AddressSpace(AddressLogicRoot):
         #self.description    = description
         #self.path           = path
         #self.father         = None
+        self.matrix_list    = []
 
 
 
@@ -145,6 +146,11 @@ class AddressSpace(AddressLogicRoot):
         reg_copy = build_addrspace(tcl_interpreter)
         self.add(reg_copy, offset, name)
 
+    def add_matrix(self, matrix, name=None):
+        matrix_copy = deepcopy(matrix)
+        matrix_copy.father = self
+        matrix_copy.module_name = matrix_copy.module_name if name==None else name
+        self.matrix_list.append(matrix_copy)
 
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True
@@ -207,6 +213,18 @@ class AddressSpace(AddressLogicRoot):
     #########################################################################################
     # output generate
     #########################################################################################
+    
+    def report_matrix(self, path=None):
+        if path != None:        self.path = path
+        json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
+        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        with open(self.matrix_path, 'w') as f:
+            f.write(jtext)
+            
+    def expand_list(self, sub_list):
+        return self.expand_list([item for elem in sub_list for item in (self.expand_list(elem) if isinstance(elem, list) else [elem])])
+            
 
     # def report_html(self):
     #     text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
@@ -357,8 +375,6 @@ class AddressSpace(AddressLogicRoot):
     def addrspace(self, sub_space, offset, name):
         self.add(sub_space, offset, name)
         return self
-
-
 
 
 

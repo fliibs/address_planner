@@ -386,7 +386,7 @@ class Regbank(Component):
             #===============================================================
             #  Add Parity logic 
             #===============================================================
-            if sub_space.parity:
+            if sub_space.parity and sub_space.reg_type not in [Intr, IntrMask]:
                 # generate parity update always block
                 parity_when = EmptyWhen()
 
@@ -416,8 +416,8 @@ class Regbank(Component):
                 parity_check_bit = self.set(f"{sub_space.module_name}_parity_check_bit", Wire(UInt(int(self._cfg.data_width/8))))
                 check_data       = self.set(f"{sub_space.module_name}_parity_check_wdata", Wire(UInt(self._cfg.data_width)))
                 check_data_list  = getattr(sub_space, f'parity_field_data_list')(self)
-                check_data += Combine(*check_data_list)
-                check_list = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
+                check_data       += Combine(*check_data_list)
+                check_list = [ SelfXor(check_data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
                 check_list.reverse()
                 parity_check_bit += Combine(*check_list)
                 parity_check_err = self.set(f"{sub_space.module_name}_parity_check_err", Wire(UInt(1)))
