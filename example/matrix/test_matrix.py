@@ -49,11 +49,13 @@ master_3.add(ocm, 'ocm 0', ocm_attr, 0x0011000000)
 master_3.add_incr(ocm, 'ocm 1', ocm_attr)
 master_3.add_incr(ocm, 'ocm 2', ocm_attr)
 
-print(vars(master_0.sub_space_list[0]) == vars(master_2.sub_space_list[0]))
 
 interconnect_0.add_matrix(master_0)
 interconnect_0.add_matrix(master_1)
 interconnect_0.add_matrix(master_2)
 interconnect_0.add_matrix(master_3)
 
+print(interconnect_0.report_interconnect())
+# print(interconnect_0.report_slave())
+print(master_0.report_master_matrix())
 interconnect_0.report_matrix('build')

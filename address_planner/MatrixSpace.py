@@ -1,6 +1,7 @@
 from .GlobalValues      import *
 from .AddressSpace      import *
 from copy               import deepcopy
+from .address_planner_rtl.MatrixCFG import *
 
 class MatrixSpace(AddressSpace):
     def __init__(self,name, offset=None,size=None,description='', path='./',bus_width=APG_BUS_WIDTH,data_width=APG_DATA_WIDTH,software_interface='apb'):
@@ -33,17 +34,7 @@ class MatrixSpace(AddressSpace):
         sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
         sub_space_copy.offset = sub_space_copy.offset if offset==None else offset
         sub_space_copy.add_attr(attr)
-        # if not Options.MultiPortOption:
-            # if not self.inclusion_detect(sub_space_copy):
-            #     raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
-
-            # for exist_space in self.sub_space_list:
-            #     # if self.naming_detect(exist_space,sub_space_copy):
-            #     #     raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
-            #     #         % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
-            #     if self.collision_detect(exist_space,sub_space_copy):
-            #         raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
-            #             % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+        
         self.sub_space_list.append(sub_space_copy)
         if sub_space_copy.offset != None:
             self._next_offset = sub_space_copy.offset + sub_space_copy.size
@@ -51,8 +42,61 @@ class MatrixSpace(AddressSpace):
 
     def add_incr(self,sub_space,name,attr=None):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name,attr=attr)
+        
+        
+    def report_master_matrix(self):
+        master_list = deepcopy(master_content)
+        master_dict = self.report_master()
+        attr_dict   = master_dict['attribute']
+        
+        for key, value in master_mapping.items():
+            if key in master_dict.keys():
+                master_list[value] = master_dict[key]
+            elif key in attr_dict.keys():
+                master_list[value] = attr_dict[key]
+                
+        return master_list
+    
+    # def report_slave_matrix(self):
+    
+    
+    def report_master(self):
+        if self.father is None or not isinstance(self.father, MatrixSpace):
+            json_dict={}
+            json_dict["key"]        = ADD_KEY()
+            json_dict["name"]       = self.module_name
+            json_dict["is_active"]  = True
+            json_dict["protocol"]   = self.software_interface
+            json_dict["addr_width"] = self.bus_width
+            json_dict["data_width"] = self.data_width
+            json_dict["attribute"]  = self.report_json_attr_core()
+            json_dict["children"]   = self.expand_list([c.report_interconnect() for c in self.sub_space_list])
+            return json_dict
+        
+    def report_slave(self):
+        if self.father is None or not isinstance(self.father, MatrixSpace):
+            return self.expand_list([c.report_json_core() for c in self.sub_space_list])
+        elif self.sub_space_list == []:
+            return self.report_json_core()
+        else:
+            json_list = [c.report_json_core() for c in self.sub_space_list]
+            return json_list
+            
+        
+    def report_interconnect(self, mst_name=None):
+        return self.report_interconnect_core(mst_name)
 
-    # def report_interconnect_core(self):
+    def report_interconnect_core(self, mst_name):
+        if self.father is None or not isinstance(self.father, MatrixSpace):
+            return self.expand_list([c.report_interconnect_core(mst_name) for c in self.sub_space_list])
+        elif self.sub_space_list == []:
+            
+            if mst_name == None:
+                return f"{self.module_name}"
+            else:
+                return f"{mst_name}.{self.module_name}"
+        else: 
+            return [c.report_interconnect_core(mst_name) for c in self.sub_space_list]
 
 
     def report_matrix(self, path=None):
@@ -68,7 +112,9 @@ class MatrixSpace(AddressSpace):
             json_dict={}
             json_dict["key"]        = ADD_KEY()
             json_dict["name"]       = self.module_name
-            json_dict["description"]= self.description
+            json_dict["protocol"]   = self.software_interface
+            json_dict["addr_width"] = self.bus_width
+            json_dict["data_width"] = self.data_width
             json_dict["attribute"]  = self.report_json_attr_core()
             json_dict["children"]   = self.expand_list([c.report_json_core() for c in self.sub_space_list])
             return json_dict
@@ -76,11 +122,12 @@ class MatrixSpace(AddressSpace):
             json_dict={}
             json_dict["key"]        = ADD_KEY()
             json_dict["name"]       = self.module_name
+            json_dict["protocol"]   = self.software_interface
+            json_dict["addr_width"] = self.bus_width
+            json_dict["data_width"] = self.data_width
             json_dict["start_addr"] = hex(int(self.start_address))
             json_dict["end_addr"]   = hex(int(self.end_address))
-            
             json_dict["size"]       = ConvertSize(self.size, is_byte=True)
-            json_dict["description"]= self.description
             json_dict["attribute"]  = self.report_json_attr_core()
             return json_dict
         else:
@@ -106,33 +153,33 @@ class MatrixSpace(AddressSpace):
 class MatrixAttr:
     def __init__(self, name='', support_incr=None, support_wrap=None, 
                  support_fixed=None, rd_enable=True, wr_enable=True, 
-                 support_reordering=None, awuser_width=None,
+                 support_reordering=None, w_req_auser_width=None,
                  wuser_width=None, buser_width=None, 
-                 aruser_width=None, ruser_width=None, 
+                 r_req_auser_width=None, ruser_width=None, 
                  rd_id_width=None, wr_id_width=None,
                  rd_ost=None, wr_ost=None, clk='clk', 
                  freq=1000, rst='rst_n', hier='tb.dut', **kwargs):
         
         self.name = name
-        self.support_incr = support_incr
-        self.support_wrap = support_wrap
-        self.support_fixed = support_fixed
-        self.rd_enable    = rd_enable
-        self.wr_enable    = wr_enable
+        self.support_incr       = support_incr
+        self.support_wrap       = support_wrap
+        self.support_fixed      = support_fixed
+        self.rd_enable          = rd_enable
+        self.wr_enable          = wr_enable
         self.support_reordering = support_reordering
-        self.awuser_width = awuser_width
-        self.wuser_width  = wuser_width
-        self.buser_width  = buser_width
-        self.aruser_width = aruser_width
-        self.ruser_width  = ruser_width
-        self.rd_id_width  = rd_id_width
-        self.wr_id_width  = wr_id_width
-        self.rd_ost       = rd_ost
-        self.wr_ost       = wr_ost
-        self.clk          = clk 
-        self.freq         = freq 
-        self.rst          = rst
-        self.hier         = hier
+        self.w_req_auser_width  = w_req_auser_width
+        self.wuser_width        = wuser_width
+        self.buser_width        = buser_width
+        self.r_req_auser_width  = r_req_auser_width
+        self.ruser_width        = ruser_width
+        self.rd_id_width        = rd_id_width
+        self.wr_id_width        = wr_id_width
+        self.rd_ost             = rd_ost
+        self.wr_ost             = wr_ost
+        self.clk                = clk 
+        self.freq               = freq 
+        self.rst                = rst
+        self.hier               = hier
         
         for key, value in kwargs.items():
             if not hasattr(self, key):
@@ -166,9 +213,9 @@ class SlvMatrixAttr(MatrixAttr):
     def __init__(self, name='', support_incr=None, 
                  support_wrap=None, support_fixed=None, 
                  rd_enable=True, wr_enable=True, 
-                 support_reordering=None, awuser_width=None, 
+                 support_reordering=None, w_req_auser_width=None, 
                  wuser_width=None, buser_width=None, 
-                 aruser_width=None, ruser_width=None, 
+                 r_req_auser_width=None, ruser_width=None, 
                  rd_id_width=None, wr_id_width=None, 
                  rd_ost=None, wr_ost=None, 
                  clk='clk', freq=1000, rst='rst_n', 
@@ -176,9 +223,9 @@ class SlvMatrixAttr(MatrixAttr):
         super().__init__(name, support_incr, 
                          support_wrap, support_fixed, 
                          rd_enable, wr_enable, 
-                         support_reordering, awuser_width, 
+                         support_reordering, w_req_auser_width, 
                          wuser_width, buser_width, 
-                         aruser_width, ruser_width, 
+                         r_req_auser_width, ruser_width, 
                          rd_id_width, wr_id_width, 
                          rd_ost, wr_ost, clk, freq, rst, hier, **kwargs)
 
@@ -187,9 +234,9 @@ class MstMatrixAttr(MatrixAttr):
     def __init__(self, name='', support_incr=None, 
                  support_wrap=None, support_fixed=None, 
                  rd_enable=True, wr_enable=True, 
-                 support_reordering=None, awuser_width=None, 
+                 support_reordering=None, w_req_auser_width=None, 
                  wuser_width=None, buser_width=None, 
-                 aruser_width=None, ruser_width=None, 
+                 r_req_auser_width=None, ruser_width=None, 
                  rd_id_width=None, wr_id_width=None, 
                  rd_ost=None, wr_ost=None, 
                  clk='clk', freq=1000, rst='rst_n', 
@@ -198,13 +245,14 @@ class MstMatrixAttr(MatrixAttr):
         super().__init__(name, support_incr, 
                          support_wrap, support_fixed, 
                          rd_enable, wr_enable, 
-                         support_reordering, awuser_width, 
+                         support_reordering, w_req_auser_width, 
                          wuser_width, buser_width, 
-                         aruser_width, ruser_width, 
+                         r_req_auser_width, ruser_width, 
                          rd_id_width, wr_id_width, 
                          rd_ost, wr_ost, clk, freq, rst, hier, **kwargs)
-        self.support_exclusive = support_exclusive
-        self.unique_id = unique_id
-        self.max_len   = max_len
-        self.min_size  = min_size
+        
+        self.support_exclusive  = support_exclusive
+        self.unique_id          = unique_id
+        self.max_len            = max_len
+        self.min_size           = min_size
         

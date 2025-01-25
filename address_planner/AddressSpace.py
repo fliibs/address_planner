@@ -213,19 +213,7 @@ class AddressSpace(AddressLogicRoot):
     #########################################################################################
     # output generate
     #########################################################################################
-    
-    def report_matrix(self, path=None):
-        if path != None:        self.path = path
-        json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
-        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
-        with open(self.matrix_path, 'w') as f:
-            f.write(jtext)
-            
-    def expand_list(self, sub_list):
-        return self.expand_list([item for elem in sub_list for item in (self.expand_list(elem) if isinstance(elem, list) else [elem])])
-            
-
+             
     # def report_html(self):
     #     text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
     #     os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
@@ -363,7 +351,6 @@ class AddressSpace(AddressLogicRoot):
     #########################################
     # tablelike support
     #########################################
-
     def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace
 
@@ -376,11 +363,46 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space, offset, name)
         return self
 
+    #########################################
+    # matrix cfg
+    #########################################
+    def generate_matrix_excel(self):
+        pass
 
-
-
-
-
+    def report_interconnect(self):
+        interconnect_dict = {}
+        interconnect_set = set()
+        for sub_matrix in self.matrix_list:
+            interconnect_set.update(sub_matrix.report_interconnect())
+            
+        interconnect_list = sorted(list(interconnect_set))
+        interconnect_dict['name'] = interconnect_list
+        for sub_matrix in self.matrix_list:
+            interconnect_dict[sub_matrix.module_name] = [True if slave in sub_matrix.report_interconnect() else False for slave in interconnect_list]
+        return interconnect_dict
+    
+    def report_master(self):
+        master_list = list()
+        for sub_matrix in self.matrix_list:
+            master_list.append(sub_matrix.report_master())
+        return master_list
+    
+    def report_slave(self):
+        merged_dict = {}
+        for lst in self.matrix_list:
+            for item in lst.report_slave():
+                merged_dict[item['name']] = item 
+        return list(merged_dict.values())
+    
+    
+    def report_matrix(self, path=None):
+        if path != None:        self.path = path
+        json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
+        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        with open(self.matrix_path, 'w') as f:
+            f.write(jtext)
+            
 
 
 
