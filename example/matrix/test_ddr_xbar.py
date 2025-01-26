@@ -13,4 +13,5 @@ ddr.add(ddr_sub_0,'dram 0', 0x0080000000)
 ddr.add(ddr_sub_1,'dram 1', 0x0880000000)
 ddr.add(ddr_sub_2,'dram 2', 0x8800000000)
 
-ddr.generate_matrix_excel('build')
+if __name__ == '__main__':
+    ddr.generate_matrix_excel('build')

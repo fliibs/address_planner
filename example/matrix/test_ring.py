@@ -47,5 +47,8 @@ ring_niu.add_matrix(npu, 'npu_0')
 ring_niu.add_matrix(npu, 'npu_1')
 ring_niu.add_matrix(npu, 'npu_2')
 ring_niu.add_matrix(mem_bus, 'mem_bus')
-ring_niu.generate_matrix_excel('build')
+
+
+if __name__ == '__main__':
+    ring_niu.generate_matrix_excel('build')
 

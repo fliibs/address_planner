@@ -154,6 +154,10 @@ class AddressSpace(AddressLogicRoot):
         matrix_copy.module_name = matrix_copy.module_name if name==None else name
         matrix_copy.attr        = matrix_copy.attr        if attr==None else attr
         self.matrix_list.append(matrix_copy)
+        
+    def update_matrix(self, sub_space, name):
+        for matrix in self.matrix_list:
+            matrix.update(sub_space, name)
 
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True

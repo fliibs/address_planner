@@ -57,6 +57,19 @@ class MatrixSpace(AddressSpace):
     def add_incr(self,sub_space,name,attr=None):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name,attr=attr)
         
+    
+    def update(self, sub_space,name):
+        for i, sub in enumerate(self.sub_space_list):
+            if name == sub.module_name:
+                sub_space_copy = deepcopy(sub_space)
+                self.sub_space_list[i] = sub_space_copy
+            else:
+                sub.update(sub_space,name)
+                # sub.sub_space_list = deepcopy(update_sub)
+        return
+                
+                
+        
         
     def report_master_matrix(self):
         master_list = deepcopy(master_content)
@@ -115,11 +128,11 @@ class MatrixSpace(AddressSpace):
         
     def report_slave(self):
         if self.father is None or not isinstance(self.father, MatrixSpace):
-            return self.expand_list([c.report_json_core() for c in self.sub_space_list])
+            return self.expand_list([c.report_slave() for c in self.sub_space_list])
         elif self.sub_space_list == []:
             return self.report_json_core()
         else:
-            json_list = [c.report_json_core() for c in self.sub_space_list]
+            json_list = [c.report_slave() for c in self.sub_space_list]
             return json_list
             
         

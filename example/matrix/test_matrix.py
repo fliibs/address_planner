@@ -22,14 +22,14 @@ ddr_sub_1  = MatrixSpace('dram 0', size=30*GB , bus_width=40, data_width=1024, s
 ddr_sub_2  = MatrixSpace('dram 0', size=32*GB , bus_width=40, data_width=1024, software_interface='AXI4')
 
 
-ddr.add(ddr_sub_0,'dram 0', ddr_attr, 0x0080000000)
-ddr.add(ddr_sub_1,'dram 1', ddr_attr, 0x0880000000)
-ddr.add(ddr_sub_2,'dram 2', ddr_attr, 0x8800000000)
+ddr.add(ddr_sub_0,'dram 0', 0x0080000000, ddr_attr)
+ddr.add(ddr_sub_1,'dram 1', 0x0880000000, ddr_attr)
+ddr.add(ddr_sub_2,'dram 2', 0x8800000000, ddr_attr)
 
-master_0.add(ddr, "ddr", ddr_attr)
-master_0.add(ocm, 'ocm 0', ocm_attr, 0x0011000000)
-master_0.add_incr(ocm, 'ocm 1', ocm_attr)
-master_0.add_incr(ocm, 'ocm 2', ocm_attr)
+master_0.add(ddr, "ddr", attr=ddr_attr)
+master_0.add(ocm, 'ocm 0', 0x0011000000, ocm_attr)
+master_0.add_incr(ocm, 'ocm 1', attr=ocm_attr)
+master_0.add_incr(ocm, 'ocm 2', attr=ocm_attr)
 
 master_1.add(ddr, "ddr", ddr_attr)
 
