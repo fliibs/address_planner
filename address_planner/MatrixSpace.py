@@ -41,7 +41,7 @@ class MatrixSpace(AddressSpace):
         self.attr = attr
 
 
-    def add(self,sub_space,name=None,attr=None, offset=None):
+    def add(self,sub_space,name=None, offset=None ,attr=None):
         sub_space_copy = deepcopy(sub_space)
         # sub_space_copy.offset = offset
         sub_space_copy.father = self
