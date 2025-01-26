@@ -4,12 +4,14 @@ from tkinter            import Tcl
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
 from .ralf_parser.ralf_parse import build_addrspace
+from .address_planner_rtl.MatrixCFG import *
 
 import os
 import builtins
 import json
 import shutil
 import re
+import openpyxl
 
 class AddressSpace(AddressLogicRoot):
 
@@ -146,10 +148,11 @@ class AddressSpace(AddressLogicRoot):
         reg_copy = build_addrspace(tcl_interpreter)
         self.add(reg_copy, offset, name)
 
-    def add_matrix(self, matrix, name=None):
+    def add_matrix(self, matrix, name=None, attr=None):
         matrix_copy = deepcopy(matrix)
         matrix_copy.father = self
         matrix_copy.module_name = matrix_copy.module_name if name==None else name
+        matrix_copy.attr        = matrix_copy.attr        if attr==None else attr
         self.matrix_list.append(matrix_copy)
 
     def collision_detect(self,space_A,space_B):
@@ -366,33 +369,66 @@ class AddressSpace(AddressLogicRoot):
     #########################################
     # matrix cfg
     #########################################
-    def generate_matrix_excel(self):
-        pass
+    def generate_matrix_excel(self, path=None):
+        if path != None:        self.path = path
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        wb = openpyxl.Workbook()
+        # master
+        ws_mst       = wb.active
+        ws_mst.title = "master"
+        headers0     = list(master_mapping.keys())
+        ws_mst.append(headers0)
+
+        for key, values in self.report_master().items():
+            ws_mst.append(values)
+            
+        # slave
+        ws_slv      = wb.create_sheet(title="slave")
+        headers1    = list(slave_mapping.keys())
+        ws_slv.append(headers1)
+            
+        for key, values in self.report_slave().items():
+            ws_slv.append(values)
+            
+        # interconnection    
+        ws2          = wb.create_sheet(title="interconnection")
+        mapping_dict = self.report_interconnect()
+        headers2     = ['name'] + list(mapping_dict['name'])
+        ws2.append(headers2)
+
+        for key in mapping_dict.keys():
+            if key == 'name':   continue
+            ws2.append(list([key] + mapping_dict[key]))
+
+        wb.save(self.matrix_path)
+
 
     def report_interconnect(self):
         interconnect_dict = {}
         interconnect_set = set()
         for sub_matrix in self.matrix_list:
-            interconnect_set.update(sub_matrix.report_interconnect())
+            for key, value in sub_matrix.report_interconnect().items():
+                interconnect_set.update(value)
             
         interconnect_list = sorted(list(interconnect_set))
         interconnect_dict['name'] = interconnect_list
         for sub_matrix in self.matrix_list:
-            interconnect_dict[sub_matrix.module_name] = [True if slave in sub_matrix.report_interconnect() else False for slave in interconnect_list]
+            interconnect_dict[sub_matrix.module_name] = [True if slave in list(sub_matrix.report_interconnect().values())[0] else False for slave in interconnect_list]
         return interconnect_dict
     
     def report_master(self):
-        master_list = list()
+        master_dict = dict()
         for sub_matrix in self.matrix_list:
-            master_list.append(sub_matrix.report_master())
-        return master_list
+            for key, value in sub_matrix.report_master_matrix().items():
+                master_dict[key] = value
+        return master_dict
     
     def report_slave(self):
         merged_dict = {}
         for lst in self.matrix_list:
-            for item in lst.report_slave():
-                merged_dict[item['name']] = item 
-        return list(merged_dict.values())
+            for key, value in lst.report_slave_matrix().items():
+                merged_dict[key] = value 
+        return merged_dict
     
     
     def report_matrix(self, path=None):
@@ -400,7 +436,7 @@ class AddressSpace(AddressLogicRoot):
         json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
         if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
-        with open(self.matrix_path, 'w') as f:
+        with open(os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.json'), 'w') as f:
             f.write(jtext)
             
 

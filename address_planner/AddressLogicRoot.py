@@ -117,7 +117,7 @@ class AddressLogicRoot(object):
     
     @property
     def matrix_path(self):
-        return os.path.join(self._json_dir, 'matrix.json')
+        return os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.xlsx')
 
     @property
     def html_name(self):
