@@ -209,53 +209,69 @@ class Register(RegSpace):
         data_list = [i.get_field_data_bit(module) for i in reversed(self.parity_field_list)]
         return data_list
 
-    def parity_hw_wena_list(self, module):
-        hw_wena_list = []
-        for field in self.parity_field_list:
-            sig_wena = field.hw.get_wenable(module)
-            if sig_wena != None and sig_wena not in hw_wena_list:
-                hw_wena_list.append(sig_wena)
-        return hw_wena_list
-    
-    def parity_hw_wena_data_list(self, module):
-        data_list = [i.get_hw_wena_wdata(module) for i in reversed(self.parity_field_list)]
+    def parity_wdata_list(self, module):
+        data_list = [i.get_wdata(module) for i in reversed(self.parity_field_list)]
         return data_list
+            
+    def parity_ena_list(self, module):
+        ena_list = []
+        field_last = None
+        for field in self.parity_field_list:
+            if field_last == field.full_field_name: continue
+            else:
+                field_last = field.full_field_name
+                field.get_ena(module)
+                for ena in field.mux_dict.values():
+                    if ena != None and ena[0] not in ena_list:
+                        ena_list.append(ena[0])
+        return ena_list
+    # def parity_hw_wena_list(self, module):
+    #     hw_wena_list = []
+    #     for field in self.parity_field_list:
+    #         sig_wena = field.hw.get_wenable(module)
+    #         if sig_wena != None and sig_wena not in hw_wena_list:
+    #             hw_wena_list.append(sig_wena)
+    #     return hw_wena_list
+    
+    # def parity_hw_wena_data_list(self, module):
+    #     data_list = [i.get_hw_wena_wdata(module) for i in reversed(self.parity_field_list)]
+    #     return data_list
 
-    def parity_hw_rena_list(self, module):
-        hw_rena_list = []
-        for field in self.parity_field_list:
-            sig_rena = field.hw.get_renable(module)
-            if sig_rena != None and sig_rena not in hw_rena_list:
-                hw_rena_list.append(sig_rena)
-        return hw_rena_list
+    # def parity_hw_rena_list(self, module):
+    #     hw_rena_list = []
+    #     for field in self.parity_field_list:
+    #         sig_rena = field.hw.get_renable(module)
+    #         if sig_rena != None and sig_rena not in hw_rena_list:
+    #             hw_rena_list.append(sig_rena)
+    #     return hw_rena_list
     
-    def parity_hw_rena_data_list(self, module):
-        data_list = [ i.get_hw_rena_wdata(module) for i in reversed(self.parity_field_list)]
-        return data_list
+    # def parity_hw_rena_data_list(self, module):
+    #     data_list = [ i.get_hw_rena_wdata(module) for i in reversed(self.parity_field_list)]
+    #     return data_list
     
-    def parity_sw_wena_list(self, module):
-        sw_wena_list = []
-        for field in self.parity_field_list:
-            sig_wena = field.sw.get_wenable(module)
-            if sig_wena != None and sig_wena not in sw_wena_list:
-                sw_wena_list.append(sig_wena)
-        return sw_wena_list
+    # def parity_sw_wena_list(self, module):
+    #     sw_wena_list = []
+    #     for field in self.parity_field_list:
+    #         sig_wena = field.sw.get_wenable(module)
+    #         if sig_wena != None and sig_wena not in sw_wena_list:
+    #             sw_wena_list.append(sig_wena)
+    #     return sw_wena_list
     
-    def parity_sw_wena_data_list(self, module):
-        data_list = [ i.get_sw_wena_wdata(module) for i in reversed(self.parity_field_list)]
-        return data_list
+    # def parity_sw_wena_data_list(self, module):
+    #     data_list = [ i.get_sw_wena_wdata(module) for i in reversed(self.parity_field_list)]
+    #     return data_list
     
-    def parity_sw_rena_list(self, module):
-        sw_rena_list = []
-        for field in self.parity_field_list:
-            sig_rena = field.sw.get_renable(module)
-            if sig_rena != None and sig_rena not in sw_rena_list:
-                sw_rena_list.append(sig_rena)
-        return sw_rena_list
+    # def parity_sw_rena_list(self, module):
+    #     sw_rena_list = []
+    #     for field in self.parity_field_list:
+    #         sig_rena = field.sw.get_renable(module)
+    #         if sig_rena != None and sig_rena not in sw_rena_list:
+    #             sw_rena_list.append(sig_rena)
+    #     return sw_rena_list
 
-    def parity_sw_rena_data_list(self, module):
-        data_list = [ i.get_sw_rena_wdata(module) for i in reversed(self.parity_field_list)]
-        return data_list
+    # def parity_sw_rena_data_list(self, module):
+    #     data_list = [ i.get_sw_rena_wdata(module) for i in reversed(self.parity_field_list)]
+    #     return data_list
 
     #########################################################################################
     # output generate

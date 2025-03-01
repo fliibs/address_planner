@@ -7,6 +7,12 @@ class ParityFieldRoot(object):
         self.field_name = field_name 
         self.is_external = is_external
         self.init_value  = init_value
+        self.mux_dict    = {
+            'hw_wena': None,
+            'hw_rena': None,
+            'sw_wena': None,
+            'sw_rena': None
+        }
 
     @property
     def full_field_name(self):
@@ -46,7 +52,6 @@ class ParityFieldRoot(object):
             return res_sig
         else:
             return getattr(module, f'{sig_name}_parity')
-        
 
     def get_rmux(self, module, sig_name='', sig=None):
         if not hasattr(module, f'{sig_name}_parity'):
@@ -147,29 +152,44 @@ class ParityField(ParityFieldRoot):
         else:
             return self.get_field_data(module)
 
-    def get_hw_wena_wdata(self, module):
-        if not isinstance(self.hw.get_wena_wdata(module), UInt):
-            return self.hw.get_wena_wdata(module)[self.index]
+    def get_ena(self, module):
+        self.hw.get_wena_wdata(module)
+        self.hw.get_rena_wdata(module)
+        self.sw.get_wena_wdata(module)
+        self.sw.get_rena_wdata(module)
+        self.mux_dict['hw_wena'] = self.hw.mux_dict['hw_wena']
+        self.mux_dict['hw_rena'] = self.hw.mux_dict['hw_rena']
+        self.mux_dict['sw_wena'] = self.sw.mux_dict['sw_wena']
+        self.mux_dict['sw_rena'] = self.sw.mux_dict['sw_rena']
+        
+    def get_wdata(self, module):
+        self.hw.get_wena_wdata(module)
+        self.hw.get_rena_wdata(module)
+        self.sw.get_wena_wdata(module)
+        self.sw.get_rena_wdata(module)
+        self.mux_dict['hw_wena'] = self.hw.mux_dict['hw_wena']
+        self.mux_dict['hw_rena'] = self.hw.mux_dict['hw_rena']
+        self.mux_dict['sw_wena'] = self.sw.mux_dict['sw_wena']
+        self.mux_dict['sw_rena'] = self.sw.mux_dict['sw_rena']
+        
+        if all(value is None for value in self.mux_dict.values()):
+            if not isinstance(self.get_field_data(module), UInt): # rdat
+                return self.get_field_data(module)[self.index]
+            else: # UINT
+                return self.get_field_data(module)
+        
+        if not hasattr(module, f'{self.field_name_until_reg}_parity_ena_wdata'):
+            res_sig  = module.set(f'{self.field_name_until_reg}_parity', Wire(UInt(getattr(module, self.full_field_name).attribute.width)))
+            sig_mux  = EmptyWhen()
+            for ena, val in self.mux_dict.items():
+                if val != None:     sig_mux.when(val[0]).then(val[1])
+            sig_mux.otherwise(self.get_field_data(module))
+            res_sig += sig_mux
         else:
-            return self.hw.get_wena_wdata(module)
-
-    def get_hw_rena_wdata(self, module):
-        if not isinstance(self.hw.get_rena_wdata(module), UInt):
-            return self.hw.get_rena_wdata(module)[self.index]
-        else:
-            return self.hw.get_rena_wdata(module)
-    
-    def get_sw_wena_wdata(self, module):
-        if not isinstance(self.sw.get_wena_wdata(module), UInt):
-            return self.sw.get_wena_wdata(module)[self.index]
-        else:
-            return self.sw.get_wena_wdata(module)
-
-    def get_sw_rena_wdata(self, module):
-        if not isinstance(self.sw.get_rena_wdata(module), UInt):
-            return self.sw.get_rena_wdata(module)[self.index]
-        else:
-            return self.sw.get_rena_wdata(module)
+            res_sig =  getattr(module, f'{self.field_name_until_reg}_parity_ena_wdata')
+            
+        return res_sig[self.index]
+     
 
 
 class ParitySwFieldRoot(ParityFieldRoot):
@@ -224,6 +244,18 @@ class ParitySwFieldRoot(ParityFieldRoot):
     def get_rena_wdata(self, module):
         return self.get_field_data(module)
     
+    def get_wmux(self, module, sig_name='', sig=None):
+        sig_ena  = self.get_wenable(module)
+        sig_val  = getattr(module, self.wsig_name) if sig==None else sig
+        self.mux_dict['sw_wena'] = [sig_ena, sig_val]
+        return None
+    
+    def get_rmux(self, module, sig_name='', sig=None):
+        sig_ena  = self.get_renable(module)
+        sig_val  = getattr(module, self.rsig_name) if sig==None else sig
+        self.mux_dict['sw_rena'] = [sig_ena, sig_val]
+        return None
+        
 
 class ParityHwFieldRoot(ParityFieldRoot):
     def __init__(self, reg_name, field_name, sel_read, sel_write, init_value):
@@ -276,6 +308,18 @@ class ParityHwFieldRoot(ParityFieldRoot):
     
     def get_rena_wdata(self, module):
         return self.get_field_data(module)
+    
+    def get_wmux(self, module, sig_name='', sig=None):
+        sig_ena  = self.get_wenable(module)
+        sig_val  = getattr(module, self.wsig_name) if sig==None else sig
+        self.mux_dict['hw_wena'] = [sig_ena, sig_val]
+        return None
+    
+    def get_rmux(self, module, sig_name='', sig=None):
+        sig_ena  = self.get_renable(module)
+        sig_val  = getattr(module, self.rsig_name) if sig==None else sig
+        self.mux_dict['hw_rena'] = [sig_ena, sig_val]
+        return None
     
 
 ###############################################################
@@ -832,25 +876,14 @@ class ParitySwRAWStatus(ParitySwFieldRoot):
             return None
 
     def get_wena_wdata(self, module):
-        if not hasattr(module, f'{self.wsig_name}_parity'):
-            res_sig  = module.set(f'{self.wsig_name}_parity', Wire(getattr(module, self.full_field_name).attribute))
-            sig_mux  = EmptyWhen()
+        # for set field
+        set_sig      = getattr(module, self.field_set_name)
+        set_sig_val  = BitOr(getattr(module, self.full_field_name), set_sig)
+        self.mux_dict['sw_wena'] = [SelfOr(set_sig), set_sig_val]
 
-            # for set field
-            set_sig      = getattr(module, self.field_set_name)
-            set_sig_val  = BitOr(getattr(module, self.full_field_name), set_sig)
-            print(set_sig_val, SelfOr(set_sig))
-            sig_mux.when(SelfOr(set_sig)).then(set_sig_val)
-
-            # for clear field
-            clear_sig      = getattr(module, self.field_clear_name)
-            clear_sig_val  = BitAnd(getattr(module, self.full_field_name), Inverse(clear_sig))
-            sig_mux.when(SelfOr(clear_sig)).then(clear_sig_val)
-
-            sig_mux.otherwise(self.get_field_data(module))
-            res_sig += sig_mux
-            return res_sig
-        else:
-            return getattr(module, f'{self.wsig_name}_parity')
-
+        # for clear field
+        clear_sig      = getattr(module, self.field_clear_name)
+        clear_sig_val  = BitAnd(getattr(module, self.full_field_name), Inverse(clear_sig))
+        self.mux_dict['sw_rena'] = [SelfOr(clear_sig), clear_sig_val]
+        return None
 

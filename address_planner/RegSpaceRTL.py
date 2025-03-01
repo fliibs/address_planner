@@ -278,6 +278,23 @@ class Regbank(Component):
                             reg_val.when(BitAnd(field_hw_wena, Inverse(hw_flag))).then(field_hw_wdat)
                         else:
                             reg_val.when(field_hw_wena).then(field_hw_wdat)
+                            
+                    if field.hw_readable:
+                        field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
+                        
+                        if field.hw_read_clean:
+                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
+                            reg_val.when(field_hw_rena).then(UInt(field.bit,0))
+                        elif field.hw_read_set:
+                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
+                            reg_val.when(field_hw_rena).then(UInt(field.bit,2**(field.bit)-1))
+                        
+                        if sub_space.reg_type==IntrMask:
+                            field_hw_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_{field.module_name}'), getattr(self,f'{sub_space.module_name}_enable_{field.module_name}'), Inverse(getattr(self,f'{sub_space.module_name}_mask_{field.module_name}')))
+                        elif sub_space.reg_type==Intr:
+                            field_hw_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_{field.module_name}'), getattr(self,f'{sub_space.module_name}_enable_{field.module_name}'))
+                        else:
+                            field_hw_rdat += field_reg
 
                     if field.sw_writeable:
                         lock_intf_list = []
@@ -329,24 +346,6 @@ class Regbank(Component):
                         else:
                             reg_val.when(field_write_enable).then(field_wdat)
 
-                    if field.hw_readable:
-                        field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
-                        
-                        if field.hw_read_clean:
-                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
-                            reg_val.when(field_hw_rena).then(UInt(field.bit,0))
-                        elif field.hw_read_set:
-                            field_hw_rena = self.set("%s_rena" % field_name , Input(UInt(1)))
-                            reg_val.when(field_hw_rena).then(UInt(field.bit,2**(field.bit)-1))
-                        
-                        if sub_space.reg_type==IntrMask:
-                            field_hw_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_{field.module_name}'), getattr(self,f'{sub_space.module_name}_enable_{field.module_name}'), Inverse(getattr(self,f'{sub_space.module_name}_mask_{field.module_name}')))
-                        elif sub_space.reg_type==Intr:
-                            field_hw_rdat += BitAnd(getattr(self,f'{sub_space.module_name}_raw_status_{field.module_name}'), getattr(self,f'{sub_space.module_name}_enable_{field.module_name}'))
-                        else:
-                            field_hw_rdat += field_reg
-                          
-                        
                     if field.sw_readable:
                         if field.sw_read_clean:     reg_val.when(reg_rvld).then(UInt(field.bit,0))
                         elif field.sw_read_set:     reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))   
@@ -390,20 +389,20 @@ class Regbank(Component):
                 # generate parity update always block
                 parity_when = EmptyWhen()
 
-                for sig in ['hw_wena', 'hw_rena', 'sw_wena', 'sw_rena']:
-                    parity_list = getattr(sub_space, f'parity_{sig}_list')(self)
-                    data_list   = getattr(sub_space, f'parity_{sig}_data_list')(self)
-                    if parity_list!=[]:
-                        ena  = self.set(f"{sub_space.module_name}_parity_{sig}", Wire(UInt(1)))
-                        data = self.set(f"{sub_space.module_name}_parity_{sig}_wdata", Wire(UInt(self._cfg.data_width)))
-                        parity_update = self.set(f"{sub_space.module_name}_parity_{sig}_update", Wire(UInt(int(self._cfg.data_width/8))))
+                # for sig in ['hw_wena', 'hw_rena', 'sw_wena', 'sw_rena']:
+                parity_list = getattr(sub_space, f'parity_ena_list')(self)
+                data_list   = getattr(sub_space, f'parity_wdata_list')(self)
+                if parity_list!=[]:
+                    ena  = self.set(f"{sub_space.module_name}_parity_ena", Wire(UInt(1)))
+                    data = self.set(f"{sub_space.module_name}_parity_wdata", Wire(UInt(self._cfg.data_width)))
+                    parity_update = self.set(f"{sub_space.module_name}_parity_update", Wire(UInt(int(self._cfg.data_width/8))))
 
-                        ena           += Or(*parity_list)
-                        data          += Combine(*data_list)
-                        update_list   = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
-                        update_list.reverse()
-                        parity_update += Combine(*update_list)
-                        parity_when.when(ena).then(parity_update) 
+                    ena           += Or(*parity_list)
+                    data          += Combine(*data_list)
+                    update_list   = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
+                    update_list.reverse()
+                    parity_update += Combine(*update_list)
+                    parity_when.when(ena).then(parity_update) 
 
                 if parity_when._attribute != None:      
                     parity_bit = self.set(f"{sub_space.module_name}_parity_bit", Reg(UInt(int(self._cfg.data_width/8), sub_space.parity_init_value), self.clk, rst))
