@@ -3,7 +3,7 @@ sys.path.append('.')
 from address_planner import *
 
 
-reg_bank_B = RegSpace(name='regbank',size=8*KB,description='magic number and lock bit test',bus_width=16,software_interface='apb')
+reg_bank_B = RegSpace(name='regbank',size=8*KB,description='magic number and lock bit test',bus_width=16,software_interface='apb4')
 
 reg_locker      = Register(name="reg_locker", bit=32)
 reg_locker.add(LockField('field_lock_test', bit=1), offset=2)
@@ -11,7 +11,7 @@ reg_locker.add(LockField('field_lock_test_2', bit=1), offset=3)
 
 reg_magics      = Register(name="reg_magics", bit=32)
 reg_magics.add_magic(name='field_magic',password=0xff, lock_list=['reg_locker.field_lock_test'])
-reg_magics_2      = Register(name="reg_magics_2", bit=32)
+reg_magics_2    = Register(name="reg_magics_2", bit=32)
 reg_magics_2.add_magic(name='field_magic',password=0xff, lock_list=['reg_locker.field_lock_test'])
 
 reg_locked      = Register(name="reg_locked", bit=32)

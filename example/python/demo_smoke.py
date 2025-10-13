@@ -23,32 +23,6 @@ from address_planner import *
 #
 #   ip_A contains mem_A0 and mem_A1
 ###################################################
-
-
-# declare ip_A with 4KB space.
-ip_A = AddressSpace(name='ip_A',size=4*KB,description='ip_A,contains mem_A0 and mem_A1.')  
-
-# declare type mem_A with 1KB space
-mem_A = AddressSpace(name='mem_A',size=1*KB,description='mem_A,size 1KB.')
-
-# add mem_A0 and mem_A1(inst from mem_A) to ip_A
-ip_A.add(mem_A,name='mem_A0',offset=0*KB)
-ip_A.add(mem_A,name='mem_A1',offset=2*KB)
-
-
-
-###################################################
-# Define ip_B
-#
-#   ip_B contains a mem and a reg space
-###################################################
-
-# declare ip_B with 4KB space.
-ip_B = AddressSpace(name='ip_B',size=4*KB,description='ip_B,contains mem_B and reg_bank_B.')  
-
-# declare mem_B with 2KB space
-mem_B = AddressSpace(name='mem_B',size=2*KB,description='mem_B,size 2KB.')
-
 # declare reg bank for ip_B
 reg_bank_B = RegSpace(name='reg_bank_B',size=1*KB,description='reg_bank_B,contain many regs.')
 
@@ -66,8 +40,37 @@ reg_B.add_incr(Field(name='field5',bit=1,sw_access=ReadWrite,hw_access=ReadWrite
 reg_bank_B.add_incr(reg_B,'reg0')
 reg_bank_B.add_incr(reg_B,'reg1')
 
+
+# declare ip_A with 4KB space.
+ip_A = AddressSpace(name='ip_A',size=4*KB,description='ip_A,contains mem_A0 and mem_A1.')  
+
+# declare type mem_A with 1KB space
+mem_A = AddressSpace(name='mem_A',size=1*KB,description='mem_A,size 1KB.')
+
+# add mem_A0 and mem_A1(inst from mem_A) to ip_A
+ip_A.add(mem_A,name='mem_A0',offset=0*KB)
+ip_A.add(mem_A,name='mem_A1',offset=2*KB)
+ip_A.add(reg_bank_B,name='reg',offset=3*KB)
+
+
+
+
+###################################################
+# Define ip_B
+#
+#   ip_B contains a mem and a reg space
+###################################################
+
+# declare ip_B with 4KB space.
+ip_B = AddressSpace(name='ip_B',size=4*KB,description='ip_B,contains mem_B and reg_bank_B.')  
+
+# declare mem_B with 2KB space
+mem_B = AddressSpace(name='mem_B',size=2*KB,description='mem_B,size 2KB.')
+
+
 ip_B.add(mem_B,name='mem',offset=0*KB)
 ip_B.add(reg_bank_B,name='reg',offset=2*KB)
+ip_B.add(reg_bank_B,name='reg_1',offset=3*KB)
 
 ###################################################
 # Define ip_C
@@ -86,10 +89,11 @@ ip_C = AddressSpace(name='ip_C',size=8*KB,description='ip_C,only a space of 8KB.
 ###################################################
 
 # declare sys0 with 3MB space.
-sys0 = AddressSpace(name='sys0',size=3*MB,description='sys0.')
+sys0 = AddressSpace(name='sys0',size=4*MB,description='sys0.')
 sys0.add(ip_A,name='ip_A',offset=0*MB)
 sys0.add(ip_B,name='ip_B',offset=1*MB)
 sys0.add(ip_C,name='ip_C',offset=2*MB)
+sys0.add(ip_C,name='ip_D',offset=3*MB)
 
 
 ###################################################
@@ -107,9 +111,10 @@ sys1 = AddressSpace(name='sys1',size=1*MB,description='sys1.')
 #   cotains sys0 and sys1
 ###################################################
 
-top = AddressSpace(name='top',size=4*MB,description='demo top.')
-top.add_incr(sys0,name='sys0')
-top.add_incr(sys1,name='sys1')
+top = AddressSpace(name='top',size=10*MB,description='demo top.')
+top.add(sys0,name='sys0',offset=0)
+top.add(sys1,name='sys1',offset=5*MB)
+top.add(sys0,name='sys3',offset=6*MB)
 
 
 top.generate('build/example')

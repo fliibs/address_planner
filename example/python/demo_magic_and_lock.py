@@ -60,5 +60,6 @@ lock_reg_1.add(LockField('lock_field_1', bit=1,description='lock field 1'), offs
 reg_bank_B.add(lock_reg_1, offset=0x8c)
 
 reg_bank_B.generate('build')
+# reg_bank_B.check('build')
 
 

@@ -11,6 +11,7 @@ class RegSpace(AddressSpace):
     def __init__(self,name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
         super().__init__(name=name,size=size,description=description,path=path)
         self.bus_width = bus_width
+        self.data_width = APG_BUS_WIDTH
         #self._name_prefix = 'reg'
         self.software_interface = software_interface
         self.rtl_path = ''
@@ -19,7 +20,7 @@ class RegSpace(AddressSpace):
         return self.module_name
 
     def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
-        bit_offset = offset*8
+        bit_offset     = offset*8
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
@@ -35,13 +36,17 @@ class RegSpace(AddressSpace):
             if member not in sub_space_copy.magic_list:
                 sub_space_copy.magic_list.append(member)
 
-        if not self.inclusion_detect(sub_space_copy):
-            raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
+        # if not self.reg_bit_detect(sub_space_copy):
+            # raise Exception('%s register size is not integer multiple of 32.'% sub_space_copy.module_name)
+        if not Options.MultiPortOption:
+            if not self.inclusion_detect(sub_space_copy):
+                raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
-        for exist_space in self.sub_space_list:
-            if self.collision_detect(exist_space,sub_space_copy):
-                raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
-                    % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+            for exist_space in self.sub_space_list:
+                if self.collision_detect(exist_space,sub_space_copy):
+                    raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
+                        % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+
         self.sub_space_list.append(sub_space_copy)
         
         self._next_offset = bit_offset + sub_space.bit
@@ -50,6 +55,50 @@ class RegSpace(AddressSpace):
     def add_incr(self,sub_space,name=None,lock_list=[],magic_list=[]):
         self.add(sub_space=sub_space,offset=int(self._next_offset/8),name=name,lock_list=lock_list,magic_list=magic_list)
 
+
+    def add_intr(self,sub_space,offset,name=None):
+        from .Reg import Register
+        if not self.intr_detect(sub_space):
+            raise Exception('Intr err')
+        
+        reg_raw_status  = Register(name=f'{sub_space.module_name}_raw_status',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=IntrStatus,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_intr        = Register(name=f'{sub_space.module_name}',bit=32,description=f'interrupt raw status register {sub_space.description}',reg_type=sub_space.reg_type,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_enable      = Register(name=f'{sub_space.module_name}_enable',bit=32,description=f'interrupt enable register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_clear       = Register(name=f'{sub_space.module_name}_clear',bit=32,description=f'interrupt clear register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        reg_set         = Register(name=f'{sub_space.module_name}_set',bit=32,description=f'interrupt set register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
+        if sub_space.reg_type==IntrMask:
+            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal)
+        
+        for field in sub_space.field_list:
+            if isinstance(field, IntrStatusField):                                      reg_raw_status.add(field, field.bit_offset)
+            elif isinstance(field, IntrField):                                          reg_intr.add(field, field.bit_offset-32)
+            elif isinstance(field, IntrEnableField):                                    reg_enable.add(field, field.bit_offset-64)
+            elif isinstance(field, IntrClearField):                                     reg_clear.add(field, field.bit_offset-96)
+            elif isinstance(field, IntrSetField):                                       reg_set.add(field, field.bit_offset-128)
+            elif sub_space.reg_type==IntrMask and isinstance(field, IntrMaskField):     reg_mask.add(field, field.bit_offset-160) 
+            else:                                                                       raise Exception('Error field!')
+            
+        name_raw_status = None if name==None else f'{name}_raw_status'
+        name_intr       = None if name==None else f'{name}'
+        name_enable     = None if name==None else f'{name}_enable'
+        name_clear      = None if name==None else f'{name}_clear'
+        name_set        = None if name==None else f'{name}_set'
+        self.add(sub_space=reg_enable, offset=offset, name=name_enable)
+        if sub_space.reg_type==IntrMask:
+            name_mask       = None if name==None else f'{name}_mask'
+            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear)
+            self.add(sub_space=reg_set, offset=offset+8, name=name_set)
+            self.add(sub_space=reg_mask, offset=offset+12, name=name_mask)
+            self.add(sub_space=reg_raw_status, offset=offset+16, name=name_raw_status)
+            self.add(sub_space=reg_intr, offset=offset+20, name=name_intr)
+        elif sub_space.reg_type==Intr:
+            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear)
+            self.add(sub_space=reg_set, offset=offset+8, name=name_set)
+            self.add(sub_space=reg_raw_status, offset=offset+12, name=name_raw_status)
+            self.add(sub_space=reg_intr, offset=offset+16, name=name_intr)
+        else:
+            raise Exception("interrupt register reg type error")
+        
     
 
 
@@ -71,8 +120,6 @@ class RegSpace(AddressSpace):
         os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
         with open(self.chead_path,'w') as f:
             f.write(text)
-        for ss in self.sub_space_list:
-            chead_name_list += ss.report_chead_core()
         return chead_name_list
 
     def report_vhead_core(self):
@@ -81,9 +128,37 @@ class RegSpace(AddressSpace):
         os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
         with open(self.vhead_path,'w') as f:
             f.write(text)
-        for ss in self.sub_space_list:
-            vhead_name_list += ss.report_vhead_core()
         return vhead_name_list
+    
+    def report_chead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
+            file = open(self.chead_global_path,'w')
+        if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
+            text = self.report_from_template(APG_CHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        elif not self.detect_reg(self.sub_space_list):
+            for ss in self.filled_sub_space_list:
+                ss.report_chead_global_core(file)
+    
+    def report_vhead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            file = open(self.vhead_global_path,'w')
+        if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
+            text = self.report_from_template(APG_VHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        elif not self.detect_reg(self.sub_space_list):
+            for ss in self.sub_space_list:
+                ss.report_vhead_global_core(file)
+
+    def detect_reg(self, sub_space_list):
+        from .Reg import Register
+        for sub_space in sub_space_list:
+            if isinstance(sub_space, Register):
+                return True 
+        return False
+            
 
     # report and check ralf ==============================================
     def report_ralf(self):
@@ -102,10 +177,11 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
-    def generate(self, path=None, report_dv=False):
+    def generate(self, path=None, report_dv=False, check=False):
         super().generate(path)
         self.report_rtl()
         if report_dv: self.report_dv()
+        if check:     self.check()
 
 
     def check(self, path=None):
@@ -191,7 +267,7 @@ class RegSpace(AddressSpace):
         print("\n################################################################################")
         print("[Check Ralf] Check ralf file: %s"% output_file)
         print("################################################################################\n")
-        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file}'
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file} > ralgen_output.log'
 
         # if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
         if os.system(command)==0: os.system(f'mv ral_{self.module_name}.sv {output_path}')

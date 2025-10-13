@@ -1,17 +1,21 @@
 from copy               import deepcopy
 from functools          import reduce
+from tkinter            import Tcl
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
+from .ralf_parser.ralf_parse import build_addrspace
+from .address_planner_rtl.MatrixCFG import *
 
 import os
 import builtins
 import json
 import shutil
 import re
+import openpyxl
 
 class AddressSpace(AddressLogicRoot):
 
-    def __init__(self,name,size,description='',path='./'):
+    def __init__(self,name,size=None,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
         self.size           = size
         self.sub_space_list = []
@@ -25,6 +29,7 @@ class AddressSpace(AddressLogicRoot):
         #self.description    = description
         #self.path           = path
         #self.father         = None
+        self.matrix_list    = []
 
 
 
@@ -35,6 +40,10 @@ class AddressSpace(AddressLogicRoot):
     @property
     def bit_size(self):
         return self.size*8
+
+    @property
+    def global_size(self):
+        return self.size*8 if self.father is None else self.father.bit_size
 
     @property
     def global_offset(self):
@@ -63,29 +72,92 @@ class AddressSpace(AddressLogicRoot):
             return '\'h0'
         else:
             return '\'h'+hex_value.lstrip('0x')
+    
+    @property
+    def sorted_subspace_list(self):
+        return sorted(self.sub_space_list, key=lambda x: x.bit_offset)
+    
+    @property
+    def filled_sub_space_list(self):
+        from .RegSpace import RegSpace
+        reserve_idx = 0
+        res = []
+        previous_space = None
 
+        if self.sorted_subspace_list == []:
+            return []
 
+        if self.sorted_subspace_list[0].bit_offset != 0:
+            filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = self.sorted_subspace_list[0].offset)
+            filled_subspace.offset = 0
+            filled_subspace.father = self
+            res.append(filled_subspace)
+            reserve_idx += 1
 
-    def add(self,sub_space,offset,name):
+        for space in self.sorted_subspace_list:
+            if previous_space != None and space.start_address > previous_space.end_address + 1:
+                filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = int((space.start_address - previous_space.end_address - 1)/8))
+                filled_subspace.offset = int(previous_space.end_address/8) + 1
+                filled_subspace.father = self
+                res.append(filled_subspace)
+                reserve_idx += 1
+            res.append(space)
+            previous_space = space
+
+        if self.sorted_subspace_list[-1].end_address < self.bit_size - 1:
+            filled_subspace = RegSpace(name = f'Reserved_{reserve_idx}',size = int((self.bit_size - previous_space.end_address - 1)/8))
+            filled_subspace.offset = int(previous_space.end_address/8) + 1
+            filled_subspace.father = self
+            res.append(filled_subspace)
+        
+        return res
+        
+
+    def add(self,sub_space,offset,name=None):
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = offset
         sub_space_copy.father = self
-        sub_space_copy.module_name = name
-        if not self.inclusion_detect(sub_space_copy):
-            raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
+        # sub_space_copy.module_name = name
+        sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
+        if not Options.MultiPortOption:
+            if not self.inclusion_detect(sub_space_copy):
+                raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
 
-        for exist_space in self.sub_space_list:
-            if self.collision_detect(exist_space,sub_space_copy):
-                raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
-                    % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
+            for exist_space in self.sub_space_list:
+                if self.collision_detect(exist_space,sub_space_copy):
+                    raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
+                        % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
         self._next_offset = offset + sub_space.size
 
 
     def add_incr(self,sub_space,name):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
-        
 
+
+    def add_ralf(self,ralf_file,offset,name=None):
+        with open(ralf_file,'r') as f:
+            env_tcl_code = f.read()
+
+        env_tcl_code = env_tcl_code.replace("[","").replace("]","")
+        env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
+
+        tcl_interpreter = Tcl()
+        tcl_interpreter.eval("source address_planner/ralf_parser/ralf_parser.tcl")
+        tcl_interpreter.eval(env_tcl_code)
+        reg_copy = build_addrspace(tcl_interpreter)
+        self.add(reg_copy, offset, name)
+
+    def add_matrix(self, matrix, name=None, attr=None):
+        matrix_copy = deepcopy(matrix)
+        matrix_copy.father = self
+        matrix_copy.module_name = matrix_copy.module_name if name==None else name
+        matrix_copy.attr        = matrix_copy.attr        if attr==None else attr
+        self.matrix_list.append(matrix_copy)
+        
+    def update_matrix(self, sub_space, name):
+        for matrix in self.matrix_list:
+            matrix.update(sub_space, name)
 
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True
@@ -97,6 +169,10 @@ class AddressSpace(AddressLogicRoot):
     def inclusion_detect(self,other):
         return True if (self.start_address <= other.start_address) and (other.end_address <= self.end_address) else False
     
+    def intr_detect(self,space):
+        if space.reg_type==Intr and space.bit!=IntrBitWidth.IntrFull.value:             return False 
+        elif space.reg_type==IntrMask and space.bit!=IntrBitWidth.IntrFull.value:   return False
+        else:                                                                       return True
 
     def search_field(self, reg_name, field_name):
         for sub_space in self.sub_space_list:
@@ -129,11 +205,22 @@ class AddressSpace(AddressLogicRoot):
             raise Exception(f'field in magic list is not MagicNumber Type')
         
 
+    def hex_transform(self, value):
+        if not isinstance(value, str):
+            hex_value = hex(value)
+        if hex_value == '0x0':
+            return '\'h0'
+        else:
+            return '\'h'+hex_value.lstrip('0x')
+        
+    
+
+
 
     #########################################################################################
     # output generate
     #########################################################################################
-
+             
     # def report_html(self):
     #     text = self.report_from_template(APG_HTML_FILE_ADDR_SPACE)
     #     os.makedirs(os.path.dirname(self.html_path), exist_ok=True)
@@ -145,10 +232,12 @@ class AddressSpace(AddressLogicRoot):
 
     def report_chead(self):
         chead_name_list = self.report_chead_core()
+        chead_name_list += [self.chead_global_name]
+        self.report_chead_global_core()
+        chead_name_list = list(set(chead_name_list))
         with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
-    
 
     def report_chead_core(self):
         if self.sub_space_list == []:
@@ -162,11 +251,25 @@ class AddressSpace(AddressLogicRoot):
             for ss in self.sub_space_list:
                 chead_name_list += ss.report_chead_core()
             return chead_name_list
+        
+    def report_chead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.chead_global_path), exist_ok=True)
+            file = open(self.chead_global_path,'w')
+        if self.sub_space_list == []:
+            text = self.report_from_template(APG_CHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        else:
+            for ss in self.filled_sub_space_list:
+                ss.report_chead_global_core(file)
 
 
     # report v head.==============================================
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
+        vhead_name_list += [self.vhead_global_name]
+        self.report_vhead_global_core()
+        vhead_name_list = list(set(vhead_name_list))
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % os.path.join(self._vhead_dir, vhead_name))
@@ -184,6 +287,17 @@ class AddressSpace(AddressLogicRoot):
             for ss in self.sub_space_list:
                 vhead_name_list += ss.report_vhead_core()
             return vhead_name_list
+    
+    def report_vhead_global_core(self, file=None):
+        if self.father == None: 
+            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            file = open(self.vhead_global_path,'w')
+        if self.sub_space_list == []:
+            text = self.report_from_template(APG_VHEAD_GLB_FILE_REG_SPACE)
+            file.write(text)
+        else:
+            for ss in self.filled_sub_space_list:
+                ss.report_vhead_global_core(file)
         
 
     # report and check ralf ==============================================
@@ -191,7 +305,6 @@ class AddressSpace(AddressLogicRoot):
         output_path = self._ralf_dir+'/'
         self.recursive_report_ralf_core(output_path)
 
-    
     def recursive_report_ralf_core(self, output_dir):
         for ss in self.sub_space_list:
             if hasattr(ss,'report_ralf_core'):
@@ -199,7 +312,7 @@ class AddressSpace(AddressLogicRoot):
             else:
                 ss.recursive_report_ralf_core(output_dir)
 
-    
+
     # report and check json ==========================================
     def report_json(self):
         json_list= [self.report_json_core()]
@@ -208,18 +321,18 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
         
-    
 
     def report_json_core(self):
         json_dict={}
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "sys"
         json_dict["name"]       = self.module_name
-        json_dict["start_addr"] = ConvertSize(self.start_address, is_byte=True)
-        json_dict["end_addr"]   = ConvertSize(self.end_address+1, is_byte=True)
+        json_dict["start_addr"] = hex(int((self.global_start_address)/8))
+        json_dict["end_addr"]   = hex(int(self.global_end_address/8))
+        
         json_dict["size"]       = ConvertSize(self.size, is_byte=True)
         json_dict["description"]= self.description
-        json_dict["children"]   = [c.report_json_core() for c in self.sub_space_list]
+        json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
         return json_dict
     
 
@@ -229,6 +342,7 @@ class AddressSpace(AddressLogicRoot):
             self.path = path
         self.report_json()
         self.report_ralf()
+        # self.check_ralf()
         self.report_chead()
         self.report_vhead()
 
@@ -244,7 +358,6 @@ class AddressSpace(AddressLogicRoot):
     #########################################
     # tablelike support
     #########################################
-
     def regspace(self, name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb', offset=0):
         from .RegSpace import RegSpace
 
@@ -257,13 +370,79 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space, offset, name)
         return self
 
+    #########################################
+    # matrix cfg
+    #########################################
+    def generate_matrix_excel(self, path=None):
+        if path != None:        self.path = path
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        wb = openpyxl.Workbook()
+        # master
+        ws_mst       = wb.active
+        ws_mst.title = "master"
+        headers0     = list(master_mapping.keys())
+        ws_mst.append(headers0)
+
+        for key, values in self.report_master().items():
+            ws_mst.append(values)
+            
+        # slave
+        ws_slv      = wb.create_sheet(title="slave")
+        headers1    = list(slave_mapping.keys())
+        ws_slv.append(headers1)
+            
+        for key, values in self.report_slave().items():
+            ws_slv.append(values)
+            
+        # interconnection    
+        ws2          = wb.create_sheet(title="interconnection")
+        mapping_dict = self.report_interconnect()
+        headers2     = ['name'] + list(mapping_dict['name'])
+        ws2.append(headers2)
+
+        for key in mapping_dict.keys():
+            if key == 'name':   continue
+            ws2.append(list([key] + mapping_dict[key]))
+
+        wb.save(self.matrix_path)
 
 
-
-
-
-
-
+    def report_interconnect(self):
+        interconnect_dict = {}
+        interconnect_set = set()
+        for sub_matrix in self.matrix_list:
+            for key, value in sub_matrix.report_interconnect().items():
+                interconnect_set.update(value)
+            
+        interconnect_list = sorted(list(interconnect_set))
+        interconnect_dict['name'] = interconnect_list
+        for sub_matrix in self.matrix_list:
+            interconnect_dict[sub_matrix.module_name] = [True if slave in list(sub_matrix.report_interconnect().values())[0] else False for slave in interconnect_list]
+        return interconnect_dict
+    
+    def report_master(self):
+        master_dict = dict()
+        for sub_matrix in self.matrix_list:
+            for key, value in sub_matrix.report_master_matrix().items():
+                master_dict[key] = value
+        return master_dict
+    
+    def report_slave(self):
+        merged_dict = {}
+        for lst in self.matrix_list:
+            for key, value in lst.report_slave_matrix().items():
+                merged_dict[key] = value 
+        return merged_dict
+    
+    
+    def report_matrix(self, path=None):
+        if path != None:        self.path = path
+        json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
+        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        with open(os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.json'), 'w') as f:
+            f.write(jtext)
+            
 
 
 

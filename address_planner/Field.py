@@ -17,10 +17,13 @@ class FieldRoot(AddressLogicRoot):
         self.sw_access          = sw_access
         self.hw_access          = hw_access
         self.is_external        = False
-        self.bit_offset         = 0
-        self.init_value         = init_value     
+        self.bit_offset         = 0     
         self.lock_list          = []
 
+        if (sw_access==Null and hw_access==Null):     self.init_value = 0
+        elif sw_access in [Write1Pulse,Write0Pulse]:  self.init_value = 0
+        elif hw_access in [Write1Pulse,Write0Pulse]:  self.init_value = 0
+        else:                                         self.init_value = init_value
 
     @property
     def name(self):
@@ -39,6 +42,16 @@ class FieldRoot(AddressLogicRoot):
         bin_str = '0' * (self.father.bit - self.bit - self.bit_offset) + '1' * self.bit + '0' * self.bit_offset
         integer = int(bin_str,2)
         return hex(integer)
+    
+    @property
+    def mask_vh(self):
+        bin_str = '0' * (self.father.bit - self.bit - self.bit_offset) + '1' * self.bit + '0' * self.bit_offset
+        integer = int(bin_str,2)
+        hex_value = hex(integer)
+        if hex_value == '0x0':
+            return '\'h0'
+        else:
+            return '\'h'+hex_value.lstrip('0x')
 
     @property
     def hex_value(self):
@@ -50,7 +63,7 @@ class FieldRoot(AddressLogicRoot):
 
     @property
     def module_name_until_regbank(self):
-        return self.father.module_name_until_regbank + '_' + self.module_name
+        return self.father.init_name + '_' + self.name
     
     @property
     def get_lock_list(self):
@@ -73,9 +86,10 @@ class FieldRoot(AddressLogicRoot):
             raise Exception("detect write pulse field: %s, but it must be internal field"% self._name)
         if self.hw_access==Write1Pulse or self.hw_access==Write0Pulse:
             raise Exception("detect pulse on hardware access of field: %s, hardware has no pulse type"% self._name)
-        
+
     def lock_self_detect(self):
         pass
+
 
     ############## Software Type ###############
     @property
@@ -100,8 +114,9 @@ class FieldRoot(AddressLogicRoot):
                self.sw_access == Write0SetReadClean or \
                self.sw_access == Write1Toggle or \
                self.sw_access == Write0Toggle or \
-               self.sw_access == WriteOnce
-               
+               self.sw_access == WriteOnce or \
+               self.sw_access == Write1Pulse or \
+               self.sw_access == Write0Pulse
 
     @property
     def sw_writeable(self):
@@ -353,6 +368,7 @@ class FieldRoot(AddressLogicRoot):
         field_dict["External"]          = "%s" % self.is_external
         field_dict["Software Access"]   = self.sw_access.name
         field_dict["Hardware Access"]   = self.hw_access.name
+        field_dict["defaut_value"]      = self.init_value
         field_dict["description"]       = self.description
         return field_dict 
 
@@ -399,3 +415,34 @@ class MagicNumber(Field):
     def __init__(self, name='field_magic', bit=32, password=0, init_value=0, description=''):
         super().__init__(name, bit, ReadWrite, Null, init_value, description)
         self.password = password
+
+
+class IntrField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadOnly, ReadOnly, init_value, f'{name} interrupt field {description}')
+
+class IntrStatusField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadOnly, ReadWrite, init_value, f'{name} interrupt status field {description}')
+
+class IntrEnableField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, Null, init_value, f'{name} interrupt enable field {description}')
+
+class IntrMaskField(Field):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, ReadWrite, Null, init_value, f'{name} interrupt mask field {description}')
+
+class IntrClearField(FieldRoot):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write1Pulse, Null, init_value, f'{name} interrupt clear field {description}')
+        self.is_external = False
+
+class IntrSetField(FieldRoot):
+    def __init__(self, name, bit, init_value=0, description=''):
+        super().__init__(name, bit, Write1Pulse, Null, init_value, f'{name} interrupt Set field {description}')
+        self.is_external = False
+
+
+
+ 

@@ -7,10 +7,12 @@ APG_DATA_WIDTH = APG_BUS_WIDTH
 APG_ADDR_WIDTH = 32
 APG_HTML_FILE_ADDR_SPACE            = 'addr_space_html.j2'
 APG_HTML_FILE_REG_SPACE             = 'reg_space_html.j2'
-APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
+APG_VHEAD_FILE_ADDR_SPACE           = 'addr_space_vhead.j2'
+APG_VHEAD_GLB_FILE_REG_SPACE        = 'reg_space_global_vhead.j2'
 APG_VHEAD_FILE_REG_SPACE            = 'reg_space_vhead.j2'
 APG_CHEAD_FILE_ADDR_SPACE           = 'addr_space_chead.j2'
 APG_CHEAD_FILE_REG_SPACE            = 'reg_space_chead.j2'
+APG_CHEAD_GLB_FILE_REG_SPACE        = 'reg_space_global_chead.j2'
 APG_ADDR_RMODEL_FILE_REG_SPACE      = 'ral_model.j2'
 APG_ADDR_RMDEFINE_FILE_REG_SPACE    = 'addr_ral_model_define.j2'
 APG_ADDR_RMCSV_FILE_REG_SPACE       = 'addr_ral_model_csv.j2'
@@ -23,6 +25,10 @@ B  = 1
 KB = 1024 * B
 MB = 1024 * KB
 GB = 1024 * MB
+
+
+class Options:
+    MultiPortOption = False
 
 # @unique
 # class FieldSoftwareAccess(Enum):
@@ -117,15 +123,33 @@ Write1Pulse          = FieldAccess.Write1Pulse
 Write0Pulse          = FieldAccess.Write0Pulse
 
 
+def get_field_access_by_value(value):
+    for member in FieldAccess:
+        if member.value == value.upper():
+            return member
+
 @unique
 class RegType(Enum):
-    Normal = 'Normal'
-    Magic  = 'Magic'
-    Lock   = 'Lock'
+    Normal      = 'Normal'
+    Magic       = 'Magic'
+    Lock        = 'Lock'
+    Intr        = 'Interrupt without Mask'
+    IntrMask    = 'Interrupt with Mask'
+    IntrStatus  = 'Interrupt status register'
 
-Normal = RegType.Normal
-Magic  = RegType.Magic
-Lock   = RegType.Lock
+Normal      = RegType.Normal
+Magic       = RegType.Magic
+Lock        = RegType.Lock
+Intr        = RegType.Intr
+IntrMask    = RegType.IntrMask
+IntrStatus  = RegType.IntrStatus
+
+
+@unique
+class IntrBitWidth(Enum):
+    Intr     = 160
+    IntrMask = 192
+    IntrFull = 256
 
 
 key = 0
@@ -138,13 +162,13 @@ def ADD_KEY():
 def ConvertSize(size, is_byte=False):
     if is_byte: bit = 1
     else:       bit = 8
-        
-    if size/bit   > KB-1:
-        return "%.1fKB"% float(size / KB / bit)
+
+    if size/bit > GB-1:
+        return "%.1fGB"% float(size / GB / bit)
     elif size/bit > MB-1:
         return "%.1fMB"% float(size / MB / bit)
-    elif size/bit > GB-1:
-        return "%.1fGB"% float(size / GB / bit)
+    elif size/bit   > KB-1:
+        return "%.1fKB"% float(size / KB / bit)
     elif size/bit >=1:
         return "%dB"% int(size / bit)
     else:
@@ -202,13 +226,17 @@ def ADD_TO_GLOBAL_VALUES(**kwargs):
 #         print("[ImportError]", err)
 
 def import_inst(file_path, module_name='regBank'):
-    try:
-        spec = importlib.util.spec_from_file_location(module_name, file_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return getattr(module, module_name)
-    except ImportError as err:
-        print("[ImportError]", err)
+    file_path = get_full_path(file_path)
+    if '.py' in file_path:
+        try:
+            spec = importlib.util.spec_from_file_location(module_name, file_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return getattr(module, module_name)
+        except ImportError as err:
+            print("[ImportError]", err)
+    else:
+        return file_path
 
 def get_full_path(path):
     return os.path.expandvars(path)
