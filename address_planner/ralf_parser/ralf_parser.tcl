@@ -44,24 +44,74 @@ proc parse_proc_arguments {-args args results} {
     set options(is_def)     0
     set options(is_inst)    0
     
-    if {$options(num_args) == 3} {
-        if {![string match "@*" [lindex $args 1]]} {
-            error "Invalid second argument. Should start with '@', but get [lindex $args 1]."
+
+    if {$options(num_args) == 6} {
+        if {[string match "@*" [lindex $args 4]]} {
+            set options(is_def)     1
+            set options(def_code)   [lindex $args 5]
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 4]
+            set options(inst_num)   [lindex $args 3]
+            set options(name)       [lindex $args 2]
+        } else {
+            error "error for num_args 6."
         }
-        set options(is_def)     1
-        set options(def_code)   [lindex $args 2]
-        set options(is_inst)    1
-        set options(inst_addr)  [lindex $args 1]
+    } elseif {$options(num_args) == 5} {
+        if {[string match "@*" [lindex $args 4]]} {
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 4]
+            set options(inst_num)   [lindex $args 3]
+            set options(name)       [lindex $args 2]
+        } elseif {[string match "@*" [lindex $args 3]]} {
+            set options(is_def)     1
+            set options(def_code)   [lindex $args 4]
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 3]
+            set options(inst_num)   0
+            set options(name)       [lindex $args 2]
+        } else {
+            error "error for num_args 5."
+        }
+    } elseif {$options(num_args) == 4} {
+        if {[string match "@*" [lindex $args 2]]} {
+            set options(is_def)     1
+            set options(def_code)   [lindex $args 3]
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 2]
+            set options(inst_num)   [lindex $args 1]
+        } elseif {[string match "@*" [lindex $args 3]]} {
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 3]
+            set options(inst_num)   0
+            set options(name)       [lindex $args 2]
+        } else {
+            error "error for num_args 4."
+        }
+    } elseif {$options(num_args) == 3} {
+        if {[string match "@*" [lindex $args 1]]} {
+            set options(is_def)     1
+            set options(def_code)   [lindex $args 2]
+            set options(is_inst)    1
+            set options(inst_addr)  [lindex $args 1]
+            set options(inst_num)   0
+        } else {
+            set options(is_def)     1
+            set options(def_code)   [lindex $args 2]
+            set options(inst_num)   [lindex $args 1]
+        }
+        
     } elseif {$options(num_args) == 2} {
         if {[string match "@*" [lindex $args 1]]} {
             set options(is_inst)    1
             set options(inst_addr)  [lindex $args 1]
+            set options(inst_num)   0
         } else {
             set options(is_def)     1
             set options(def_code)   [lindex $args 1]
+            set options(inst_num)   0
         }
     } else {
-        error "Error arg number, Expected 2 or 3. "
+        error "Error arg number. "
     }
 }
 
@@ -142,6 +192,39 @@ proc register {args} {
         uplevel "dict set ADDR_DICT $param(name).register {$inst_dict}"
     }
     # puts "$param(name).register: $param(is_inst); $inst_dict"
+
+}
+
+proc regfile {args} {
+    parse_proc_arguments -args $args param
+
+    set FIELD_DICT [dict create]
+    set ADDR_DICT  [dict create]
+
+    if {$param(is_def)} {
+        eval $param(def_code)
+
+        # define data struct
+        set payload [dict create]
+        dict set payload name         "$param(name)"
+        dict set payload FIELD_DICT   "$FIELD_DICT"
+        dict set payload ADDR_DICT    "$ADDR_DICT"
+        dict set payload is_regfile   1
+
+        if { [info exists var_bytes] } {
+            dict set payload width    "$var_bytes"
+        } else {
+            dict set payload width    4
+        }
+        if { [info exists var_doc] } {
+            dict set payload doc "$var_doc" 
+        } else {
+            dict set payload doc "No Comments"
+        }
+
+        # define def_var in up level stack.
+        set_def "$param(name).regfile" $payload
+    }
 
 }
 
