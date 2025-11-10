@@ -3,7 +3,16 @@
 // Definition of reg {{ss.module_name.upper()}}
 //==========================================================
 #ifndef ADDR_{{ss.module_name.upper()}}
-
+{% if ss.bit > 32 %}
+    typedef union{
+        struct {
+            {% for field in ss.field_list -%}
+                uint64_t {{field.name}}: {{field.bit}};
+            {% endfor -%}
+    } bits;
+        uint64_t val;
+    } {{ss.module_name.upper()}};
+{% else %}
     typedef union{
         struct {
             {% for field in ss.field_list -%}
@@ -12,7 +21,7 @@
     } bits;
         uint32_t val;
     } {{ss.module_name.upper()}};
-
+{% endif %}
     #define {{ '%-40s' % '%s_SIZE' % ss.module_name.upper()}} {{builtins.hex(ss.size)}}
     #define {{ '%-40s' % '%s_OFFSET'  % ss.module_name.upper()}} {{builtins.hex((ss.offset/8)|int)}}
     #define {{ '%-40s' % '%s_RST_VAL' % ss.module_name.upper()}} {{builtins.hex((ss.init_value)|int)}}
