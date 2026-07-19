@@ -4,6 +4,7 @@ from tkinter            import Tcl
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
 from .ralf_parser.ralf_parse import build_addrspace,py_dict
+from .address_planner_rtl.MatrixCFG import *
 from .gen_doc.doc import *
 
 import os
@@ -11,15 +12,17 @@ import builtins
 import json
 import shutil
 import re
+import openpyxl
 
 class AddressSpace(AddressLogicRoot):
 
-    def __init__(self,name,size,description='',path='./'):
+    def __init__(self,name,size=None,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
         self.size           = size
         self.sub_space_list = []
         self.offset         = 0
         self._next_offset   = 0
+        self.matrix_list    = []
         #self.module_name    = name
         #self.module_name      = ''
         #self.name           = name
@@ -147,6 +150,17 @@ class AddressSpace(AddressLogicRoot):
         tcl_interpreter.eval(env_tcl_code)
         reg_copy = build_addrspace(tcl_interpreter)
         self.add(reg_copy, offset, name)
+
+    def add_matrix(self, matrix, name=None, attr=None):
+        matrix_copy = deepcopy(matrix)
+        matrix_copy.father = self
+        matrix_copy.module_name = matrix_copy.module_name if name is None else name
+        matrix_copy.attr = matrix_copy.attr if attr is None else attr
+        self.matrix_list.append(matrix_copy)
+
+    def update_matrix(self, sub_space, name):
+        for matrix in self.matrix_list:
+            matrix.update(sub_space, name)
 
     def hex_transform(self, value):
         if not isinstance(value, str):
@@ -415,16 +429,67 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space, offset, name)
         return self
 
+    #########################################
+    # matrix cfg
+    #########################################
+    def generate_matrix_excel(self, path=None):
+        if path is not None:
+            self.path = path
+        os.makedirs(self._json_dir, exist_ok=True)
 
+        workbook = openpyxl.Workbook()
+        master_sheet = workbook.active
+        master_sheet.title = "master"
+        master_sheet.append(list(master_mapping.keys()))
+        for values in self.report_master().values():
+            master_sheet.append(values)
 
+        slave_sheet = workbook.create_sheet(title="slave")
+        slave_sheet.append(list(slave_mapping.keys()))
+        for values in self.report_slave().values():
+            slave_sheet.append(values)
 
+        interconnect_sheet = workbook.create_sheet(title="interconnection")
+        mapping = self.report_interconnect()
+        interconnect_sheet.append(['name'] + list(mapping['name']))
+        for key, values in mapping.items():
+            if key != 'name':
+                interconnect_sheet.append([key] + list(values))
 
+        workbook.save(self.matrix_path)
 
+    def report_interconnect(self):
+        interconnect_set = set()
+        for sub_matrix in self.matrix_list:
+            for values in sub_matrix.report_interconnect().values():
+                interconnect_set.update(values)
 
+        interconnect_list = sorted(interconnect_set)
+        result = {'name': interconnect_list}
+        for sub_matrix in self.matrix_list:
+            slaves = list(sub_matrix.report_interconnect().values())[0]
+            result[sub_matrix.module_name] = [slave in slaves for slave in interconnect_list]
+        return result
 
+    def report_master(self):
+        result = {}
+        for sub_matrix in self.matrix_list:
+            result.update(sub_matrix.report_master_matrix())
+        return result
 
+    def report_slave(self):
+        result = {}
+        for sub_matrix in self.matrix_list:
+            result.update(sub_matrix.report_slave_matrix())
+        return result
 
-
+    def report_matrix(self, path=None):
+        if path is not None:
+            self.path = path
+        os.makedirs(self._json_dir, exist_ok=True)
+        matrix_json = [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
+        with open(self.matrix_json_path, 'w') as output:
+            json.dump(matrix_json, output, ensure_ascii=False, indent=2)
 
     ############################
     # check

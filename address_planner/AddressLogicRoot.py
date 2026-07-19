@@ -69,6 +69,10 @@ class AddressLogicRoot(object):
     @property
     def _html_dir(self):
         return os.path.join(self.output_path+'/html')
+
+    @property
+    def _json_dir(self):
+        return os.path.join(self.output_path+'/json')
     
     @property
     def _rtl_dir(self):
@@ -117,6 +121,14 @@ class AddressLogicRoot(object):
     @property
     def waive_path(self):
         return os.path.join(self._rtl_dir, self.waive_name)
+
+    @property
+    def matrix_path(self):
+        return os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.xlsx')
+
+    @property
+    def matrix_json_path(self):
+        return os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.json')
 
 
     @property
