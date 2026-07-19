@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Layout, Divider, Table, Row, Col } from 'antd';
+import { Layout, Space, Divider, Table, Row, Col, FloatButton } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import GridLayout from "react-grid-layout";
 import "../../../node_modules/react-grid-layout/css/styles.css";
 import "../../../node_modules/react-resizable/css/styles.css";
@@ -104,16 +105,31 @@ function useWinSize() {
   )
   useEffect(
     () => {
-      window.addEventListener('mousemove', onResize)
+      window.addEventListener('resize', onResize)
     }, []
   )
   return size
 }
+class TableHeight {
+  constructor() {
+    this.bank_height = 100;
+    this.reg_height = 100;
+  }
+  updateHeight() {
+    const bank_grid = document.getElementById("bank_grid");
+    const reg_grid = document.getElementById("reg_grid");
+    console.log(reg_grid.offsetHeight)
+    setTableHeight({
+      bank_height: bank_grid.offsetHeight - 54.8-26-32,
+      reg_height: reg_grid.offsetHeight - 54.8-26-32
+    })
+  }
+}
 function useTableHeight() {
 
   const [tableHeight, setTableHeight] = useState({
-    bank_height: 100 - 40,
-    reg_height: 100 - 40
+    bank_height: 100-40,
+    reg_height: 100-40
   });
 
   const onResize = useCallback(
@@ -122,14 +138,14 @@ function useTableHeight() {
       const reg_grid = document.getElementById("reg_grid");
       console.log(reg_grid.offsetHeight)
       setTableHeight({
-        bank_height: bank_grid.offsetHeight - 54.8 - 26 - 32,
-        reg_height: reg_grid.offsetHeight - 54.8 - 26 - 32
+        bank_height: bank_grid.offsetHeight - 54.8-26-32,
+        reg_height: reg_grid.offsetHeight - 54.8-26-32
       })
     }, []
   )
   useEffect(
     () => {
-      window.addEventListener('mousemove', onResize)
+      window.addEventListener('resize', onResize)
     }, []
   )
   return tableHeight
@@ -157,14 +173,14 @@ export default function App() {
 
   return (
     <>
-      {/* <FloatButton
+      <FloatButton
         icon={<UploadOutlined />}
         type="default"
         style={{
           right: 94,
         }}
         onClick={() => window.electronAPI.readJson(1)}
-      /> */}
+      />
 
       <GridLayout className="layout" cols={12} rowHeight={size.height} width={size.width}>
         <div id="bank_grid" key="c" data-grid={{ x: 0, y: 0, w: 12, h: 1 }}>
@@ -178,14 +194,14 @@ export default function App() {
                   onRow={(record) => ({
                     onClick: () => {
                       if (record.type == 'reg') {
-                        // console.log(record);
+                        console.log(record);
                         selectObj(record);
                       }
                     }
                   })}
                   dataSource={newInput}
                   pagination={false}
-                  scroll={{ x: '100%', y: tableHeight.bank_height }}
+                  scroll={{ x: '200%', y: tableHeight.bank_height }}
 
                 />
               </Layout>

@@ -8,14 +8,13 @@ import shutil
 class AddressLogicRoot(object):
 
     def __init__(self,name,description='',path='./'):
-        self.init_name   = name     # real module name
-        self.module_name = name     # initiate name 
+        self.init_name   = name
+        self.module_name = name
         self.inst_name   = ''
         self.description = description
         self.path        = path
         self.father      = None
         self._name_prefix = 'addr'
-        
 
     @property
     def global_name(self):
@@ -72,10 +71,6 @@ class AddressLogicRoot(object):
         return os.path.join(self.output_path+'/html')
     
     @property
-    def _json_dir(self):
-        return os.path.join(self.output_path+'/json')
-    
-    @property
     def _rtl_dir(self):
         return os.path.join(self.output_path+'/rtl')
     
@@ -96,28 +91,33 @@ class AddressLogicRoot(object):
         return os.path.join(self._html_dir,self.html_name)
 
     @property
+    def index_html_path(self):
+        return os.path.join(self._html_dir,"index.html")
+
+    @property
     def chead_path(self):
         return os.path.join(self._chead_dir,self.chead_name)
 
     @property
     def vhead_path(self):
         return os.path.join(self._vhead_dir,self.vhead_name)
-    
+
     @property
     def chead_global_path(self):
         return os.path.join(self._chead_dir,self.chead_global_name)
-    
+
     @property
     def vhead_global_path(self):
         return os.path.join(self._vhead_dir,self.vhead_global_name)
-    
+
     @property
     def json_path(self):
         return os.path.join(self._html_dir, 'data.json')
     
     @property
-    def matrix_path(self):
-        return os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.xlsx')
+    def waive_path(self):
+        return os.path.join(self._rtl_dir, self.waive_name)
+
 
     @property
     def html_name(self):
@@ -138,6 +138,11 @@ class AddressLogicRoot(object):
     @property
     def vhead_global_name(self):
         return 'all_reg.vh'
+
+
+    @property
+    def waive_name(self):
+        return '%s_waiver.awl' % (self.module_name)
     
 
     #########################################################################################

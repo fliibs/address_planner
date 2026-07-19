@@ -8,7 +8,7 @@ import re
 
 class RegSpace(AddressSpace):
 
-    def __init__(self,name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb'):
+    def __init__(self,name,size,description='',path='./',bus_width=APG_BUS_WIDTH,software_interface='apb4'):
         super().__init__(name=name,size=size,description=description,path=path)
         self.bus_width = bus_width
         self.data_width = APG_BUS_WIDTH
@@ -19,7 +19,11 @@ class RegSpace(AddressSpace):
     def __str__(self) -> str:
         return self.module_name
 
-    def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
+    def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[], outer=True):
+        if (sub_space.reg_type in [Intr, IntrMask]) and outer: self.add_intr(sub_space=sub_space,offset=offset,name=name)
+        else: self.add_normal(sub_space=sub_space,offset=offset,name=name,lock_list=lock_list,magic_list=magic_list)
+
+    def add_normal(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
         bit_offset     = offset*8
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = bit_offset
@@ -36,8 +40,6 @@ class RegSpace(AddressSpace):
             if member not in sub_space_copy.magic_list:
                 sub_space_copy.magic_list.append(member)
 
-        # if not self.reg_bit_detect(sub_space_copy):
-            # raise Exception('%s register size is not integer multiple of 32.'% sub_space_copy.module_name)
         if not Options.MultiPortOption:
             if not self.inclusion_detect(sub_space_copy):
                 raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
@@ -67,7 +69,7 @@ class RegSpace(AddressSpace):
         reg_clear       = Register(name=f'{sub_space.module_name}_clear',bit=32,description=f'interrupt clear register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
         reg_set         = Register(name=f'{sub_space.module_name}_set',bit=32,description=f'interrupt set register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
         if sub_space.reg_type==IntrMask:
-            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal)
+            reg_mask        = Register(name=f'{sub_space.module_name}_mask',bit=32,description=f'interrupt mask register {sub_space.description}',reg_type=Normal,parity=sub_space.parity,rst_domain=sub_space.rst_domain)
         
         for field in sub_space.field_list:
             if isinstance(field, IntrStatusField):                                      reg_raw_status.add(field, field.bit_offset)
@@ -83,19 +85,19 @@ class RegSpace(AddressSpace):
         name_enable     = None if name==None else f'{name}_enable'
         name_clear      = None if name==None else f'{name}_clear'
         name_set        = None if name==None else f'{name}_set'
-        self.add(sub_space=reg_enable, offset=offset, name=name_enable)
+        self.add(sub_space=reg_enable, offset=offset, name=name_enable, outer=False)
         if sub_space.reg_type==IntrMask:
             name_mask       = None if name==None else f'{name}_mask'
-            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear)
-            self.add(sub_space=reg_set, offset=offset+8, name=name_set)
-            self.add(sub_space=reg_mask, offset=offset+12, name=name_mask)
-            self.add(sub_space=reg_raw_status, offset=offset+16, name=name_raw_status)
-            self.add(sub_space=reg_intr, offset=offset+20, name=name_intr)
+            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear, outer=False)
+            self.add(sub_space=reg_set, offset=offset+8, name=name_set, outer=False)
+            self.add(sub_space=reg_mask, offset=offset+12, name=name_mask, outer=False)
+            self.add(sub_space=reg_raw_status, offset=offset+16, name=name_raw_status, outer=False)
+            self.add(sub_space=reg_intr, offset=offset+20, name=name_intr, outer=False)
         elif sub_space.reg_type==Intr:
-            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear)
-            self.add(sub_space=reg_set, offset=offset+8, name=name_set)
-            self.add(sub_space=reg_raw_status, offset=offset+12, name=name_raw_status)
-            self.add(sub_space=reg_intr, offset=offset+16, name=name_intr)
+            self.add(sub_space=reg_clear, offset=offset+4, name=name_clear, outer=False)
+            self.add(sub_space=reg_set, offset=offset+8, name=name_set, outer=False)
+            self.add(sub_space=reg_raw_status, offset=offset+12, name=name_raw_status, outer=False)
+            self.add(sub_space=reg_intr, offset=offset+16, name=name_intr, outer=False)
         else:
             raise Exception("interrupt register reg type error")
         
@@ -132,7 +134,7 @@ class RegSpace(AddressSpace):
     
     def report_chead_global_core(self, file=None):
         if self.father == None: 
-            os.makedirs(os.path.dirname(self.chead_path), exist_ok=True)
+            os.makedirs(os.path.dirname(self.chead_global_path), exist_ok=True)
             file = open(self.chead_global_path,'w')
         if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
             text = self.report_from_template(APG_CHEAD_GLB_FILE_REG_SPACE)
@@ -143,13 +145,13 @@ class RegSpace(AddressSpace):
     
     def report_vhead_global_core(self, file=None):
         if self.father == None: 
-            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            os.makedirs(os.path.dirname(self.vhead_global_path), exist_ok=True)
             file = open(self.vhead_global_path,'w')
         if self.sub_space_list == [] or self.detect_reg(self.sub_space_list):
             text = self.report_from_template(APG_VHEAD_GLB_FILE_REG_SPACE)
             file.write(text)
         elif not self.detect_reg(self.sub_space_list):
-            for ss in self.sub_space_list:
+            for ss in self.filled_sub_space_list:
                 ss.report_vhead_global_core(file)
 
     def detect_reg(self, sub_space_list):
@@ -158,6 +160,13 @@ class RegSpace(AddressSpace):
             if isinstance(sub_space, Register):
                 return True 
         return False
+
+    # report waive file ====================================================
+    def report_waive(self):
+        text = self.report_from_template(APG_WAIVER_FILE_REG_SPACE)
+        os.makedirs(os.path.dirname(self.waive_path), exist_ok=True)
+        with open(self.waive_path,'w') as f:
+            f.write(text)
             
 
     # report and check ralf ==============================================
@@ -177,11 +186,11 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
-    def generate(self, path=None, report_dv=False, check=False):
-        super().generate(path)
+    def generate(self, path=None, gen_doc=False, report_dv=False):
+        super().generate(path, gen_doc)
+        self.report_waive()
         self.report_rtl()
         if report_dv: self.report_dv()
-        if check:     self.check()
 
 
     def check(self, path=None):
@@ -264,15 +273,61 @@ class RegSpace(AddressSpace):
         output_path = self._ral_model_dir+'/'
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        print("\n################################################################################")
-        print("[Check Ralf] Check ralf file: %s"% output_file)
-        print("################################################################################\n")
-        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file} > ralgen_output.log'
+        # print("\n################################################################################")
+        # print("[Check Ralf] Check ralf file: %s"% output_file)
+        # print("################################################################################\n")
+        if not os.path.exists(output_file): warnings.warn(f'{output_file} not exist'); return None
+        command = f'ralgen -full64 -uvm -t {self.module_name} {output_file} > UHDL.log'
 
         # if os.path.exists(f'ral_{self.module_name}.sv'): os.system(f'mv ral_{self.module_name}.sv {output_path}')
         if os.system(command)==0: os.system(f'mv ral_{self.module_name}.sv {output_path}')
         else: raise Exception("ralgen fail!")
-        print("[Check Ralf] output path of ral model: %s"% os.path.abspath(os.path.join(output_path, f'ral_{self.module_name}.sv')))
+        # print("[Check Ralf] output path of ral model: %s"% os.path.abspath(os.path.join(output_path, f'ral_{self.module_name}.sv')))
+
+    #########################################
+    # report waive support
+    #########################################
+    @property
+    def report_waive_reg_wdat_port(self):
+        from .Reg import Register
+        if not isinstance(self, Register):
+            raise Exception("Object of report_waive_wdat_port must be a Register")
+
+        wdat_unuse_bit = '['
+        for field in self.filled_field_list[::-1]:
+            if not field.sw_writeable:
+                if field.bit == 1: wdat_unuse_bit += f'{field.start_bit}, '
+                else:              wdat_unuse_bit += f'{field.end_bit}:{field.start_bit}, '
+        wdat_unuse_bit = wdat_unuse_bit.rstrip(', ') + ']'
+        return wdat_unuse_bit
+
+    @property
+    def report_waive_reg_wdat_num(self):
+        from .Reg import Register
+        if not isinstance(self, Register):
+            raise Exception("Object of report_waive_reg_wdat_num must be a Register")
+
+        wdat_unuse_bit = 0
+        for field in self.filled_field_list[::-1]:
+            if not field.sw_writeable:
+                wdat_unuse_bit += field.bit
+        return wdat_unuse_bit
+
+    @property
+    def report_waive_wdat_num(self):
+        from .Reg import Register
+        if isinstance(self, Register):
+            raise Exception("Object of report_waive_wdat_num cannot be a Register")
+
+        bit_covered = [False] * 32
+        for sub in self.sub_space_list:
+            for field in sub.filled_field_list[::-1]:
+                if field.sw_writeable:
+                    for bit in range(field.start_bit, field.end_bit+1):
+                        bit_covered[bit] = True
+
+        bit_uncovered = [i for i, covered in enumerate(bit_covered) if not covered]
+        return len(bit_uncovered)
 
 
     def report_ralf_core(self, output_dir):
@@ -415,6 +470,15 @@ class RegSpace(AddressSpace):
         setup_path = os.path.join(dst_path,'setup_dv.sh')
         dv_setup_path = os.path.join(self._dv_dir,'setup_dv.sh')
         if not os.path.exists(dv_setup_path): shutil.move(setup_path, self._dv_dir)
+
+    #########################################
+    # check parity
+    #########################################
+    @property
+    def has_parity(self):
+        for sub_space in self.sub_space_list:
+            if sub_space.parity: return True
+        return False
 
 
 

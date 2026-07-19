@@ -2,7 +2,7 @@ import sys
 sys.path.append('.')
 from address_planner import *
 
-reg_bank_B = RegSpace(name='reg_bank_tables',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb')
+reg_bank_B = RegSpace(name='reg_bank_tables_lock2',size=8*KB,description='reg_bank_B,contain many regs.',bus_width=16,software_interface='apb')
 
 internal_reg_0 = Register(name='internal_reg_0',description='reg0_0',reg_type=Normal)
 
@@ -61,5 +61,4 @@ reg_bank_B.add(lock_reg_1, offset=0x8c)
 
 reg_bank_B.generate('build')
 # reg_bank_B.check('build')
-
 

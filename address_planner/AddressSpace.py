@@ -3,19 +3,18 @@ from functools          import reduce
 from tkinter            import Tcl
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
-from .ralf_parser.ralf_parse import build_addrspace
-from .address_planner_rtl.MatrixCFG import *
+from .ralf_parser.ralf_parse import build_addrspace,py_dict
+from .gen_doc.doc import *
 
 import os
 import builtins
 import json
 import shutil
 import re
-import openpyxl
 
 class AddressSpace(AddressLogicRoot):
 
-    def __init__(self,name,size=None,description='',path='./'):
+    def __init__(self,name,size,description='',path='./'):
         super().__init__(name=name,description=description,path=path)
         self.size           = size
         self.sub_space_list = []
@@ -29,7 +28,6 @@ class AddressSpace(AddressLogicRoot):
         #self.description    = description
         #self.path           = path
         #self.father         = None
-        self.matrix_list    = []
 
 
 
@@ -135,29 +133,32 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
 
 
-    def add_ralf(self,ralf_file,offset,name=None):
-        with open(ralf_file,'r') as f:
+    def add_ralf(self,sub_space,offset,name=None):
+        with open(sub_space,'r') as f:
             env_tcl_code = f.read()
 
         env_tcl_code = env_tcl_code.replace("[","").replace("]","")
         env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
 
         tcl_interpreter = Tcl()
-        tcl_interpreter.eval("source address_planner/ralf_parser/ralf_parser.tcl")
+        tcl_interpreter.eval("set relative_path address_planner/ralf_parser/ralf_parser.tcl")
+        tcl_interpreter.eval("set absolute_path [file join $env(PARSER_PATH) $relative_path]")
+        tcl_interpreter.eval("source $absolute_path")
         tcl_interpreter.eval(env_tcl_code)
         reg_copy = build_addrspace(tcl_interpreter)
         self.add(reg_copy, offset, name)
 
-    def add_matrix(self, matrix, name=None, attr=None):
-        matrix_copy = deepcopy(matrix)
-        matrix_copy.father = self
-        matrix_copy.module_name = matrix_copy.module_name if name==None else name
-        matrix_copy.attr        = matrix_copy.attr        if attr==None else attr
-        self.matrix_list.append(matrix_copy)
-        
-    def update_matrix(self, sub_space, name):
-        for matrix in self.matrix_list:
-            matrix.update(sub_space, name)
+    def hex_transform(self, value):
+        if not isinstance(value, str):
+            hex_value = hex(value)
+        if hex_value == '0x0':
+            return '\'h0'
+        else:
+            return '\'h'+hex_value.lstrip('0x')
+
+    # def reg_bit_detect(self, sub_space):
+    #     if sub_space.bit%32!=0: return False
+    #     else:                   return True
 
     def collision_detect(self,space_A,space_B):
         if      (space_A.start_address <= space_B.start_address ) and (space_B.start_address <= space_A.end_address ): return True
@@ -204,18 +205,6 @@ class AddressSpace(AddressLogicRoot):
         if not isinstance(reg.field_list[0], MagicNumber):
             raise Exception(f'field in magic list is not MagicNumber Type')
         
-
-    def hex_transform(self, value):
-        if not isinstance(value, str):
-            hex_value = hex(value)
-        if hex_value == '0x0':
-            return '\'h0'
-        else:
-            return '\'h'+hex_value.lstrip('0x')
-        
-    
-
-
 
     #########################################################################################
     # output generate
@@ -272,7 +261,7 @@ class AddressSpace(AddressLogicRoot):
         vhead_name_list = list(set(vhead_name_list))
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
-                f.write("`include \"%s\"\n" % os.path.join(self._vhead_dir, vhead_name))
+                f.write("`include \"%s\"\n" % vhead_name)
 
         
     def report_vhead_core(self):
@@ -281,7 +270,7 @@ class AddressSpace(AddressLogicRoot):
         else:
             vhead_name_list = [self.vhead_name]
             text = self.report_from_template(APG_VHEAD_FILE_ADDR_SPACE,{'head_type':'v'})
-            os.makedirs(os.path.dirname(self.vhead_path), exist_ok=True)
+            os.makedirs(os.path.dirname(self.vhead_global_path), exist_ok=True)
             with open(self.vhead_path,'w') as f:
                 f.write(text)
             for ss in self.sub_space_list:
@@ -314,12 +303,67 @@ class AddressSpace(AddressLogicRoot):
 
 
     # report and check json ==========================================
-    def report_json(self):
+    def report_json(self, gen_doc=False):
         json_list= [self.report_json_core()]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
         if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
         with open(self.json_path, 'w') as f:
             f.write(jtext)
+
+        root_path = os.environ.get('PARSER_PATH')
+        if root_path == None:
+            print("[Warning] no env PARSER_PATH, will not generate index.html.")
+        else:
+            index_path      = "apv_html/apv_html_main/py/index.html"
+            script_path     = "apv_html/apv_html_main/py/main.py"
+            full_index_path = os.path.join(root_path, index_path)
+            full_script_path = os.path.join(root_path, script_path)
+            shutil.copy(full_index_path, self._html_dir)
+            print(f'python3 {full_script_path} -html {self.index_html_path} -json {self.json_path}')
+            os.system(f'python3 {full_script_path} -html {self.index_html_path} -json {self.json_path}')
+
+        if gen_doc:
+            print("generate doc ! ")
+            # Create a new document
+            doc = Document()
+
+            # Style settings
+            style = doc.styles['Normal']
+            font = style.font
+            font.name = 'Times New Roman'
+            font.size = Pt(12)
+
+            heading1_style = doc.styles['Heading 1']
+            heading1_font = heading1_style.font
+            heading1_font.name = 'Times New Roman'
+            heading1_font.size = Pt(20)
+
+            heading2_style = doc.styles['Heading 2']
+            heading2_font = heading2_style.font
+            heading2_font.name = 'Times New Roman'
+            heading2_font.size = Pt(18)
+
+            heading3_style = doc.styles['Heading 3']
+            heading3_font = heading3_style.font
+            heading3_font.name = 'Times New Roman'
+            heading3_font.size = Pt(16)
+
+            # Add the main title to the document
+            title = "Address map"
+            doc.add_heading(title, level=0)
+            doc.add_paragraph("")
+
+            # Parse the JSON data
+            doc_path = os.path.join(self._html_dir, "doc.docx")
+            data = []
+            with open(self.json_path, 'r') as file:
+                data = json.load(file)
+
+            # Traverse the JSON data
+            traverse_json_with_numbering(doc, data[0])
+
+            # Save the document
+            doc.save(doc_path)
         
 
     def report_json_core(self):
@@ -327,7 +371,8 @@ class AddressSpace(AddressLogicRoot):
         json_dict["key"]        = ADD_KEY()
         json_dict["type"]       = "sys"
         json_dict["name"]       = self.module_name
-        json_dict["start_addr"] = hex(int((self.global_start_address)/8))
+        # if self.father == None:
+        json_dict["start_addr"] = hex(int(self.global_start_address/8))
         json_dict["end_addr"]   = hex(int(self.global_end_address/8))
         
         json_dict["size"]       = ConvertSize(self.size, is_byte=True)
@@ -337,12 +382,12 @@ class AddressSpace(AddressLogicRoot):
     
 
     # total ========================================
-    def generate(self,path=None):
+    def generate(self,path=None, gen_doc=False, check_ralf=False):
         if path != None:
             self.path = path
-        self.report_json()
+        self.report_json(gen_doc)
         self.report_ralf()
-        # self.check_ralf()
+        if check_ralf:  self.check_ralf()
         self.report_chead()
         self.report_vhead()
 
@@ -370,79 +415,6 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space, offset, name)
         return self
 
-    #########################################
-    # matrix cfg
-    #########################################
-    def generate_matrix_excel(self, path=None):
-        if path != None:        self.path = path
-        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
-        wb = openpyxl.Workbook()
-        # master
-        ws_mst       = wb.active
-        ws_mst.title = "master"
-        headers0     = list(master_mapping.keys())
-        ws_mst.append(headers0)
-
-        for key, values in self.report_master().items():
-            ws_mst.append(values)
-            
-        # slave
-        ws_slv      = wb.create_sheet(title="slave")
-        headers1    = list(slave_mapping.keys())
-        ws_slv.append(headers1)
-            
-        for key, values in self.report_slave().items():
-            ws_slv.append(values)
-            
-        # interconnection    
-        ws2          = wb.create_sheet(title="interconnection")
-        mapping_dict = self.report_interconnect()
-        headers2     = ['name'] + list(mapping_dict['name'])
-        ws2.append(headers2)
-
-        for key in mapping_dict.keys():
-            if key == 'name':   continue
-            ws2.append(list([key] + mapping_dict[key]))
-
-        wb.save(self.matrix_path)
-
-
-    def report_interconnect(self):
-        interconnect_dict = {}
-        interconnect_set = set()
-        for sub_matrix in self.matrix_list:
-            for key, value in sub_matrix.report_interconnect().items():
-                interconnect_set.update(value)
-            
-        interconnect_list = sorted(list(interconnect_set))
-        interconnect_dict['name'] = interconnect_list
-        for sub_matrix in self.matrix_list:
-            interconnect_dict[sub_matrix.module_name] = [True if slave in list(sub_matrix.report_interconnect().values())[0] else False for slave in interconnect_list]
-        return interconnect_dict
-    
-    def report_master(self):
-        master_dict = dict()
-        for sub_matrix in self.matrix_list:
-            for key, value in sub_matrix.report_master_matrix().items():
-                master_dict[key] = value
-        return master_dict
-    
-    def report_slave(self):
-        merged_dict = {}
-        for lst in self.matrix_list:
-            for key, value in lst.report_slave_matrix().items():
-                merged_dict[key] = value 
-        return merged_dict
-    
-    
-    def report_matrix(self, path=None):
-        if path != None:        self.path = path
-        json_list= [sub_matrix.report_json_core() for sub_matrix in self.matrix_list]
-        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
-        with open(os.path.join(self._json_dir, f'{self.module_name}_matrix_cfg.json'), 'w') as f:
-            f.write(jtext)
-            
 
 
 

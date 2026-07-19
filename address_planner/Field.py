@@ -57,13 +57,13 @@ class FieldRoot(AddressLogicRoot):
     def hex_value(self):
         hex_value = hex(self.init_value)
         if hex_value == '0x0':
-            return '%d\'h0'%(self.bit)
+            return '\'h0'
         else:
-            return '%d\'h'%(self.bit)+hex_value.lstrip('0x')
+            return '\'h'+hex_value.lstrip('0x')
 
     @property
     def module_name_until_regbank(self):
-        return self.father.init_name + '_' + self.name
+        return self.father.module_name_until_regbank + '_' + self.module_name
     
     @property
     def get_lock_list(self):
@@ -89,6 +89,10 @@ class FieldRoot(AddressLogicRoot):
 
     def lock_self_detect(self):
         pass
+
+    def detect_external(self):
+        if self.is_external and self.sw_access==Null:
+            raise Exception("detect Null on software access of external field: %s, sw_access of external field cannot be Null"% self._name)
 
 
     ############## Software Type ###############
@@ -358,18 +362,26 @@ class FieldRoot(AddressLogicRoot):
 
 
     def report_json_core(self):
-        if isinstance(self, FilledField):
-            return Null
         field_dict = {}
         field_dict["key"]               = ADD_KEY()
-        field_dict["name"]              = self._name 
-        field_dict["size"]              = "%d bit"% self.bit
-        field_dict["Position"]          = "[%d:%d]"% (self.end_bit, self.start_bit)
-        field_dict["External"]          = "%s" % self.is_external
-        field_dict["Software Access"]   = self.sw_access.name
-        field_dict["Hardware Access"]   = self.hw_access.name
-        field_dict["defaut_value"]      = self.init_value
-        field_dict["description"]       = self.description
+        if isinstance(self, FilledField):
+            field_dict["name"]              = 'reserved'
+            field_dict["size"]              = "%d bit"% self.bit
+            field_dict["Position"]          = "[%d:%d]"% (self.end_bit, self.start_bit)
+            field_dict["External"]          = '-'
+            field_dict["Software Access"]   = self.sw_access.name
+            field_dict["Hardware Access"]   = self.hw_access.name
+            field_dict["Default Value"]     = hex(self.init_value)
+            field_dict["description"]       = 'reserved field'
+        else:
+            field_dict["name"]              = self._name
+            field_dict["size"]              = "%d bit"% self.bit
+            field_dict["Position"]          = "[%d:%d]"% (self.end_bit, self.start_bit)
+            field_dict["External"]          = "%s" % self.is_external
+            field_dict["Software Access"]   = self.sw_access.name
+            field_dict["Hardware Access"]   = self.hw_access.name
+            field_dict["Default Value"]     = hex(self.init_value)
+            field_dict["description"]       = self.description
         return field_dict 
 
 
@@ -394,6 +406,7 @@ class ExternalField(FieldRoot):
         super().__init__(name, bit, sw_access, hw_access, init_value, description)
         self.is_external = True
         self.detect_pulse()
+        self.detect_external()
 
 
 class W1PField(Field):
@@ -413,7 +426,7 @@ class LockField(Field):
 
 class MagicNumber(Field):
     def __init__(self, name='field_magic', bit=32, password=0, init_value=0, description=''):
-        super().__init__(name, bit, ReadWrite, Null, init_value, description)
+        super().__init__(name, bit, ReadWrite, ReadOnly, init_value, description)
         self.password = password
 
 
@@ -423,7 +436,7 @@ class IntrField(Field):
 
 class IntrStatusField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
-        super().__init__(name, bit, ReadOnly, ReadWrite, init_value, f'{name} interrupt status field {description}')
+        super().__init__(name, bit, ReadOnly, ReadWrite, init_value, f'{name} interrupt raw status field {description}')
 
 class IntrEnableField(Field):
     def __init__(self, name, bit, init_value=0, description=''):
@@ -445,4 +458,3 @@ class IntrSetField(FieldRoot):
 
 
 
- 

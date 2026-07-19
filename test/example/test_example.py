@@ -32,6 +32,9 @@ def test_lock_and_magic():
     importlib.import_module('example.python.demo_magic_and_lock')
     importlib.import_module('example.python.demo_magicnum_and_lockbit')
 
+def test_intr():
+    importlib.import_module('example.python.demo_intr')
+
 
 
 

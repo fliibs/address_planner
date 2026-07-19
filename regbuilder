@@ -2,7 +2,7 @@
 #!/usr/bin/python3
 
 
-root_path='.'
+root_path='/tools/others/soc_public1/tools/addr_planner/v3p0/address_planner'
 
 echo python3 regbuilder.py $@
 python3 $root_path/regbuilder.py $@

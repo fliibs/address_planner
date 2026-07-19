@@ -20,6 +20,7 @@ APG_REG_RMODEL_FILE_REG_SPACE       = 'ral_model.j2'
 APG_REG_RMDEFINE_FILE_REG_SPACE     = 'reg_ral_model_define.j2'
 APG_REG_RMCSV_FILE_REG_SPACE        = 'reg_ral_model_csv.j2'
 APG_REG_RALF_FILE_REG_SPACE         = 'ralf.j2'
+APG_WAIVER_FILE_REG_SPACE           = 'reg_waiver.j2'
 
 B  = 1
 KB = 1024 * B
@@ -135,7 +136,7 @@ class RegType(Enum):
     Lock        = 'Lock'
     Intr        = 'Interrupt without Mask'
     IntrMask    = 'Interrupt with Mask'
-    IntrStatus  = 'Interrupt status register'
+    IntrStatus  = 'Interrupt Status Register'
 
 Normal      = RegType.Normal
 Magic       = RegType.Magic
@@ -147,8 +148,8 @@ IntrStatus  = RegType.IntrStatus
 
 @unique
 class IntrBitWidth(Enum):
-    Intr     = 160
-    IntrMask = 192
+    Intr     = 128
+    IntrMask = 160
     IntrFull = 256
 
 

@@ -8,4 +8,3 @@ from .Field         import *
 from .Parity        import *
 from .uhdl.uhdl     import *
 from .RegSpaceRTL   import *
-from .MatrixSpace   import *

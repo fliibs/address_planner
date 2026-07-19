@@ -8,7 +8,9 @@ root_path, _ = os.path.split(os.path.realpath(__file__))
 dv_env = 'dv_env'
 dv_setup = 'setup_dv.sh'
 dv_tool_path = os.path.join(root_path, dv_env)
-demo_path    = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
+regbank_demo_path                 = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
+magic_and_lock_regbank_demo_path  = os.path.join(root_path, 'excel/excel_demo/magic_and_lock_regbank_demo.xlsx')
+intr_regbank_demo_path            = os.path.join(root_path, 'excel/excel_demo/intr_regbank_demo.xlsx')
 
 sys.path.append(root_path)
 from excel.ex2py import CreatPy
@@ -19,12 +21,24 @@ def main():
     parser.add_argument('-e', type=str, help='input excel file')
     parser.add_argument('-o', type=str, help='output path', default='build')
     parser.add_argument('-demo', action='store_true', help='generate an excel tamplate')
+    parser.add_argument('-demo_magic', action='store_true', help='generate an magic&lock excel tamplate')
+    parser.add_argument('-demo_intr', action='store_true', help='generate an interrupt excel tamplate')
 
     args = parser.parse_args()
 
     if args.demo:
         print("generate an excel tamplate: ./regbank_demo.xlsx")
-        shutil.copyfile(demo_path, './regbank_demo.xlsx')
+        shutil.copyfile(regbank_demo_path, './regbank_demo.xlsx')
+        return
+
+    if args.demo_magic:
+        print("generate an excel tamplate: ./magic_and_lock_regbank_demo.xlsx")
+        shutil.copyfile(magic_and_lock_regbank_demo_path, './magic_and_lock_regbank_demo.xlsx')
+        return
+
+    if args.demo_intr:
+        print("generate an excel tamplate: ./intr_regbank_demo.xlsx")
+        shutil.copyfile(intr_regbank_demo_path, './intr_regbank_demo.xlsx')
         return
 
     print("Regbuilder Start")

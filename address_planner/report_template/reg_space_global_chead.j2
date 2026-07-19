@@ -1,2 +1,1 @@
-#define {{ '%-40s' % ('%s_ADDR' % space.global_name.upper())}} {{ ' ' * (60 - 40) }}{{builtins.hex((space.global_start_address/8)|int)}}
-
+#define {{ '%-40s' % ('ADDR_%s' % space.global_name.upper())}} {{ ' ' * (60 - 40) }}{{builtins.hex((space.global_start_address/8)|int)}}
