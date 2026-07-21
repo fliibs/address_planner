@@ -2,7 +2,9 @@ import os
 import sys
 import argparse
 import shutil
-import copy
+import json
+import subprocess
+from pathlib import Path
 
 root_path, _ = os.path.split(os.path.realpath(__file__))
 dv_env = 'dv_env'
@@ -16,30 +18,35 @@ sys.path.append(root_path)
 from excel.ex2py import CreatPy
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description='RegBuilder Scope! ')
     parser.add_argument('-e', type=str, help='input excel file')
-    parser.add_argument('-o', type=str, help='output path', default='build')
+    parser.add_argument('-o', type=str, help='isolated output path', default='build')
     parser.add_argument('-demo', action='store_true', help='generate an excel tamplate')
     parser.add_argument('-demo_magic', action='store_true', help='generate an magic&lock excel tamplate')
     parser.add_argument('-demo_intr', action='store_true', help='generate an interrupt excel tamplate')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+    output_path = Path(args.o).resolve()
+    output_path.mkdir(parents=True, exist_ok=True)
 
     if args.demo:
-        print("generate an excel tamplate: ./regbank_demo.xlsx")
-        shutil.copyfile(regbank_demo_path, './regbank_demo.xlsx')
-        return
+        target = output_path / 'regbank_demo.xlsx'
+        shutil.copyfile(regbank_demo_path, target)
+        print(json.dumps({"excel_template": str(target)}, sort_keys=True))
+        return 0
 
     if args.demo_magic:
-        print("generate an excel tamplate: ./magic_and_lock_regbank_demo.xlsx")
-        shutil.copyfile(magic_and_lock_regbank_demo_path, './magic_and_lock_regbank_demo.xlsx')
-        return
+        target = output_path / 'magic_and_lock_regbank_demo.xlsx'
+        shutil.copyfile(magic_and_lock_regbank_demo_path, target)
+        print(json.dumps({"excel_template": str(target)}, sort_keys=True))
+        return 0
 
     if args.demo_intr:
-        print("generate an excel tamplate: ./intr_regbank_demo.xlsx")
-        shutil.copyfile(intr_regbank_demo_path, './intr_regbank_demo.xlsx')
-        return
+        target = output_path / 'intr_regbank_demo.xlsx'
+        shutil.copyfile(intr_regbank_demo_path, target)
+        print(json.dumps({"excel_template": str(target)}, sort_keys=True))
+        return 0
 
     print("Regbuilder Start")
 
@@ -47,7 +54,8 @@ def main():
     task_regbuilder(args, prs_out[0])
     # task_dv_setup(args, prs_out[1])
 
-    print("[ Generate Success ]")
+    print(json.dumps({"generated_root": str(output_path / "generated"), "script": prs_out[0]}, sort_keys=True))
+    return 0
 
 
 
@@ -55,14 +63,12 @@ def main():
 
 def task_parse_excel(args, others=None):
     
-    if args.e == None: raise Exception("Input file not exist!") # simplify way
+    if args.e == None: raise ValueError("input Excel file is required (-e)")
 
     print("[ ExcelParser ] Load input file: %s"% os.path.abspath(args.e))
     prs_out, rs_name =  CreatPy(args.e, args.o)
     if prs_out == '': raise Exception("[ Generate Fail ] Fail to parse excel file, prs_out is empty")
     print("[ ExcelParser ] Successfull parse file: %s"% args.e)
-
-    os.system(f'mv datalog.txt {args.o}')
 
     return [prs_out, rs_name]
 
@@ -70,11 +76,17 @@ def task_parse_excel(args, others=None):
 def task_regbuilder(args, others=None):
 
     print("[ Regbuilder ] Start parse python file %s"% others)
-    cmd_exc = f'python3 {others}'
-    os.environ['PYTHONPATH'] = f'$PYTHONPATH:{root_path}'
-    if os.system(cmd_exc)!=0:
-        raise Exception("Generate fail, please check above exception")
-    return None
+    environment = os.environ.copy()
+    environment.setdefault('ADDRESS_PLANNER_ROOT', root_path)
+    completed = subprocess.run(
+        [sys.executable, str(Path(others).resolve())],
+        cwd=str(Path(args.o).resolve()),
+        env=environment,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(f"generated Excel model exited with status {completed.returncode}")
+    return completed.returncode
 
 
 def task_dv_setup(args, others=None):
@@ -94,4 +106,4 @@ def task_dv_setup(args, others=None):
 
 
 if __name__=="__main__":
-    main()
+    raise SystemExit(main())

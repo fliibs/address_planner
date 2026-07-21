@@ -11,6 +11,14 @@ class FieldRoot(AddressLogicRoot):
                  init_value         = 0,
                  description=''):
         super().__init__(name=name, description=description)
+        if not isinstance(bit, int) or isinstance(bit, bool) or bit <= 0:
+            raise ValueError("field width must be positive")
+        if not isinstance(sw_access, FieldAccess) or not isinstance(hw_access, FieldAccess):
+            raise ValueError("sw_access and hw_access must be FieldAccess values")
+        if not isinstance(init_value, int) or isinstance(init_value, bool):
+            raise ValueError("field reset value must be an integer")
+        if init_value < 0 or init_value >= (1 << bit):
+            raise ValueError("field reset value does not fit field width")
         
         self._name              = name
         self.bit                = bit
@@ -455,6 +463,3 @@ class IntrSetField(FieldRoot):
     def __init__(self, name, bit, init_value=0, description=''):
         super().__init__(name, bit, Write1Pulse, Null, init_value, f'{name} interrupt Set field {description}')
         self.is_external = False
-
-
-

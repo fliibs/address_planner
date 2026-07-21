@@ -1,4 +1,4 @@
-from .uhdl.uhdl import *
+from uhdl import *
 from .GlobalValues import *
 
 class ParityFieldRoot(object):

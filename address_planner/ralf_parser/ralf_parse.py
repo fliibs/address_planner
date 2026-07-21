@@ -21,6 +21,7 @@ def build_addrspace(tcl_interpreter):
 
     # search the longest string 
     key_array = search_longest_string(tcl_interpreter)
+    py_dict.clear()
     py_dict[key_array] = {}
 
     #### update py_dict
@@ -33,7 +34,10 @@ def build_addrspace(tcl_interpreter):
 
     #### build rb
     from ..RegSpace import RegSpace
-    reg_bank_B = RegSpace(name=py_dict[key_array]['name'], size=1e20*GB,bus_width=32,software_interface='apb')
+    # RALF offsets are byte-addressed and can be byte-granular.  This importer is
+    # an address-model path, not a promise that every imported map can use the
+    # 32-bit register-RTL backend.
+    reg_bank_B = RegSpace(name=py_dict[key_array]['name'], size=1e20*GB,bus_width=8,software_interface='apb')
     reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
     # reg_bank_B_copy.generate('build/ralf')
     reg_bank_B_copy = minimum_size(reg_bank_B_copy)

@@ -12,6 +12,7 @@ import builtins
 import json
 import shutil
 import re
+from pathlib import Path
 import openpyxl
 
 class AddressSpace(AddressLogicRoot):
@@ -122,11 +123,11 @@ class AddressSpace(AddressLogicRoot):
         sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
         if not Options.MultiPortOption:
             if not self.inclusion_detect(sub_space_copy):
-                raise Exception('Sub space %s is not included in space %s' %(sub_space_copy.module_name,self.module_name))
+                raise ValueError('Sub space %s is not included in address space %s' %(sub_space_copy.module_name,self.module_name))
 
             for exist_space in self.sub_space_list:
                 if self.collision_detect(exist_space,sub_space_copy):
-                    raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
+                    raise ValueError('Address overlap: sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
                         % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
         self.sub_space_list.append(sub_space_copy)
         self._next_offset = offset + sub_space.size
@@ -136,20 +137,31 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
 
 
-    def add_ralf(self,sub_space,offset,name=None):
-        with open(sub_space,'r') as f:
+    def add_ralf(self,ralf_file,offset,name=None):
+        ralf_path = Path(ralf_file).expanduser().resolve()
+        if not ralf_path.is_file():
+            raise FileNotFoundError(f'RALF input does not exist: {ralf_path}')
+        with ralf_path.open('r', encoding='utf-8') as f:
             env_tcl_code = f.read()
 
         env_tcl_code = env_tcl_code.replace("[","").replace("]","")
         env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
 
         tcl_interpreter = Tcl()
-        tcl_interpreter.eval("set relative_path address_planner/ralf_parser/ralf_parser.tcl")
-        tcl_interpreter.eval("set absolute_path [file join $env(PARSER_PATH) $relative_path]")
-        tcl_interpreter.eval("source $absolute_path")
+        parser_tcl = Path(__file__).resolve().parent / 'ralf_parser' / 'ralf_parser.tcl'
+        tcl_interpreter.call('source', str(parser_tcl))
         tcl_interpreter.eval(env_tcl_code)
-        reg_copy = build_addrspace(tcl_interpreter)
+        # A RALF description can intentionally contain alternate register views at
+        # one address.  Keep that source-level information during import, while
+        # restoring the normal overlap policy before returning to the caller.
+        original_multiport = Options.MultiPortOption
+        Options.MultiPortOption = True
+        try:
+            reg_copy = build_addrspace(tcl_interpreter)
+        finally:
+            Options.MultiPortOption = original_multiport
         self.add(reg_copy, offset, name)
+        return reg_copy
 
     def add_matrix(self, matrix, name=None, attr=None):
         matrix_copy = deepcopy(matrix)
@@ -237,7 +249,9 @@ class AddressSpace(AddressLogicRoot):
         chead_name_list = self.report_chead_core()
         chead_name_list += [self.chead_global_name]
         self.report_chead_global_core()
-        chead_name_list = list(set(chead_name_list))
+        # Preserve recursive/model order while removing duplicate includes.  A
+        # set-to-list conversion is randomized across Python processes.
+        chead_name_list = list(dict.fromkeys(chead_name_list))
         with open(os.path.join(self._chead_dir,'all.h'),'w') as f:
             for chead_name in chead_name_list:
                 f.write("#include \"%s\"\n" % chead_name)
@@ -272,7 +286,7 @@ class AddressSpace(AddressLogicRoot):
         vhead_name_list = self.report_vhead_core()
         vhead_name_list += [self.vhead_global_name]
         self.report_vhead_global_core()
-        vhead_name_list = list(set(vhead_name_list))
+        vhead_name_list = list(dict.fromkeys(vhead_name_list))
         with open(os.path.join(self._vhead_dir,'all.vh'),'w') as f:
             for vhead_name in vhead_name_list:
                 f.write("`include \"%s\"\n" % vhead_name)
