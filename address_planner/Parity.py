@@ -1,4 +1,4 @@
-from .uhdl.uhdl import *
+from uhdl import *
 from .GlobalValues import *
 
 class ParityFieldRoot(object):
@@ -886,4 +886,3 @@ class ParitySwRAWStatus(ParitySwFieldRoot):
         clear_sig_val  = BitAnd(getattr(module, self.full_field_name), Inverse(clear_sig))
         self.mux_dict['sw_rena'] = [SelfOr(clear_sig), clear_sig_val]
         return None
-

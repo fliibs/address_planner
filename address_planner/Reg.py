@@ -10,6 +10,8 @@ import copy
 class Register(RegSpace):
 
     def __init__(self,name,bit=32, description='',bus_width=APG_BUS_WIDTH, reg_type=Normal, lock_list=[], parity=False, rst_domain='rst_n'):
+        if not isinstance(bit, int) or isinstance(bit, bool) or bit <= 0:
+            raise ValueError("register width must be positive")
         size = math.ceil(bit/bus_width)
         super().__init__(name=name, size=size, description=description, path='./', bus_width=bus_width)
         self.bit            = bit
@@ -22,6 +24,8 @@ class Register(RegSpace):
         self.rst_domain     = rst_domain
 
     def add(self,field,offset=0,name=None, lock_list=[]):
+        if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
+            raise ValueError("field offset must be a non-negative integer")
         field.bit_offset    = offset
         field.father        = self
         field.inst_name     = field.module_name if name == None else name
@@ -37,7 +41,7 @@ class Register(RegSpace):
 
             for exist_field in self.field_list:
                 if self.collision_detect(exist_field,field):
-                    raise Exception('Field collision detect')
+                    raise ValueError('Field overlap detect')
         self.field_list.append(field)
 
         self._next_offset = offset + field.bit
@@ -103,12 +107,19 @@ class Register(RegSpace):
 
     @property
     def filled_field_list(self):
+        """Return all fields, including explicit bit gaps, in increasing LSB order."""
         res = []
         previous_field = None
         # sorted_field_list = sorted(self.field_list, key=lambda x: x.bit_offset)
 
+        if not self.sorted_field_list:
+            filled_field = FilledField(bit=self.bit)
+            filled_field.bit_offset = 0
+            return [filled_field]
+
         if self.sorted_field_list[0].bit_offset != 0:
             filled_field = FilledField(bit=self.sorted_field_list[0].bit_offset)
+            filled_field.bit_offset = 0
             res.append(filled_field)
 
         for field in self.sorted_field_list:
@@ -120,8 +131,8 @@ class Register(RegSpace):
             res.append(field)
             previous_field = field
         
-        if self.sorted_field_list[-1].end_bit < 31:
-            filled_field = FilledField(32 - previous_field.end_bit - 1)
+        if self.sorted_field_list[-1].end_bit < self.end_bit:
+            filled_field = FilledField(self.bit - previous_field.end_bit - 1)
             filled_field.bit_offset = previous_field.end_bit + 1
             res.append(filled_field)
 
@@ -321,12 +332,16 @@ class Register(RegSpace):
         json_dict["key"]            = ADD_KEY()
         json_dict["type"]           = "reg"
         json_dict["name"]           = self.module_name 
-        if self.start_address <= self.father.bit_offset:
-            json_dict["start_addr"] = hex(int(self.start_address+self.father.start_address/8))
-            json_dict["end_addr"]   = hex(int(self.end_address+self.father.end_address/8))
-        else:
-            json_dict["start_addr"] = hex(int(self.start_address))
-            json_dict["end_addr"]   = hex(int(self.end_address))
+        # RegSpace stores child register offsets in bits for the RTL/address-space
+        # implementation.  JSON is a software-facing address map, so its register
+        # addresses must be byte offsets and its end is the final byte of the register.
+        # ``global_start_address`` is in bits and includes every enclosing
+        # AddressSpace offset; using the local ``offset`` would be wrong for a
+        # RegSpace below a non-zero parent address-space base.
+        start_byte = self.global_start_address // 8
+        end_byte = start_byte + math.ceil(self.bit / 8) - 1
+        json_dict["start_addr"] = hex(start_byte)
+        json_dict["end_addr"]   = hex(end_byte)
         
         json_dict["size"]           = ConvertSize(self.bit)
         json_dict["description"]    = self.description
@@ -350,4 +365,3 @@ class InterruptRegister(Register):
         self.add(field=IntrSetField(name=f'{name}',bit=bit,description=description),offset=offset+128)
         if self.reg_type==IntrMask:
             self.add(field=IntrMaskField(name=f'{name}',bit=bit,init_value=mask_init_value,description=description),offset=offset+160)
-

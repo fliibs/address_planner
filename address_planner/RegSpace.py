@@ -20,6 +20,13 @@ class RegSpace(AddressSpace):
         return self.module_name
 
     def add(self,sub_space,offset,name=None,lock_list=[], magic_list=[]):
+        alignment = max(1, self.bus_width // 8)
+        if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
+            raise ValueError("register offset must be a non-negative integer")
+        if offset % alignment:
+            raise ValueError(
+                f"register offset must be aligned to {alignment} bytes for bus width {self.bus_width}"
+            )
         bit_offset     = offset*8
         sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = bit_offset
@@ -44,7 +51,7 @@ class RegSpace(AddressSpace):
 
             for exist_space in self.sub_space_list:
                 if self.collision_detect(exist_space,sub_space_copy):
-                    raise Exception('Sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
+                    raise ValueError('Register address overlap: sub space %s(%s to %s) and current sub space %s(%s to %s) conflict.' \
                         % (sub_space_copy.module_name,hex(sub_space_copy.start_address),hex(sub_space_copy.end_address),exist_space.module_name,hex(exist_space.start_address),hex(exist_space.end_address)))
 
         self.sub_space_list.append(sub_space_copy)

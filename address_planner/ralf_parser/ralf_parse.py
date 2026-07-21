@@ -21,6 +21,7 @@ def build_addrspace(tcl_interpreter):
 
     # search the longest string 
     key_array = search_longest_string(tcl_interpreter)
+    py_dict.clear()
     py_dict[key_array] = {}
 
     #### update py_dict
@@ -29,11 +30,12 @@ def build_addrspace(tcl_interpreter):
     keys_array = tcl_interpreter.eval('set keys [dict keys $result]')
     key_list = keys_array.split(' ')
     tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
-    print(py_dict)
-
     #### build rb
     from ..RegSpace import RegSpace
-    reg_bank_B = RegSpace(name=py_dict[key_array]['name'], size=1e20*GB,bus_width=32,software_interface='apb')
+    # RALF offsets are byte-addressed and can be byte-granular.  This importer is
+    # an address-model path, not a promise that every imported map can use the
+    # 32-bit register-RTL backend.
+    reg_bank_B = RegSpace(name=py_dict[key_array]['name'], size=1e20*GB,bus_width=8,software_interface='apb')
     reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
     # reg_bank_B_copy.generate('build/ralf')
     reg_bank_B_copy = minimum_size(reg_bank_B_copy)
@@ -67,7 +69,7 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
             
         # recur addr dict
         if dict_['ADDR_DICT']!=None:  
-            reg_bank_B = RegSpace(name=dict_['name'], size=16*KB,bus_width=32,software_interface='apb')
+            reg_bank_B = RegSpace(name=dict_['name'], size=16*KB,bus_width=8,software_interface='apb')
             reg_bank_B_copy = build_subspace_recur(dict_['ADDR_DICT'], reg_bank_B, tcl_interpreter)
             
             if isinstance(father_copy, RegSpace):   father_copy = AddressSpace(name=father_copy.module_name, size=1e20*GB)
@@ -129,7 +131,7 @@ def tcl_dict_recur(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
         elif  key == 'size':                                              dict_[key]=convert_address(value)
         elif  key == "is_memory":                                         dict_[key]=value
         elif  key == "width":                                             dict_[key]=int(value)*8
-        elif  key == 'doc':                                               dict_[key]=value; print(dict_[key])
+        elif  key == 'doc':                                               dict_[key]=value
         else:
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
@@ -149,7 +151,7 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             tcl_dict_field(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, father)
         elif  key == 'addr':        dict_[key]=convert_address(value)
         elif  key == 'reset':       dict_[key]=convert_reset(value)
-        elif  key == 'doc':         dict_[key]=value; print(dict_[key])
+        elif  key == 'doc':         dict_[key]=value
         else:                       dict_[key]=value 
 
 

@@ -2,6 +2,8 @@ from .GlobalValues      import *
 from .AddressSpace      import *
 from copy               import deepcopy
 from .address_planner_rtl.MatrixCFG import *
+import json
+from pathlib import Path
 
 class MatrixSpace(AddressSpace):
     def __init__(self,name, offset=None,size=None,description='', path='./',bus_width=APG_BUS_WIDTH,data_width=APG_DATA_WIDTH,software_interface='apb'):
@@ -20,7 +22,7 @@ class MatrixSpace(AddressSpace):
     @property
     def _size(self):
         return self.size[self.offset.index(self._offset)] if isinstance(self.offset, list) else self.size
-        
+
     @property
     def start_address(self):
         if isinstance(self.offset, list):
@@ -56,6 +58,65 @@ class MatrixSpace(AddressSpace):
 
     def add_incr(self,sub_space,name,attr=None):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name,attr=attr)
+
+    @classmethod
+    def from_fixed_model(cls, model):
+        """Build a deterministic MatrixSpace topology from the sealed JSON model shape."""
+        required = {"schema_version", "model_id", "address_width", "data_width", "masters", "slaves", "connections"}
+        if not isinstance(model, dict) or set(model) != required or model["schema_version"] != 1:
+            raise ValueError("matrix model must use schema_version 1 and the fixed matrix-model keys")
+        if not all(isinstance(value, str) and value for value in model["masters"]):
+            raise ValueError("matrix model masters must be non-empty strings")
+        if len(set(model["masters"])) != len(model["masters"]):
+            raise ValueError("matrix model masters must be unique")
+        if not isinstance(model["address_width"], int) or not isinstance(model["data_width"], int):
+            raise ValueError("matrix address_width and data_width must be integers")
+
+        slaves = {}
+        for entry in model["slaves"]:
+            if not isinstance(entry, dict) or set(entry) != {"name", "offset_bytes", "size_bytes"}:
+                raise ValueError("matrix model slaves must contain name, offset_bytes, and size_bytes")
+            name, offset, size = entry["name"], entry["offset_bytes"], entry["size_bytes"]
+            if not isinstance(name, str) or not name or not isinstance(offset, int) or offset < 0 or not isinstance(size, int) or size <= 0:
+                raise ValueError("matrix model slave values are invalid")
+            if name in slaves:
+                raise ValueError(f"matrix model duplicates slave {name!r}")
+            slaves[name] = (offset, size)
+
+        if set(model["connections"]) != set(model["masters"]):
+            raise ValueError("matrix model connections must name every master exactly once")
+        root = cls(model["model_id"], size=1, bus_width=model["address_width"], data_width=model["data_width"])
+        for master_name in model["masters"]:
+            targets = model["connections"][master_name]
+            if not isinstance(targets, list) or not all(isinstance(target, str) for target in targets):
+                raise ValueError(f"matrix model connections for {master_name!r} must be a string list")
+            master = cls(master_name, size=1, bus_width=model["address_width"], data_width=model["data_width"])
+            for target in targets:
+                if target not in slaves:
+                    raise ValueError(f"matrix model connection {master_name!r}->{target!r} names no slave")
+                offset, size = slaves[target]
+                master.add(cls(target, offset=offset, size=size, bus_width=model["address_width"], data_width=model["data_width"]), name=target, offset=offset)
+            root.add(master, name=master_name)
+        return root
+
+    @classmethod
+    def report_fixed_model(cls, model_path, output_dir):
+        """Consume the fixed matrix fixture and write a stable JSON report below output_dir."""
+        source = Path(model_path).expanduser().resolve()
+        destination = Path(output_dir).expanduser().resolve() / "matrix_report.json"
+        try:
+            model = json.loads(source.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ValueError(f"cannot read matrix model {source}: {error}") from error
+        topology = cls.from_fixed_model(model)
+        payload = {
+            "schema_version": 1,
+            "model": model,
+            "topology": topology.report_json_core(),
+        }
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        return destination
         
     
     def update(self, sub_space,name):
@@ -440,5 +501,3 @@ class MstMatrixAttr(MatrixAttr):
         self.unique_id          = unique_id
         self.max_len            = max_len
         self.min_size           = min_size
-
-        

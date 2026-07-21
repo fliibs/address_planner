@@ -6,8 +6,12 @@
 {% if ss.bit > 32 %}
     typedef union{
         struct {
-            {% for field in ss.field_list -%}
+            {% for field in ss.filled_field_list -%}
+                {%- if field.name == 'FilledField' -%}
+                uint64_t reserved_{{field.bit_offset}}: {{field.bit}};
+                {%- else -%}
                 uint64_t {{field.name}}: {{field.bit}};
+                {%- endif %}
             {% endfor -%}
     } bits;
         uint64_t val;
@@ -15,8 +19,12 @@
 {% else %}
     typedef union{
         struct {
-            {% for field in ss.field_list -%}
+            {% for field in ss.filled_field_list -%}
+                {%- if field.name == 'FilledField' -%}
+                uint32_t reserved_{{field.bit_offset}}: {{field.bit}};
+                {%- else -%}
                 uint32_t {{field.name}}: {{field.bit}};
+                {%- endif %}
             {% endfor -%}
     } bits;
         uint32_t val;

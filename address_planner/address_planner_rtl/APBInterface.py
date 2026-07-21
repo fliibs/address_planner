@@ -1,4 +1,4 @@
-from ..uhdl.uhdl import *
+from uhdl import *
 from ..GlobalValues import *
 
 
@@ -14,7 +14,7 @@ class APB3(Bundle):
         # self.buser = 5
 
         self.addr   = Input(UInt(self.addr_width))
-        # self.prot   = Input(UInt(3))
+        # APB3 has no APB4 protection sideband.
         self.sel    = Input(UInt(1))
         self.enable = Input(UInt(1))
         self.write  = Input(UInt(1))
@@ -40,7 +40,6 @@ class APB3Reverse(Bundle):
         # self.strb_width = int(self.data_width/8)
 
         self.addr   = Output(UInt(self.addr_width))
-        self.prot   = Output(UInt(3))
         self.sel    = Output(UInt(1))
         self.enable = Output(UInt(1))
         self.write  = Output(UInt(1))
@@ -62,7 +61,7 @@ class APB4(Bundle):
         # self.buser = 5
 
         self.addr   = Input(UInt(self.addr_width))
-        # self.prot   = Input(UInt(3))
+        self.prot   = Input(UInt(3))
         self.sel    = Input(UInt(1))
         self.enable = Input(UInt(1))
         self.write  = Input(UInt(1))
@@ -102,9 +101,6 @@ class APB4Reverse(Bundle):
 
 # if __name__=="__main__":
 #     u_apb = APB().reverse()
-
-
-
 
 
 

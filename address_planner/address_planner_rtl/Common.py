@@ -1,4 +1,4 @@
-from ..uhdl.uhdl import *
+from uhdl import *
 from ..GlobalValues import *
 
 def get_sw_readable(sub_space_list, readable=False, outer=True):

@@ -1,0 +1,5 @@
+# Runtime dependencies, deliberately pinned for the documented bootstrap path.
+Jinja2==3.1.2
+openpyxl==3.1.5
+networkx==3.1
+matplotlib==3.7.2
