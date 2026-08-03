@@ -1,21 +1,75 @@
-name: Coverage
+name: Address Planner CI
 
 on: [push, pull_request]
 
 jobs:
-  build:
+  python-tests:
     runs-on: ubuntu-latest
-    name: Coverage
+    name: Python tests and coverage
+    env:
+      ADDRESS_PLANNER_ROOT: ${{ github.workspace }}
+      UHDL_ROOT: ${{ github.workspace }}/../uhdl
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
-    - name: Install requirements
-      run: pip install -r config/requirements.txt
-    - name: Update Submodules
-      run: git submodule init; git submodule update
-    - name: Run tests and collect coverage
-      run: pytest test --cov=address_planner --cov-report=xml
-    - name: Upload coverage reports to Codecov with GitHub Action
-      uses: codecov/codecov-action@v3
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Check out canonical U-HDL
+        run: |
+          uhdl_commit="$(git ls-tree HEAD -- address_planner/uhdl | awk '{print $3}')"
+          git clone --no-checkout https://github.com/YuunqiLiu/uhdl.git "$UHDL_ROOT"
+          git -C "$UHDL_ROOT" checkout --detach "$uhdl_commit"
+
+      - name: Use Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements/runtime.lock
+            requirements/test.lock
+
+      - name: Install requirements
+        run: pip install -r requirements/runtime.lock -r requirements/test.lock
+
+      - name: Run tests and collect coverage
+        # The sealed acceptance suite is executed by its delivery harness because
+        # its fixture files are intentionally not stored in this repository.
+        run: pytest test/case test/example test/e2e --cov=address_planner --cov-report=xml
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+
+  viewer-template:
+    runs-on: ubuntu-latest
+    name: Pinned Viewer template
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: viewer/apv_html/.nvmrc
+          cache: npm
+          cache-dependency-path: viewer/apv_html/package-lock.json
+
+      - name: Install Viewer dependencies
+        run: npm ci
+        working-directory: viewer/apv_html
+
+      - name: Test Viewer
+        run: npm test
+        working-directory: viewer/apv_html
+
+      - name: Build Viewer template
+        run: npm run build
+        working-directory: viewer/apv_html
+
+      - name: Validate Viewer template contract
+        run: npm run validate:template
+        working-directory: viewer/apv_html
+
+      - name: Verify vendored Viewer provenance
+        run: python tools/sync_viewer_template.py --check

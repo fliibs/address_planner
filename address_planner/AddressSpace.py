@@ -407,13 +407,91 @@ class AddressSpace(AddressLogicRoot):
         json_dict["description"]= self.description
         json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
         return json_dict
+
+    def report_sqlite(self, database_path=None):
+        """Write the normalized SQLite report used by the single-HTML viewer.
+
+        JSON generation remains available during the migration.  Callers that
+        package a single HTML can pass a temporary ``database_path`` and embed
+        the returned report after validation.
+        """
+
+        from .sqlite_report import write_sqlite_report
+
+        if database_path is None:
+            database_path = os.path.join(
+                self._html_dir, f"{self.module_name}_address_map.sqlite"
+            )
+        return write_sqlite_report(self, database_path)
+
+    def report_single_html(
+        self,
+        viewer_template_path=None,
+        output_html_path=None,
+        database_path=None,
+    ):
+        """Generate SQLite and package it into one offline viewer HTML.
+
+        When ``database_path`` is omitted the intermediate SQLite file is
+        removed after successful (or failed) packaging. Passing an explicit
+        path keeps it, which is useful for schema inspection and size reports.
+        """
+
+        import tempfile
+        from pathlib import Path
+
+        from .single_html_report import (
+            default_viewer_template_path,
+            package_single_html,
+        )
+
+        html_dir = Path(self._html_dir).expanduser().resolve()
+        html_dir.mkdir(parents=True, exist_ok=True)
+        if output_html_path is None:
+            output_html_path = html_dir / f"{self.module_name}_address_map.html"
+        if viewer_template_path is None:
+            viewer_template_path = default_viewer_template_path()
+
+        owns_database = database_path is None
+        if owns_database:
+            descriptor, temporary_name = tempfile.mkstemp(
+                prefix=f".{self.module_name}_address_map.",
+                suffix=".sqlite",
+                dir=str(html_dir),
+            )
+            os.close(descriptor)
+            os.unlink(temporary_name)
+            database_path = temporary_name
+
+        try:
+            self.report_sqlite(database_path)
+            return package_single_html(
+                database_path,
+                viewer_template_path,
+                output_html_path,
+            )
+        finally:
+            if owns_database:
+                try:
+                    Path(database_path).unlink()
+                except FileNotFoundError:
+                    pass
     
 
     # total ========================================
-    def generate(self,path=None, gen_doc=False, check_ralf=False):
+    def generate(
+        self,
+        path=None,
+        gen_doc=False,
+        check_ralf=False,
+        viewer_template_path=None,
+        report_viewer=True,
+    ):
         if path != None:
             self.path = path
         self.report_json(gen_doc)
+        if report_viewer:
+            self.report_single_html(viewer_template_path)
         self.report_ralf()
         if check_ralf:  self.check_ralf()
         self.report_chead()

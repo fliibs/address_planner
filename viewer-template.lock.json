@@ -1,0 +1,22 @@
+{
+  "compatibility": {
+    "container_versions": [
+      1
+    ],
+    "sqlite_schema_versions": [
+      1
+    ]
+  },
+  "lock_version": 1,
+  "template": {
+    "sha256": "5188a0f289928b126e096e3c9ff3a39ee2fb70f9b2fb0335608542669912bcd6",
+    "size_bytes": 1933898,
+    "source": "viewer/apv_html/dist/address-planner-viewer.template.html",
+    "vendored": "address_planner/report_template/address_planner_viewer.template.html"
+  },
+  "viewer": {
+    "commit": "3e319f06119b9a9f66b8697943c74e2524570352",
+    "path": "viewer/apv_html",
+    "repository": "https://github.com/fliibs/apv_html.git"
+  }
+}

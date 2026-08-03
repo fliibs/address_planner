@@ -1,3 +1,4 @@
 # Test-only dependencies for tools/bootstrap_env.py --with-test.
 pytest==7.4.0
 pytest-cov==4.1.0
+selenium==4.46.0

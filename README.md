@@ -70,24 +70,62 @@ git submodule update --init --recursive
 (output is in ./build directory)
 ```
 
-### 4. Use HTML to view related information
+### 4. Generate the offline SQLite viewer
 
-[Nodejs Installation](https://nodejs.org/en/download)
+The normal generation path uses the versioned Viewer template shipped with the
+Python package:
 
-[Detail of React-Create-APP](https://github.com/fliibs/address_planner/tree/main/reactdemo2)
+```python
+top.generate("build/example")
+```
+
+The browser Viewer source is pinned as the build-time `viewer/apv_html`
+submodule. Normal report generation does not require Node.js or an initialized
+Viewer submodule because the validated template is vendored with Address
+Planner. Maintainers updating Viewer code must rebuild, test and vendor the
+self-contained template:
 
 ```shell
-1. install the latest npm and nodejs (version of nodejs >= 12)
-    # check version of npm and nodejs
-    npm -v
-    nodejs -v
-2.  install node_modules and start npm 
-    cd reactdemo2
-    npm install
-    npm start
-
-(Detail in ./reactdemo2/README.md)
+git submodule update --init --recursive
+cd viewer/apv_html
+npm ci
+npm test
+npm run build
+npm run validate:template
+cd ../..
+python tools/sync_viewer_template.py
+python tools/sync_viewer_template.py --check
 ```
+
+`viewer-template.lock.json` records the exact Viewer commit, template hash and
+supported container/schema versions. CI rebuilds the submodule and rejects a
+vendored template or lock file that has drifted from that commit.
+
+An alternate development template can also be supplied explicitly:
+
+```python
+top.generate(
+    "build/example",
+    viewer_template_path="viewer/apv_html/dist/address-planner-viewer.template.html",
+)
+```
+
+The generated report is a single offline file:
+
+```text
+build/example/<model>/html/<model>_address_map.html
+```
+
+It can be opened directly with `file://`. SQLite, SQLite WASM, the query Worker,
+JavaScript, CSS and the compressed report database are all embedded; no server
+or network request is required. The viewer queries roots first, direct children
+when an AddressSpace is expanded, and Fields only when a Register is selected.
+Its compact header reports the exact Node and Field totals plus the uncompressed
+SQLite database size recorded in the embedded manifest.
+
+During migration, `data.json` is still generated for compatibility and semantic
+comparison. See [the architecture document](doc/single_html_sqlite_viewer_architecture.md)
+for the schema, memory model, migration plan and validation requirements.
 
 ###Architecture of regbank
 
