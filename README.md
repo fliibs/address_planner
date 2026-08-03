@@ -154,6 +154,10 @@ or network request is required. The viewer queries roots first, direct children
 when an AddressSpace is expanded, and Fields only when a Register is selected.
 Its compact header reports the exact Node and Field totals plus the uncompressed
 SQLite database size recorded in the embedded manifest.
+Before the report is ready, the same header shows placeholders and a Fog Sage
+loading panel reports real Base64/decompression byte progress where measurable,
+then names the hash, SQLite, integrity and root-query stages without inventing a
+percentage.
 
 During migration, `data.json` is still generated for compatibility and semantic
 comparison. The schema v2 Viewer projection intentionally omits
