@@ -13,3 +13,5 @@ from .Field         import *
 from .Parity        import *
 from .RegSpaceRTL   import *
 from .MatrixSpace   import *
+from .sqlite_report import *
+from .single_html_report import *

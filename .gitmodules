@@ -1,3 +1,6 @@
 [submodule "address_planner/uhdl"]
 	path = address_planner/uhdl
 	url = https://github.com/YuunqiLiu/uhdl.git
+[submodule "viewer/apv_html"]
+	path = viewer/apv_html
+	url = https://github.com/fliibs/apv_html.git

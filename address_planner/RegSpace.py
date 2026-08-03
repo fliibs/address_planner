@@ -184,8 +184,19 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
-    def generate(self, path=None, report_dv=False, check=False):
-        super().generate(path)
+    def generate(
+        self,
+        path=None,
+        report_dv=False,
+        check=False,
+        viewer_template_path=None,
+        report_viewer=True,
+    ):
+        super().generate(
+            path,
+            viewer_template_path=viewer_template_path,
+            report_viewer=report_viewer,
+        )
         self.report_rtl()
         if report_dv: self.report_dv()
         if check:     self.check()
