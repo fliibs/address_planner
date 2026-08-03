@@ -154,7 +154,7 @@ or network request is required. The viewer queries roots first, direct children
 when an AddressSpace is expanded, and Fields only when a Register is selected.
 Its compact header reports the exact Node and Field totals plus the uncompressed
 SQLite database size recorded in the embedded manifest.
-Before the report is ready, the same header shows placeholders and a Fog Sage
+Before the report is ready, the same header shows placeholders and a theme-aware
 loading panel reports real Base64/decompression byte progress where measurable,
 then names the hash, SQLite, integrity and root-query stages without inventing a
 percentage. Its ten-row startup sequence keeps completed steps visible, marks
@@ -162,15 +162,18 @@ the current task, dims pending work and clips all motion inside the active track
 Append `?loadingDemo=1` to replay those captured stages slowly for visual review;
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
-The title bar also provides a compact theme button that switches between the
-Fog Sage light palette and the Night Sage dark palette. Both palettes cover the
-pre-React static loading shell, the mounted React UI, Ant Design portal content,
-tables and scrollbars rather than recoloring only the main canvas. The selected
-theme is persisted through guarded `localStorage` access when the browser allows
-it and is restored synchronously before React mounts, avoiding a light flash in
-dark mode while remaining safe for direct `file://` use. Theme switching changes
-colors only; panel geometry, column widths and all table drag, collapse, wrap and
-selection interactions remain unchanged.
+The title bar also provides a compact theme button that switches between palettes
+inspired by the classic VS Code Light+ and Dark+ themes. Light mode pairs a white
+editor/table surface with a light-gray workbench; dark mode uses the familiar
+`#1e1e1e` editor and `#252526` workbench surfaces. Both use `#007acc` blue for
+primary interaction and selection cues, and cover the pre-React static loading
+shell, the mounted React UI, Ant Design portal content, tables and scrollbars
+rather than recoloring only the main canvas. The selected theme is persisted
+through guarded `localStorage` access when the browser allows it and is restored
+synchronously before React mounts, avoiding a light flash in dark mode while
+remaining safe for direct `file://` use. Theme switching changes colors only;
+panel geometry, column widths and all table drag, collapse, wrap and selection
+interactions remain unchanged.
 
 The Bank/Reg divider keeps either visible panel at least 160 px wide. Reaching
 that limit only clamps the panel; the pointer must travel another 80 px toward
