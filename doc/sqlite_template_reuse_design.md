@@ -1,6 +1,6 @@
 # SQLite 模板复用设计
 
-状态：已确认，待实施
+状态：已实施并完成 v1/v2 语义一致性验证
 
 目标 schema：v2
 
@@ -15,6 +15,9 @@ Address Planner 的 Viewer 数据库采用“逻辑实例树 + 物理模板 DAG�
 3. 节点定义、Register Field Layout 和重复字符串通过内容寻址的模板表复用。
 4. Viewer 仍按 `parent_id` 展开节点，不在显示时临场计算绝对地址。
 5. 第一版不实现“纯虚拟 Bank”；数据库尺寸和真实复用率证明有必要后再升级。
+6. schema v2 已成为默认输出；迁移期可显式传入
+   `schema_version=SCHEMA_VERSION_V1` 生成旧布局。
+7. Viewer 在 Worker/Store 内提供 v1/v2 adapter，React 和交互层保持同一业务接口。
 
 本设计只改变 Viewer 报告的物理存储，不改变现有 Python DSL、`deepcopy` 实例化、RTL 生成或头文件生成语义。
 
@@ -40,7 +43,7 @@ id
 parent_id
 template_id
 sort_order
-name
+name_text_id
 start_addr
 end_addr
 ```
@@ -56,15 +59,13 @@ end_addr
 
 ### 3.2 节点模板
 
-`node_templates` 保存可共享的节点定义，例如：
+`node_templates` 保存可共享的 Viewer 可见节点定义：
 
 ```text
 content_hash
 kind
 size_bytes
-description
-Register width/type/parity/reset-domain
-RegSpace bus width/software interface
+description_text_id
 child_count
 field_count
 ```
@@ -87,6 +88,10 @@ child_local_name
 
 `MultiPortOption` 可以允许同父节点下同地址多个视图，所以槽位必须保留 `sort_order`，不能使用名称或偏移作为唯一键。
 
+既有 fluent DSL 和 MultiPort 模型还可能把逻辑子节点放到父节点名义 size 之外；v1/JSON
+一直保留并显示这类 placement。v2 为保证语义兼容，只验证 occurrence 与模板 edge 的
+名称、顺序、相对/绝对地址一致，不额外引入“子范围必须被父范围包含”的新规则。
+
 ### 3.4 Field Layout
 
 Register Field 不按 Register 实例重复写入。Register occurrence 通过 template 间接引用 Field Layout：
@@ -98,7 +103,7 @@ register occurrence
             -> field_defs
 ```
 
-Field 可见语义至少包括：
+Field 可见语义包括：
 
 ```text
 name
@@ -116,7 +121,38 @@ Field 逻辑 ID 由 `(register_occurrence_id, field_sort_order)` 组成，不使
 
 重复名称和描述可进入 `texts` 字符串池。
 
-v2 定义为 Viewer 可见语义投影；当前 Viewer 不读取的 `node_attributes` 不再写入报告。如果将来需要完整模型归档，应建立独立格式，不应让未显示属性无限扩张 Viewer 数据库。
+v2 定义为 Viewer 可见语义投影；当前 Viewer 不读取的 `node_attributes`
+已从 v2 schema 删除，不再写入报告，也不参与模板 Hash。v1 仍保留原表以保证旧布局
+兼容。如果将来需要完整模型归档，应建立独立格式，不应让未显示属性无限扩张 Viewer
+数据库。
+
+### 3.6 已实施的物理表
+
+v2 由以下七张表组成：
+
+| 表 | 职责 |
+| --- | --- |
+| `metadata` | schema、生成器版本、逻辑计数和复用统计 |
+| `texts` | 唯一 UTF-8 字符串池 |
+| `node_templates` | 内容寻址的 Node 可见定义 |
+| `field_defs` | 内容寻址的 Field 可见定义 |
+| `template_children` | 父模板内有序的子 placement edge |
+| `template_fields` | Register 模板内有序的 Field 引用 |
+| `node_occurrences` | 完整逻辑树、实例名和绝对地址 |
+
+为控制固定存储开销，v2 只建立两个经查询契约证明需要的二级索引：
+
+```sql
+CREATE INDEX idx_occurrences_parent_order
+ON node_occurrences(parent_id, sort_order, id);
+
+CREATE INDEX idx_occurrences_address
+ON node_occurrences(start_addr, end_addr, id);
+```
+
+模板边和 Field 布局的主键已经覆盖它们的有序查找，不再增加反向索引；名称搜索目前
+仍按 `texts.value` 做受 `LIMIT` 约束的查询，避免为了不能被 `%LIKE%` 使用的列额外付出
+索引空间。
 
 ## 4. 内容寻址
 
@@ -126,18 +162,20 @@ v2 定义为 Viewer 可见语义投影；当前 Viewer 不读取的 `node_attrib
 H(
   schema/domain version,
   kind,
-  size and visible semantic attributes,
+  size,
   description,
   ordered(child local name, relative offset, child template hash),
-  ordered(field visible semantics)
+  ordered(field definition hash)
 )
 ```
 
 编码约束：
 
 - 字符串使用 UTF-8 和明确长度前缀；
-- 整数使用固定宽度大端编码；
+- 整数使用固定 8 字节大端编码；
 - 子节点顺序沿用当前 `(bit_offset, original insertion order)`；
+- Field 先按其完整可见语义独立计算 Hash；Node canonical record 只嵌入直接子模板和
+  Field 定义的 32 字节 Hash，不递归复制整棵子树的 canonical bytes；
 - 不对 Python repr、对象 ID 或 SQLite surrogate ID 做 Hash；
 - Hash 相同后仍比较 canonical record，不只依赖碰撞概率。
 
@@ -176,15 +214,31 @@ schema v2 不应迫使 React 组件知道 SQLite 表结构；兼容性改动限�
 
 ## 7. 尺寸决策
 
-50 Bank / 10,000 Register / 80,000 Field 合成基准中：
+当前 50 Bank / 10,000 Register / 80,000 Field 合成基准中：
 
-| 方案 | SQLite | gzip |
+| 产物 / schema | 原始字节 | 确定性 gzip |
 | --- | ---: | ---: |
-| 当前 schema v1 | 12,316,672 B | 1,940,404 B |
-| 模板 DAG + 10,051 条轻量 occurrence | 913,408 B | 224,313 B |
-| 纯虚拟 Bank 子树 | 61,440 B | 7,119 B |
+| 旧递归 JSON | 36,647,975 B | 597,714 B |
+| schema v1 | 12,316,672 B | 1,940,404 B |
+| schema v2：模板 DAG + occurrence | 876,544 B | 292,409 B |
 
-该基准是高重复理想样例，不作为真实项目体积承诺。
+这次测量中，v2 相比 v1 原始 SQLite 减少约 92.88%，gzip 载荷减少约
+84.93%；相比原始 JSON 减少约 97.61%。这里的 292,409 B 是最终 packager 使用相同
+确定性 gzip 路径得到的实际载荷；数值仍可能随 SQLite 版本和索引调整变化，以上是当前
+实现测量，不是尺寸承诺。
+
+逻辑到物理复用统计为：
+
+- 10,051 个逻辑 Node 映射为 3 个 `node_templates`；
+- 80,000 个逻辑 Field 映射为 8 个 `field_defs`；
+- Node/Field 名称和描述进一步由 `texts` 去重。
+
+该基准是严格重复率很高的理想样例，主要验证实现上限和 v1/v2 语义一致性；真实收益
+取决于模板严格相等的比例。
+
+同一基准中 v2 生成耗时 1.230 s，v1 为 1.437 s；当前 v2 并未以去重换取更慢的生成，
+但时间同样只代表本次环境。Viewer 空模板为 1,940,870 B，打包后的 v2 单 HTML 为
+2,330,900 B。
 
 在“当前 SQLite 为 1 GiB，每个 Bank 平均有两个严格相同实例，不假设其他复用”的估算中：
 
@@ -208,11 +262,26 @@ v2 首版不包含：
 
 要区分“存储复用”和“整库内存”：推荐方案能大幅缩小数据库，但当去重后 SQLite 仍达到数百 MiB 时，单 HTML 启动时整库解压仍可能超出浏览器内存边界。该情况应优先引入分块压缩和 SQLite Page/VFS 按需加载，而不是先实现纯虚拟 Bank。
 
-## 9. 实施顺序
+## 9. 实施与兼容状态
 
-1. 对真实模型生成只读复用率报告：Field Layout、Node Template、完整子树和字符串。
-2. 以 feature flag 新增 schema v2 writer，不原地修改 v1 数据库。
-3. Viewer Store 同时支持 v1/v2，保持业务接口不变。
-4. 将 v2 完整展开为逻辑树，与旧 JSON/v1 逐 Node、Field 做语义对比。
-5. 补充深层树、同地址 MultiPort、单子节差异、64 位地址和 Hash 稳定性测试。
-6. 在真实项目上记录原始/gzip/单 HTML 尺寸与启动峰值内存，再切换默认 schema。
+已完成：
+
+1. Python writer 同时保留 schema v1 和 v2；`SCHEMA_VERSION` 现指向 v2，
+   `write_sqlite_report(..., schema_version=SCHEMA_VERSION_V1)` 可显式生成旧布局。
+2. `AddressSpace.report_sqlite()`、`report_single_html()` 透传 `schema_version`；
+   `generate()` 通过 `sqlite_schema_version` 暴露同一兼容开关。
+3. Writer 自底向上构建 Field 定义和 Node 模板，用 canonical bytes + SHA-256
+   内容寻址；强制 Hash 碰撞测试确认不同 canonical record 不会被误合并。
+4. v2 写入完整 occurrence 树和绝对地址，验证外键、DAG 无环、placement、自身地址范围、
+   顺序、计数、孤儿记录、内容 Hash 和 64 位值。
+5. Viewer Worker 在初始化时按 schema 选择 v1/v2 SQL adapter，Store 的
+   `metadata`、`roots`、`children`、`fields`、`findByName` 和 `findByAddress`
+   契约保持不变。
+6. 固定 fixture 和大型基准均将 v2 投影与 JSON/v1 逐 Node、Field 比较；还覆盖
+   同地址 MultiPort、深拷贝 Bank 不同基址、单 Field 差异、64 位地址和确定性输出。
+7. `apv_html` 继续作为 `viewer/apv_html` build-time submodule 管理。Viewer 变更先在
+   独立仓库提交，再更新 submodule gitlink，并用 `tools/sync_viewer_template.py` 同步
+   vendored 单 HTML 模板与 `viewer-template.lock.json`；普通报告生成不依赖 Node.js。
+
+后续仅需在真实最大项目和目标浏览器上持续记录单 HTML 尺寸、启动峰值内存与查询
+P95；达到内存边界时再按第 8 节升级 Page/VFS，不改变 Store 接口。

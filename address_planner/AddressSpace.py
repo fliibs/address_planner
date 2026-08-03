@@ -408,27 +408,34 @@ class AddressSpace(AddressLogicRoot):
         json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
         return json_dict
 
-    def report_sqlite(self, database_path=None):
+    def report_sqlite(self, database_path=None, *, schema_version=None):
         """Write the normalized SQLite report used by the single-HTML viewer.
 
-        JSON generation remains available during the migration.  Callers that
-        package a single HTML can pass a temporary ``database_path`` and embed
-        the returned report after validation.
+        Schema v2 is the default; pass ``schema_version=SCHEMA_VERSION_V1``
+        for the legacy layout. Callers that package a single HTML can pass a
+        temporary ``database_path`` and embed the returned report after
+        validation.
         """
 
-        from .sqlite_report import write_sqlite_report
+        from .sqlite_report import SCHEMA_VERSION, write_sqlite_report
 
         if database_path is None:
             database_path = os.path.join(
                 self._html_dir, f"{self.module_name}_address_map.sqlite"
             )
-        return write_sqlite_report(self, database_path)
+        if schema_version is None:
+            schema_version = SCHEMA_VERSION
+        return write_sqlite_report(
+            self, database_path, schema_version=schema_version
+        )
 
     def report_single_html(
         self,
         viewer_template_path=None,
         output_html_path=None,
         database_path=None,
+        *,
+        schema_version=None,
     ):
         """Generate SQLite and package it into one offline viewer HTML.
 
@@ -464,7 +471,7 @@ class AddressSpace(AddressLogicRoot):
             database_path = temporary_name
 
         try:
-            self.report_sqlite(database_path)
+            self.report_sqlite(database_path, schema_version=schema_version)
             return package_single_html(
                 database_path,
                 viewer_template_path,
@@ -486,12 +493,16 @@ class AddressSpace(AddressLogicRoot):
         check_ralf=False,
         viewer_template_path=None,
         report_viewer=True,
+        sqlite_schema_version=None,
     ):
         if path != None:
             self.path = path
         self.report_json(gen_doc)
         if report_viewer:
-            self.report_single_html(viewer_template_path)
+            self.report_single_html(
+                viewer_template_path,
+                schema_version=sqlite_schema_version,
+            )
         self.report_ralf()
         if check_ralf:  self.check_ralf()
         self.report_chead()

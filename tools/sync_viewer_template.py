@@ -26,7 +26,7 @@ DEFAULT_LOCK = PROJECT_ROOT / "viewer-template.lock.json"
 VIEWER_REPOSITORY = "https://github.com/fliibs/apv_html.git"
 LOCK_VERSION = 1
 CONTAINER_VERSIONS = (1,)
-SQLITE_SCHEMA_VERSIONS = (1,)
+SQLITE_SCHEMA_VERSIONS = (1, 2)
 PLACEHOLDERS = (
     "__APV_MANIFEST__",
     "__APV_DATABASE_GZIP_BASE64__",

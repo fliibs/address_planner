@@ -202,6 +202,7 @@ class RegSpace(AddressSpace):
         viewer_template_path=None,
         report_viewer=True,
         check_ralf=False,
+        sqlite_schema_version=None,
     ):
         super().generate(
             path,
@@ -209,6 +210,7 @@ class RegSpace(AddressSpace):
             check_ralf=check_ralf,
             viewer_template_path=viewer_template_path,
             report_viewer=report_viewer,
+            sqlite_schema_version=sqlite_schema_version,
         )
         self.report_waive()
         self.report_rtl()
