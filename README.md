@@ -157,7 +157,8 @@ SQLite database size recorded in the embedded manifest.
 Before the report is ready, the same header shows placeholders and a Fog Sage
 loading panel reports real Base64/decompression byte progress where measurable,
 then names the hash, SQLite, integrity and root-query stages without inventing a
-percentage.
+percentage. Its ten-row startup sequence keeps completed steps visible, marks
+the current task, dims pending work and clips all motion inside the active track.
 Append `?loadingDemo=1` to replay those captured stages slowly for visual review;
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
