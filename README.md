@@ -162,6 +162,16 @@ the current task, dims pending work and clips all motion inside the active track
 Append `?loadingDemo=1` to replay those captured stages slowly for visual review;
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
+The title bar also provides a compact theme button that switches between the
+Fog Sage light palette and the Night Sage dark palette. Both palettes cover the
+pre-React static loading shell, the mounted React UI, Ant Design portal content,
+tables and scrollbars rather than recoloring only the main canvas. The selected
+theme is persisted through guarded `localStorage` access when the browser allows
+it and is restored synchronously before React mounts, avoiding a light flash in
+dark mode while remaining safe for direct `file://` use. Theme switching changes
+colors only; panel geometry, column widths and all table drag, collapse, wrap and
+selection interactions remain unchanged.
+
 The Bank/Reg divider keeps either visible panel at least 160 px wide. Reaching
 that limit only clamps the panel; the pointer must travel another 80 px toward
 the edge before the panel snaps fully closed, making accidental collapse less
