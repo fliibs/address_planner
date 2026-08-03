@@ -786,25 +786,28 @@ Phase 1 到 Phase 5 已完成；Phase 6 仍是只在目标设备内存超标时�
   parent/order 与全局 address 两个查询索引。
 - `apv_html` 使用 `sql.js 1.14.1` + Web Worker；v1/v2 SQL adapter、数据库、WASM、
   Worker、JS、CSS、gzip fallback 和第三方许可声明均嵌入最终 HTML。
-- 最终 HTML 在 React 启动前就包含可见的 Fog Sage 加载壳。主线程分段 Base64 解码和
+- 最终 HTML 在 React 启动前就包含跟随当前明暗主题的可见加载壳。主线程分段 Base64 解码和
   原生流式 gzip 解压按实际处理字节报告进度；SHA-256、WASM/SQLite 初始化、数据库打开、
   完整性检查、metadata 和根节点查询只报告阶段，不用估算值伪造百分比。加载遮罩覆盖但不
   销毁既有表格骨架，完成后直接揭示原布局；后台骨架在此期间使用 `inert` 隔离交互。
   十步纵向启动序列持续保留已完成项、突出当前项并弱化待执行项；当前任务的扫描动画严格
   裁切在自身轨道中，不允许越过卡片或轨道边界。
   `?loadingDemo=1` 只慢放已经捕获的进度阶段用于视觉检查，不改变默认 URL 的启动耗时。
-- 标题栏提供统一的 28 px 明暗主题切换按钮：亮色使用 `Fog Sage`，暗色使用
-  `Night Sage`。两套语义色令牌完整覆盖 React 启动前的静态加载壳、React 界面、Ant
-  Design ConfigProvider 和 portal 弹层、表格层级行、空表体及滚动条，而不是只切换页面
-  画布。主题选择在浏览器允许时通过带异常保护的 `localStorage` 持久化；同步启动脚本会在
-  React 挂载前恢复主题并同步页面 theme-color，因此直接以 `file://` 打开时也不会因存储
-  不可用而启动失败，暗色模式不会先闪出亮色首屏。主题切换只改变颜色令牌，不修改面板
-  几何、列宽，以及表格的拖动、收起、换行、展开或选择交互。
+- 标题栏提供统一的 28 px 明暗主题切换按钮；两套配色参考 VS Code 经典 `Light+` / `Dark+`
+  主题。亮色以白色 editor/表格内容面配合浅灰 workbench，暗色采用 `#1e1e1e` editor 与
+  `#252526` workbench，主交互和选择提示统一使用 `#007acc` 蓝色。两套语义色令牌完整覆盖
+  React 启动前的静态加载壳、React 界面、Ant Design ConfigProvider 和 portal 弹层、表格
+  层级行、空表体及滚动条，而不是只切换页面画布。主题选择在浏览器允许时通过带异常保护的
+  `localStorage` 持久化；同步启动脚本会在 React 挂载前恢复主题并同步页面 theme-color，
+  因此直接以 `file://` 打开时也不会因存储不可用而启动失败，暗色模式不会先闪出亮色首屏。
+  主题切换只改变颜色令牌，不修改面板几何、列宽，以及表格的拖动、收起、换行、展开或选择
+  交互。
 - Viewer 初始只查询根节点，展开时查询直接子节点，点击 Register 时查询 Fields；
   使用游标 `LIMIT`、虚拟表格和最多 32 个父节点的 LRU 缓存。
-- Viewer 保留默认左右等宽的 `Bank Info / Reg Info` 视觉结构，使用低对比度
-  Fog Sage 灰绿色亮色层级和同一仪器风格的 Night Sage 深灰绿色暗色层级；画布、空表体、
-  普通表面、层级行和抬升表头均有明确且不含纯白/纯黑的层次。Register 整行均可选择，四个较长的
+- Viewer 保留默认左右等宽的 `Bank Info / Reg Info` 视觉结构，使用 VS Code 经典主题式的
+  editor/workbench 明暗层级：亮色内容面为白色、外围工作区为浅灰，暗色内容面为 `#1e1e1e`、
+  外围工作区为 `#252526`，并以 `#007acc` 蓝色强调交互状态；空表体、普通表面、层级行和抬升
+  表头之间仍有清晰的对比关系。Register 整行均可选择，四个较长的
   Address/Access 表头分两行显示。中间“信号总线”分隔线和两张表的每个列边界均可
   拖动，横向滚动条固定在各自面板底部。顶部使用紧凑的 `Address Planner v1.2.2`
   仪器铭牌；`v1.2.2` 是仓库当前最高正式发布标签。标题右侧常驻显示 Nodes、Fields 和
