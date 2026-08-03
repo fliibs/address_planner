@@ -786,6 +786,10 @@ Phase 1 到 Phase 5 已完成；Phase 6 仍是只在目标设备内存超标时�
   parent/order 与全局 address 两个查询索引。
 - `apv_html` 使用 `sql.js 1.14.1` + Web Worker；v1/v2 SQL adapter、数据库、WASM、
   Worker、JS、CSS、gzip fallback 和第三方许可声明均嵌入最终 HTML。
+- 最终 HTML 在 React 启动前就包含可见的 Fog Sage 加载壳。主线程分段 Base64 解码和
+  原生流式 gzip 解压按实际处理字节报告进度；SHA-256、WASM/SQLite 初始化、数据库打开、
+  完整性检查、metadata 和根节点查询只报告阶段，不用估算值伪造百分比。加载遮罩覆盖但不
+  销毁既有表格骨架，完成后直接揭示原布局；后台骨架在此期间使用 `inert` 隔离交互。
 - Viewer 初始只查询根节点，展开时查询直接子节点，点击 Register 时查询 Fields；
   使用游标 `LIMIT`、虚拟表格和最多 32 个父节点的 LRU 缓存。
 - Viewer 保留默认左右等宽的 `Bank Info / Reg Info` 视觉结构，使用低对比度
