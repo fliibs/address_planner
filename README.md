@@ -162,15 +162,17 @@ the current task, dims pending work and clips all motion inside the active track
 Append `?loadingDemo=1` to replay those captured stages slowly for visual review;
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
-The title bar also provides a compact theme button that switches between palettes
-inspired by the classic VS Code Light+ and Dark+ themes. Light mode adapts Light+
-into a lower-luminance cool blue-gray hierarchy, with distinct workbench canvas,
-editor/table content and raised header/menu surfaces; dark mode retains the familiar
-`#1e1e1e` editor and `#252526` workbench surfaces. Both use `#007acc` blue for
-primary interaction and selection cues, and cover the pre-React static loading
-shell, the mounted React UI, Ant Design portal content, tables and scrollbars
-rather than recoloring only the main canvas. The selected theme is persisted
-through guarded `localStorage` access when the browser allows it and is restored
+The page's upper-right corner places a compact theme button immediately after the
+title-bar statistics. It switches between palettes inspired by the classic VS Code
+Light+ and Dark+ themes, and keeps the same position and footprint in the pre-React
+static shell and the mounted React header. Light mode adapts Light+ into a moderately
+brighter, less-gray cool blue-gray hierarchy that still avoids pure white, with
+distinct workbench canvas, editor/table content and raised header/menu surfaces;
+dark mode retains the familiar `#1e1e1e` editor and `#252526` workbench surfaces.
+Both use `#007acc` blue for primary interaction and selection cues, and cover the
+pre-React static loading shell, the mounted React UI, Ant Design portal content,
+tables and scrollbars rather than recoloring only the main canvas. The selected
+theme is persisted through guarded `localStorage` access when the browser allows it and is restored
 synchronously before React mounts, avoiding a light flash in dark mode while
 remaining safe for direct `file://` use. Theme switching changes colors only;
 panel geometry, column widths and all table drag, collapse, wrap and selection
