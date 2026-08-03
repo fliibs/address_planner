@@ -10,13 +10,13 @@
   },
   "lock_version": 1,
   "template": {
-    "sha256": "12bb4ccac62ba1de0470f040474f57575e5e4ccbefeaec52294c1705c5fc2cac",
-    "size_bytes": 1961301,
+    "sha256": "6bcba6086a6054bfc225044740851ce9210ad213ac7a1a40f7ba25e996a18878",
+    "size_bytes": 1964138,
     "source": "viewer/apv_html/dist/address-planner-viewer.template.html",
     "vendored": "address_planner/report_template/address_planner_viewer.template.html"
   },
   "viewer": {
-    "commit": "c36cab008d40b86bdd05e43d65d15de181994190",
+    "commit": "3aac4f1ad078891ab15d565d4b020ea4816af20a",
     "path": "viewer/apv_html",
     "repository": "https://github.com/fliibs/apv_html.git"
   }
