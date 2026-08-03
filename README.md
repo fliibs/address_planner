@@ -162,6 +162,14 @@ the current task, dims pending work and clips all motion inside the active track
 Append `?loadingDemo=1` to replay those captured stages slowly for visual review;
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
+The Bank/Reg divider keeps either visible panel at least 160 px wide. Reaching
+that limit only clamps the panel; the pointer must travel another 80 px toward
+the edge before the panel snaps fully closed, making accidental collapse less
+likely. Default fixed column widths reserve most of the budget for Description,
+while compact address, size, position and access columns remain readable. A
+column can still be narrowed to 32 px; at narrow widths every table cell uses
+the same hard clipping behavior without ellipses, wrapping or overlap.
+
 During migration, `data.json` is still generated for compatibility and semantic
 comparison. The schema v2 Viewer projection intentionally omits
 `node_attributes`, because none of those values are displayed. See
