@@ -131,7 +131,7 @@ def test_generated_single_html_opens_offline_and_queries_on_demand(tmp_path):
         ).click()
         wait.until(
             expected.text_to_be_present_in_element(
-                (By.CSS_SELECTOR, '[data-testid="field-name-1"]'), "enable"
+                (By.CSS_SELECTOR, '[data-testid="field-name-f:3:0"]'), "enable"
             )
         )
         fields = [

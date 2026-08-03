@@ -23,6 +23,8 @@ from address_planner import (
     ReadWrite,
     RegSpace,
     Register,
+    SCHEMA_VERSION_V1,
+    SCHEMA_VERSION_V2,
     decode_uint64,
     default_viewer_template_path,
     package_single_html,
@@ -120,6 +122,42 @@ def _semantic_counts(json_path: Path, database_path: Path) -> tuple[int, int]:
     try:
         metadata = dict(connection.execute("SELECT key, value FROM metadata"))
         access = json.loads(metadata["access_enum"])
+        schema_version = int(metadata["schema_version"])
+        if schema_version == SCHEMA_VERSION_V1:
+            node_rows = connection.execute("SELECT * FROM nodes ORDER BY id")
+            field_rows = connection.execute("SELECT * FROM fields ORDER BY id")
+        elif schema_version == SCHEMA_VERSION_V2:
+            node_rows = connection.execute(
+                """
+                SELECT occurrence.id, occurrence.parent_id, template.kind,
+                       name.value AS name, occurrence.start_addr,
+                       occurrence.end_addr, template.child_count,
+                       template.field_count
+                FROM node_occurrences AS occurrence
+                JOIN node_templates AS template
+                  ON template.id = occurrence.template_id
+                JOIN texts AS name ON name.id = occurrence.name_text_id
+                ORDER BY occurrence.id
+                """
+            )
+            field_rows = connection.execute(
+                """
+                SELECT occurrence.id AS register_id, name.value AS name,
+                       field.lsb, field.msb, field.external, field.sw_access,
+                       field.hw_access, field.default_value,
+                       description.value AS description
+                FROM node_occurrences AS occurrence
+                JOIN template_fields AS layout
+                  ON layout.register_template_id = occurrence.template_id
+                JOIN field_defs AS field ON field.id = layout.field_def_id
+                JOIN texts AS name ON name.id = field.name_text_id
+                JOIN texts AS description
+                  ON description.id = field.description_text_id
+                ORDER BY occurrence.id, layout.sort_order
+                """
+            )
+        else:
+            raise ValueError(f"unsupported benchmark schema: {schema_version}")
         sqlite_nodes = [
             (
                 row["id"],
@@ -131,7 +169,7 @@ def _semantic_counts(json_path: Path, database_path: Path) -> tuple[int, int]:
                 row["child_count"],
                 row["field_count"],
             )
-            for row in connection.execute("SELECT * FROM nodes ORDER BY id")
+            for row in node_rows
         ]
         sqlite_fields = [
             (
@@ -145,7 +183,7 @@ def _semantic_counts(json_path: Path, database_path: Path) -> tuple[int, int]:
                 int.from_bytes(row["default_value"], "big"),
                 row["description"],
             )
-            for row in connection.execute("SELECT * FROM fields ORDER BY id")
+            for row in field_rows
         ]
     finally:
         connection.close()
@@ -155,6 +193,32 @@ def _semantic_counts(json_path: Path, database_path: Path) -> tuple[int, int]:
     if json_fields != sqlite_fields:
         raise AssertionError("legacy JSON and SQLite Field semantics differ")
     return len(sqlite_nodes), len(sqlite_fields)
+
+
+def _text_pool_metrics(database_path: Path) -> dict[str, int | None]:
+    connection = sqlite3.connect(str(database_path))
+    try:
+        metadata = dict(connection.execute("SELECT key, value FROM metadata"))
+        try:
+            storage_bytes = connection.execute(
+                """
+                SELECT coalesce(sum(pgsize), 0) FROM dbstat
+                WHERE name IN ('texts', 'sqlite_autoindex_texts_1')
+                """
+            ).fetchone()[0]
+        except sqlite3.OperationalError:
+            storage_bytes = None
+    finally:
+        connection.close()
+    return {
+        "unique_strings": int(metadata["text_count"]),
+        "physical_references": int(metadata["text_reference_count"]),
+        "logical_references": int(metadata["logical_text_reference_count"]),
+        "unique_utf8_bytes": int(metadata["text_utf8_bytes"]),
+        "logical_utf8_bytes": int(metadata["logical_text_utf8_bytes"]),
+        "saved_utf8_bytes": int(metadata["text_utf8_saved_bytes"]),
+        "sqlite_table_and_index_bytes": storage_bytes,
+    }
 
 
 def main() -> int:
@@ -175,15 +239,29 @@ def main() -> int:
     model.report_json()
     html_dir = Path(model._html_dir)
     json_path = Path(model.json_path)
-    database_path = html_dir / "size_benchmark_address_map.sqlite"
+    v1_database_path = html_dir / "size_benchmark_address_map.v1.sqlite"
+    v2_database_path = html_dir / "size_benchmark_address_map.sqlite"
     html_path = html_dir / "size_benchmark_address_map.html"
-    database = model.report_sqlite(database_path)
+    v1_started = time.perf_counter()
+    v1_database = model.report_sqlite(
+        v1_database_path, schema_version=SCHEMA_VERSION_V1
+    )
+    v1_seconds = time.perf_counter() - v1_started
+    v2_started = time.perf_counter()
+    v2_database = model.report_sqlite(
+        v2_database_path, schema_version=SCHEMA_VERSION_V2
+    )
+    v2_seconds = time.perf_counter() - v2_started
     packaged = package_single_html(
-        database.path,
+        v2_database.path,
         default_viewer_template_path(),
         html_path,
     )
-    compared_nodes, compared_fields = _semantic_counts(json_path, database.path)
+    v1_counts = _semantic_counts(json_path, v1_database.path)
+    v2_counts = _semantic_counts(json_path, v2_database.path)
+    if v1_counts != v2_counts:
+        raise AssertionError("schema v1 and v2 logical counts differ")
+    compared_nodes, compared_fields = v2_counts
 
     json_bytes = json_path.read_bytes()
     result = {
@@ -199,19 +277,33 @@ def main() -> int:
             "fields": compared_fields,
         },
         "database_counts": {
-            "roots": database.root_count,
-            "nodes": database.node_count,
-            "fields": database.field_count,
+            "roots": v2_database.root_count,
+            "nodes": v2_database.node_count,
+            "fields": v2_database.field_count,
+            "node_templates": int(v2_database.metadata["node_template_count"]),
+            "field_definitions": int(
+                v2_database.metadata["field_definition_count"]
+            ),
+            "texts": int(v2_database.metadata["text_count"]),
         },
+        "generation_seconds": {
+            "sqlite_v1": round(v1_seconds, 3),
+            "sqlite_v2": round(v2_seconds, 3),
+        },
+        "text_pool": _text_pool_metrics(v2_database.path),
         "bytes": {
             "legacy_json": len(json_bytes),
             "legacy_json_gzip": len(
                 gzip.compress(json_bytes, compresslevel=9, mtime=0)
             ),
-            "sqlite": database.database_bytes,
-            "sqlite_gzip": packaged.compressed_database_bytes,
+            "sqlite_v1": v1_database.database_bytes,
+            "sqlite_v1_gzip": len(
+                gzip.compress(v1_database.path.read_bytes(), compresslevel=9, mtime=0)
+            ),
+            "sqlite_v2": v2_database.database_bytes,
+            "sqlite_v2_gzip": packaged.compressed_database_bytes,
             "viewer_template": default_viewer_template_path().stat().st_size,
-            "single_html": packaged.html_bytes,
+            "single_html_v2": packaged.html_bytes,
         },
     }
     report_path = output / "size_report.json"

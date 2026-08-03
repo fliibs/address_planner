@@ -191,11 +191,13 @@ class RegSpace(AddressSpace):
         check=False,
         viewer_template_path=None,
         report_viewer=True,
+        sqlite_schema_version=None,
     ):
         super().generate(
             path,
             viewer_template_path=viewer_template_path,
             report_viewer=report_viewer,
+            sqlite_schema_version=sqlite_schema_version,
         )
         self.report_rtl()
         if report_dv: self.report_dv()

@@ -79,6 +79,35 @@ Python package:
 top.generate("build/example")
 ```
 
+The generated database uses schema v2 by default. It keeps the logical
+occurrence tree (including each instance's already-computed absolute address)
+separate from a content-addressed template DAG, and reuses identical Node
+definitions, Field definitions and strings. The Viewer supports both v2 and the
+legacy v1 layout through an internal adapter, so UI code and expansion behavior
+do not depend on the physical schema.
+
+Callers that still need a v1 database can request it explicitly during the
+migration:
+
+```python
+from address_planner.sqlite_report import SCHEMA_VERSION_V1
+
+top.report_sqlite(
+    "build/example/legacy_address_map.sqlite",
+    schema_version=SCHEMA_VERSION_V1,
+)
+
+# The generate() convenience API exposes the same choice under this name:
+top.generate(
+    "build/example-v1",
+    sqlite_schema_version=SCHEMA_VERSION_V1,
+)
+```
+
+`report_sqlite()` returns a `SQLiteReportInfo`; for v2,
+`report_info.reuse_statistics` exposes the logical-to-physical Node, Field and
+text reuse counters measured while writing the report.
+
 The browser Viewer source is pinned as the build-time `viewer/apv_html`
 submodule. Normal report generation does not require Node.js or an initialized
 Viewer submodule because the validated template is vendored with Address
@@ -98,8 +127,11 @@ python tools/sync_viewer_template.py --check
 ```
 
 `viewer-template.lock.json` records the exact Viewer commit, template hash and
-supported container/schema versions. CI rebuilds the submodule and rejects a
-vendored template or lock file that has drifted from that commit.
+supported container/schema versions (currently v1 and v2). CI rebuilds the
+submodule and rejects a vendored template or lock file that has drifted from
+that commit. Update Viewer source in the `apv_html` repository first, commit it,
+advance the `viewer/apv_html` submodule gitlink, and then run the sync commands
+above so the vendored template and lock stay reproducible.
 
 An alternate development template can also be supplied explicitly:
 
@@ -124,8 +156,10 @@ Its compact header reports the exact Node and Field totals plus the uncompressed
 SQLite database size recorded in the embedded manifest.
 
 During migration, `data.json` is still generated for compatibility and semantic
-comparison. See [the architecture document](doc/single_html_sqlite_viewer_architecture.md)
-for the schema, memory model, migration plan and validation requirements.
+comparison. The schema v2 Viewer projection intentionally omits
+`node_attributes`, because none of those values are displayed. See
+[the architecture document](doc/single_html_sqlite_viewer_architecture.md) for
+the schema, memory model, migration plan and validation requirements.
 
 ###Architecture of regbank
 

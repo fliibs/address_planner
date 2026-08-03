@@ -4,18 +4,19 @@
       1
     ],
     "sqlite_schema_versions": [
-      1
+      1,
+      2
     ]
   },
   "lock_version": 1,
   "template": {
-    "sha256": "5188a0f289928b126e096e3c9ff3a39ee2fb70f9b2fb0335608542669912bcd6",
-    "size_bytes": 1933898,
+    "sha256": "587770888cb127d37f0405419883e1cbc37d0ac8a6a385fe104cc08df51a1384",
+    "size_bytes": 1940870,
     "source": "viewer/apv_html/dist/address-planner-viewer.template.html",
     "vendored": "address_planner/report_template/address_planner_viewer.template.html"
   },
   "viewer": {
-    "commit": "3e319f06119b9a9f66b8697943c74e2524570352",
+    "commit": "ca0ac92c29036c29d7a63f04067a86d3405ab4d0",
     "path": "viewer/apv_html",
     "repository": "https://github.com/fliibs/apv_html.git"
   }

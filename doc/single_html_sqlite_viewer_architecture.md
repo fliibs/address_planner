@@ -6,9 +6,11 @@
 
 不适用项目：Electron 版 `ap_viewer`
 
-schema v2 的已确认模板复用方案见
-[`sqlite_template_reuse_design.md`](sqlite_template_reuse_design.md)。v2 保留轻量逻辑实例树，
-并将 Node 定义与 Field Layout 内容寻址为可共享模板 DAG。
+schema v2 的已实施模板复用方案见
+[`sqlite_template_reuse_design.md`](sqlite_template_reuse_design.md)。v2 是当前默认输出：保留
+轻量逻辑 occurrence 树，并将 Node 定义、Field 定义和字符串内容寻址为可共享模板 DAG。
+schema v1 仍可通过 `schema_version=SCHEMA_VERSION_V1` 显式生成；Viewer 的
+Worker/Store adapter 同时支持 v1/v2。
 
 ## 1. 决策摘要
 
@@ -109,7 +111,7 @@ Electron 版 `address_planner/ap_viewer`：
 <script id="apv-manifest" type="application/json">
 {
   "containerVersion": 1,
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "codec": "gzip+base64",
   "databaseSha256": "...",
   "databaseBytes": 123456,
@@ -226,38 +228,51 @@ CREATE TABLE metadata (
 | `node_count` | 节点总数 |
 | `field_count` | Field 总数 |
 
+v2 还写入 `node_template_count`、`field_definition_count`、`text_count` 及对应的
+reuse/UTF-8 字节统计。逻辑 Node/Field 总数继续使用 `node_count`/`field_count`，因此
+标题统计和 Viewer Store 不因物理去重发生语义变化。
+
 不得写入当前时间等不稳定信息，除非明确要求，否则相同模型应尽可能生成相同字节结果。
 
-### 6.2 节点表
+### 6.2 v2 逻辑 occurrence 与 Node 模板
 
-AddressSpace、RegSpace、Memory 和 Register 统一存入 `nodes`，通过 `kind` 区分：
+AddressSpace、RegSpace、Memory 和 Register 的每次逻辑出现写入
+`node_occurrences`；严格相同的 Viewer 可见定义写入一次 `node_templates`：
 
 ```sql
-CREATE TABLE nodes (
-    id            INTEGER PRIMARY KEY,
-    parent_id     INTEGER REFERENCES nodes(id),
-    kind          INTEGER NOT NULL,
-    sort_order    INTEGER NOT NULL,
-    name          TEXT NOT NULL,
-    start_addr    BLOB NOT NULL CHECK(length(start_addr) = 8),
-    end_addr      BLOB NOT NULL CHECK(length(end_addr) = 8),
-    size_bytes    BLOB NOT NULL CHECK(length(size_bytes) = 8),
-    description   TEXT NOT NULL DEFAULT '',
-    child_count   INTEGER NOT NULL DEFAULT 0,
-    field_count   INTEGER NOT NULL DEFAULT 0
+CREATE TABLE node_templates (
+    id                  INTEGER PRIMARY KEY,
+    content_hash        BLOB NOT NULL UNIQUE CHECK(length(content_hash) = 32),
+    kind                INTEGER NOT NULL,
+    size_bytes          BLOB NOT NULL CHECK(length(size_bytes) = 8),
+    description_text_id INTEGER NOT NULL REFERENCES texts(id),
+    child_count         INTEGER NOT NULL,
+    field_count         INTEGER NOT NULL
 );
 
-CREATE INDEX idx_nodes_parent_order
-ON nodes(parent_id, sort_order, id);
+CREATE TABLE node_occurrences (
+    id           INTEGER PRIMARY KEY,
+    parent_id    INTEGER REFERENCES node_occurrences(id),
+    template_id  INTEGER NOT NULL REFERENCES node_templates(id),
+    sort_order   INTEGER NOT NULL,
+    name_text_id INTEGER NOT NULL REFERENCES texts(id),
+    start_addr   BLOB NOT NULL CHECK(length(start_addr) = 8),
+    end_addr     BLOB NOT NULL CHECK(length(end_addr) = 8)
+);
 
-CREATE INDEX idx_nodes_parent_address
-ON nodes(parent_id, start_addr, id);
+CREATE INDEX idx_occurrences_parent_order
+ON node_occurrences(parent_id, sort_order, id);
 
-CREATE INDEX idx_nodes_name
-ON nodes(name);
+CREATE INDEX idx_occurrences_address
+ON node_occurrences(start_addr, end_addr, id);
 ```
 
-`kind` 使用整数枚举，第一版建议：
+每个 occurrence 都保留已由 Python 对象模型计算好的绝对起止地址；Viewer 展开时不沿
+模板 DAG 临场累计地址。子布局由 `template_children(parent_template_id, sort_order,
+child_template_id, relative_addr, child_name_text_id)` 表达，它属于父模板的 placement
+edge。逻辑树仍按 occurrence 的 `parent_id` 查询。
+
+`kind` 使用以下已冻结整数枚举：
 
 | 值 | 类型 |
 |---:|---|
@@ -266,7 +281,7 @@ ON nodes(name);
 | 3 | Memory（预留；当前对象模型没有可可靠识别的独立 Memory 类型） |
 | 4 | Register |
 
-第一版 Writer 不根据“无子节点”等启发式规则猜测 Memory；普通对象仍写为
+Writer 不根据“无子节点”等启发式规则猜测 Memory；普通对象仍写为
 AddressSpace。只有对象模型引入明确 Memory 类型或标记并补齐契约测试后，才会
 生成 `kind = 3`。
 
@@ -277,58 +292,66 @@ AddressSpace。只有对象模型引入明确 Memory 类型或标记并补齐契
 - 同长度大端 BLOB 的 SQLite 排序与无符号数值顺序一致。
 - Viewer 适配层将其转换为 JavaScript `BigInt`，展示时再格式化为十六进制。
 
-### 6.3 Field 表
+### 6.3 v2 Field 定义与字符串池
+
+Register occurrence 不重复保存 Field 行，而是经 Register template 和
+`template_fields` 引用共享的 `field_defs`：
 
 ```sql
-CREATE TABLE fields (
-    id             INTEGER PRIMARY KEY,
-    register_id    INTEGER NOT NULL REFERENCES nodes(id),
-    sort_order     INTEGER NOT NULL,
-    name           TEXT NOT NULL,
-    lsb            INTEGER NOT NULL,
-    msb            INTEGER NOT NULL,
-    external       INTEGER NOT NULL DEFAULT 0,
-    sw_access      INTEGER NOT NULL,
-    hw_access      INTEGER NOT NULL,
-    default_value  BLOB,
-    description    TEXT NOT NULL DEFAULT '',
-    CHECK(lsb >= 0),
-    CHECK(msb >= lsb),
-    CHECK(external IN (0, 1))
+CREATE TABLE texts (
+    id    INTEGER PRIMARY KEY,
+    value TEXT NOT NULL UNIQUE
 );
 
-CREATE INDEX idx_fields_register_order
-ON fields(register_id, sort_order, id);
+CREATE TABLE field_defs (
+    id                  INTEGER PRIMARY KEY,
+    content_hash        BLOB NOT NULL UNIQUE CHECK(length(content_hash) = 32),
+    name_text_id        INTEGER NOT NULL REFERENCES texts(id),
+    lsb                 INTEGER NOT NULL,
+    msb                 INTEGER NOT NULL,
+    external            INTEGER NOT NULL,
+    sw_access           INTEGER NOT NULL,
+    hw_access           INTEGER NOT NULL,
+    default_value       BLOB NOT NULL,
+    description_text_id INTEGER NOT NULL REFERENCES texts(id)
+);
+
+CREATE TABLE template_fields (
+    register_template_id INTEGER NOT NULL REFERENCES node_templates(id),
+    sort_order            INTEGER NOT NULL,
+    field_def_id          INTEGER NOT NULL REFERENCES field_defs(id),
+    PRIMARY KEY(register_template_id, sort_order)
+) WITHOUT ROWID;
 ```
+
+Field 行的页面 ID 必须由逻辑位置生成，即
+`f:<register_occurrence_id>:<field_sort_order>`，不能使用被多个 Register 共享的
+`field_defs.id`。游标仍是 `{sortOrder, id}`；其中 `id` 仅作为物理 tie-breaker。
 
 `sw_access` 和 `hw_access` 使用稳定整数枚举，具体值由共享 schema 常量定义。禁止由 Python 和 JavaScript 各自维护互不校验的枚举副本。
 
-`default_value` 使用最小必要的大端 BLOB，避免超出 JavaScript 安全整数范围。空值表示未定义，不等同于数值 0。
+`default_value` 使用最小必要、非空的大端 BLOB，避免超出 JavaScript 安全整数范围；
+数值 0 编码为单字节 `0x00`。v1 为兼容保留 nullable 列，v2 writer 始终写入数值。
 
-### 6.4 可选属性
+### 6.4 v1 兼容与可见语义边界
 
-第一版遇到不能稳定映射到固定列的属性时，使用扩展表，不把 JSON 重新塞回主表：
-
-```sql
-CREATE TABLE node_attributes (
-    node_id  INTEGER NOT NULL REFERENCES nodes(id),
-    key      TEXT NOT NULL,
-    value    TEXT NOT NULL,
-    PRIMARY KEY(node_id, key)
-);
-```
-
-高频、需要过滤或排序的属性后续应升级为正式列；低频展示属性可保留在扩展表。
+旧 schema v1 的 `nodes`、`fields` 和 `node_attributes` 布局保持可写、可读，用于迁移和
+回归对比；v2 是默认布局。v2 只保存 Viewer 实际使用的可见语义，删除未被页面读取的
+`node_attributes`，也不让这些隐藏属性影响内容 Hash。如果以后需要完整模型归档或显示
+新的高频属性，应为其定义明确列和版本化语义，不能把通用 JSON/KV 重新塞回 v2 主路径。
 
 ## 7. ID、层级与排序规则
 
 - ID 由生成器确定，必须在单份报告内唯一。
-- 第一版采用按规范遍历顺序分配的整数 ID，禁止使用 Python 对象地址或随机 UUID。
+- occurrence 按规范的地址排序前序遍历分配整数 ID；禁止使用 Python 对象地址或随机 UUID。
 - `parent_id IS NULL` 表示根节点。
-- 每个节点只保存父引用，不递归保存 `children`。
-- `child_count` 和 `field_count` 用于 UI 判断是否显示展开按钮，不需要额外查询。
+- 每个 occurrence 只保存父引用，不递归保存 `children`。
+- `child_count` 和 `field_count` 从模板投影，用于 UI 判断是否显示展开按钮。
 - `sort_order` 必须由生成器明确写入，Viewer 不依赖 SQLite 未定义的自然行顺序。
 - 同一父节点下的最终稳定顺序为 `(sort_order, id)`。
+- Node 模板和 Field 定义使用带 schema/domain 分隔的 canonical bytes + SHA-256
+  内容寻址；自身实例名、父引用、绝对地址和 surrogate ID 不进入 Hash。
+- 相同 Hash 必须继续比较 canonical bytes；内容不同即使 Hash 被测试桩强制为相同也拒绝合并。
 
 ## 8. 查询协议
 
@@ -346,14 +369,22 @@ interface AddressPlannerStore {
 }
 ```
 
+Worker 初始化时读取 manifest、`PRAGMA user_version` 和 metadata 后选择 v1 或 v2
+adapter；下面展示默认 v2 的查询形状。两种 adapter 返回相同 Node/Field 投影，React
+组件不知道物理表名。
+
 ### 8.1 根节点查询
 
 ```sql
-SELECT id, kind, sort_order, name, start_addr, end_addr,
-       size_bytes, description, child_count, field_count
-FROM nodes
-WHERE parent_id IS NULL
-ORDER BY sort_order, id
+SELECT o.id, o.parent_id, nt.kind, o.sort_order, name.value AS name,
+       o.start_addr, o.end_addr, nt.size_bytes,
+       description.value AS description, nt.child_count, nt.field_count
+FROM node_occurrences AS o
+JOIN node_templates AS nt ON nt.id = o.template_id
+JOIN texts AS name ON name.id = o.name_text_id
+JOIN texts AS description ON description.id = nt.description_text_id
+WHERE o.parent_id IS NULL
+ORDER BY o.sort_order, o.id
 LIMIT ?;
 ```
 
@@ -362,12 +393,16 @@ LIMIT ?;
 只查询直接子节点：
 
 ```sql
-SELECT id, parent_id, kind, sort_order, name, start_addr, end_addr,
-       size_bytes, description, child_count, field_count
-FROM nodes
-WHERE parent_id = ?
-  AND (sort_order > ? OR (sort_order = ? AND id > ?))
-ORDER BY sort_order, id
+SELECT o.id, o.parent_id, nt.kind, o.sort_order, name.value AS name,
+       o.start_addr, o.end_addr, nt.size_bytes,
+       description.value AS description, nt.child_count, nt.field_count
+FROM node_occurrences AS o
+JOIN node_templates AS nt ON nt.id = o.template_id
+JOIN texts AS name ON name.id = o.name_text_id
+JOIN texts AS description ON description.id = nt.description_text_id
+WHERE o.parent_id = ?
+  AND (o.sort_order > ? OR (o.sort_order = ? AND o.id > ?))
+ORDER BY o.sort_order, o.id
 LIMIT ?;
 ```
 
@@ -378,11 +413,17 @@ LIMIT ?;
 ### 8.3 点击 Register
 
 ```sql
-SELECT id, register_id, sort_order, name, lsb, msb, external,
-       sw_access, hw_access, default_value, description
-FROM fields
-WHERE register_id = ?
-ORDER BY sort_order, id
+SELECT fd.id AS cursor_id, tf.sort_order, name.value AS name,
+       fd.lsb, fd.msb, fd.external, fd.sw_access, fd.hw_access,
+       fd.default_value, description.value AS description
+FROM node_occurrences AS register_occurrence
+JOIN template_fields AS tf
+  ON tf.register_template_id = register_occurrence.template_id
+JOIN field_defs AS fd ON fd.id = tf.field_def_id
+JOIN texts AS name ON name.id = fd.name_text_id
+JOIN texts AS description ON description.id = fd.description_text_id
+WHERE register_occurrence.id = ?
+ORDER BY tf.sort_order, fd.id
 LIMIT ?;
 ```
 
@@ -391,10 +432,13 @@ LIMIT ?;
 固定 8 字节大端 BLOB 可以用于地址范围比较：
 
 ```sql
-SELECT id, parent_id, kind, name, start_addr, end_addr
-FROM nodes
-WHERE start_addr <= ? AND end_addr >= ?
-ORDER BY size_bytes, id
+SELECT o.id, o.parent_id, nt.kind, name.value AS name,
+       o.start_addr, o.end_addr
+FROM node_occurrences AS o
+JOIN node_templates AS nt ON nt.id = o.template_id
+JOIN texts AS name ON name.id = o.name_text_id
+WHERE o.start_addr <= ? AND o.end_addr >= ?
+ORDER BY nt.size_bytes, o.id
 LIMIT ?;
 ```
 
@@ -431,7 +475,8 @@ type ViewerState = {
 - 左侧节点表使用真正的行虚拟化，而不只是 `scroll.y`。
 - 单个父节点子项超过默认页大小时显示“加载更多”或分页控制。
 - 右侧 Field 表同样支持虚拟化；Field 数量较小时可以一次查询全部，但仍保留上限。
-- React `key` 使用数据库 `id`，不得使用数组下标。
+- Node 的 React `key` 使用 occurrence ID；Field 使用
+  `f:<register_occurrence_id>:<field_sort_order>`，不得使用数组下标或共享定义 ID。
 
 ## 10. 查询结果缓存
 
@@ -456,13 +501,15 @@ type ViewerState = {
 
 Python 生成端使用标准库 `sqlite3`，在临时目录中完成：
 
-1. 创建数据库并设置 schema 版本。
-2. 在单个事务中按确定顺序写入节点和 Fields。
+1. 创建数据库并设置 schema 版本；默认 v2，显式
+   `schema_version=SCHEMA_VERSION_V1` 时生成旧布局。
+2. 在单个事务中按确定顺序写入 occurrence、内容寻址模板、Field 定义和字符串池。
 3. 创建索引。
 4. 校验计数、层级、地址和引用关系。
 5. 执行 `PRAGMA integrity_check`，必须得到 `ok`。
 6. 执行 `PRAGMA foreign_key_check`，结果必须为空。
-7. 执行 `ANALYZE`；只有基准证明有益时才保留统计表。
+7. 只保留 parent/order 和全局 address 两个 v2 二级索引；新增索引必须有查询计划和
+   大型 fixture 的收益证据。
 8. 执行 `VACUUM`，删除构建过程留下的空闲页。
 9. 关闭数据库后计算 SHA-256。
 
@@ -508,7 +555,9 @@ SQLite WASM 和 Worker runtime 由 `apv_html` 构建过程提前嵌入模板，
 `npm install`、初始化 Viewer submodule 或在线下载资源。
 
 `viewer-template.lock.json` 同时锁定 submodule commit、产物大小、SHA-256 和
-容器/schema 兼容版本。CI 必须从 submodule 重建模板，并通过
+容器/schema 兼容版本（当前为 v1/v2）。维护者先在独立 `apv_html` 仓库提交 Viewer
+adapter 和模板变更，再更新 `viewer/apv_html` gitlink，最后运行同步工具。CI 必须从
+submodule 重建模板，并通过
 `python tools/sync_viewer_template.py --check` 确认 gitlink、lock、构建产物和
 vendored 模板四者一致。
 
@@ -544,22 +593,23 @@ PRAGMA foreign_keys = ON;
 
 ## 13. 兼容与迁移
 
-第一阶段保留现有 JSON 产物，新增 SQLite 单 HTML 目标，用于一致性验证：
+迁移期保留现有 JSON 产物；默认单 HTML 已切换到 schema v2，schema v1 仍作为显式
+兼容输出和一致性基线：
 
 ```text
 旧：<output>/html/data.json
 新：<output>/html/<model_name>_address_map.html
 ```
 
-迁移步骤：
+已完成的迁移步骤：
 
-1. 建立 SQLite schema 和 Python writer。
+1. 建立 v1/v2 SQLite schema 和 Python writer，默认选择 v2。
 2. 使用固定 fixture 同时生成 JSON 与 SQLite。
 3. 对根节点、所有 parent-child 关系、Register Fields、地址和访问类型做全量语义比较。
 4. 完成 Viewer 查询层和基础展开交互。
 5. 加入单 HTML 离线打包。
-6. 加入大型模型基准、分页、虚拟化和 LRU。
-7. 验证稳定后，将 JSON Viewer 标记为 deprecated。
+6. 加入大型模型基准、分页、虚拟化、LRU 和复用统计。
+7. 通过 v1/v2/JSON 全量语义比较和 `file://` Viewer 端到端验证。
 8. 在明确没有兼容调用者后，另行决定是否停止默认生成大型 JSON。
 
 迁移期禁止直接删除 `report_json()`，避免破坏现有脚本和验收测试。
@@ -575,12 +625,15 @@ PRAGMA foreign_keys = ON;
 - `child_count`、`field_count` 与实际查询一致。
 - `(parent_id, sort_order, id)` 顺序稳定。
 - SQLite `integrity_check` 通过。
+- 深拷贝 Bank 在不同绝对基址复用同一模板；只改变一个 Field 时不错误合并。
+- template DAG 无环、无孤儿；stored Hash 能由 canonical record 重算。
+- 强制 SHA-256 碰撞时比较 canonical bytes 并拒绝不同定义。
 
 ### 14.2 契约测试
 
-- Python 侧 schema 常量与 Viewer 侧 schema 常量一致。
+- Python 侧 schema 常量、Viewer 支持列表、manifest 和 `PRAGMA user_version` 一致。
 - Viewer 拒绝未知大版本 schema。
-- 固定 fixture 的 SQLite 查询结果与旧 JSON 语义一致。
+- 固定 fixture 的 v1/v2 查询结果与旧 JSON 语义一致。
 - 生成报告不依赖网络。
 
 ### 14.3 Viewer 测试
@@ -657,7 +710,9 @@ PRAGMA foreign_keys = ON;
 
 应对：对所有正式查询运行 `EXPLAIN QUERY PLAN` 契约测试，并用大型 fixture 验证；不为尚不存在的查询提前增加大量索引。
 
-## 17. 分阶段实现计划
+## 17. 分阶段实现记录
+
+Phase 1 到 Phase 5 已完成；Phase 6 仍是只在目标设备内存超标时启用的可选升级。
 
 ### Phase 1：数据库契约
 
@@ -703,13 +758,15 @@ PRAGMA foreign_keys = ON;
 | 项目 | 决策 |
 |---|---|
 | 交付形式 | 单个离线 HTML |
-| 数据模型 | 规范化 SQLite，不使用递归 JSON 作为 Viewer 主数据源 |
+| 数据模型 | 默认 v2：逻辑 occurrence 树 + 内容寻址 Node/Field 模板 DAG + 字符串池；v1 显式兼容 |
 | 应用加载粒度 | 每次展开一个 AddressSpace，只查询直接子节点 |
 | Register 数据 | 点击时查询 Fields |
 | SQLite 物理加载 | 第一阶段完整解压到 WASM 内存 |
 | UI 状态 | 只保留展开路径和有限缓存 |
 | 大列表 | 游标分页 + 虚拟化 |
 | 地址精度 | 8 字节大端无符号 BLOB + JavaScript BigInt |
+| 绝对地址 | 每个 occurrence 预计算并保存，Viewer 不临场累计 |
+| Viewer 兼容 | Worker/Store v1/v2 adapter，React 业务接口不变 |
 | 压缩 | 整库确定性 gzip，再 Base64 嵌入 |
 | 运行方式 | `file://` 离线打开，无服务端、无网络请求 |
 | 桌面框架 | 不采用 Electron |
@@ -720,11 +777,15 @@ PRAGMA foreign_keys = ON;
 本方案第一阶段已在 `address_planner` 和 `apv_html` 两个仓库实现：
 
 - `address_planner` 默认继续生成兼容用 `data.json`，同时生成 SQLite 驱动的
-  `<model_name>_address_map.html`；普通调用不需要传 Viewer 模板路径。
+  `<model_name>_address_map.html`；SQLite 默认 schema v2，普通调用不需要传 Viewer
+  模板路径。迁移调用者可显式传入 `schema_version=SCHEMA_VERSION_V1`。
 - SQLite Writer、单 HTML Packager 和内置 Viewer 模板都随 Python 包交付；
   中间 SQLite 仅在调用者显式请求时保留。
-- `apv_html` 使用 `sql.js 1.14.1` + Web Worker；数据库、WASM、Worker、JS、CSS、
-  gzip fallback 和第三方许可声明均嵌入最终 HTML。
+- Writer v2 将 64 位绝对地址留在 occurrence，并复用内容寻址的 Node 模板、Field
+  定义和字符串；不再保存 Viewer 未显示的 `node_attributes`。物理表只保留
+  parent/order 与全局 address 两个查询索引。
+- `apv_html` 使用 `sql.js 1.14.1` + Web Worker；v1/v2 SQL adapter、数据库、WASM、
+  Worker、JS、CSS、gzip fallback 和第三方许可声明均嵌入最终 HTML。
 - Viewer 初始只查询根节点，展开时查询直接子节点，点击 Register 时查询 Fields；
   使用游标 `LIMIT`、虚拟表格和最多 32 个父节点的 LRU 缓存。
 - Viewer 保留默认左右等宽的 `Bank Info / Reg Info` 视觉结构，使用低对比度
@@ -768,21 +829,26 @@ PRAGMA foreign_keys = ON;
 最终大型固定基准包含 50 个 Bank、10,000 个 Register、80,000 个 Field；全量比较
 10,051 个节点和 80,000 个 Field 后语义一致性为 PASS：
 
-| 产物 | 字节数 | 相对原始 JSON |
-|---|---:|---:|
-| 旧递归 JSON | 36,647,975 | 基准 |
-| SQLite | 12,316,672 | 减少 66.39% |
-| JSON 的确定性 gzip | 597,714 | — |
-| SQLite 的确定性 gzip | 1,940,404 | 比 gzip JSON 大 224.64% |
-| Viewer 空模板 | 1,933,898 | — |
-| 最终单 HTML | 4,521,259 | 比原始 JSON 减少 87.66% |
+| 产物 | 原始字节 | 确定性 gzip | 相对原始 JSON |
+|---|---:|---:|---:|
+| 旧递归 JSON | 36,647,975 | 597,714 | 基准 |
+| schema v1 SQLite | 12,316,672 | 1,940,404 | 原始减少 66.39% |
+| schema v2 SQLite | 876,544 | 292,409 | 原始减少 97.61% |
+| Viewer 空模板 | 1,940,870 | — | — |
+| schema v2 最终单 HTML | 2,330,900 | — | 减少 93.64% |
 
-重复键很多的 JSON 对 gzip 极其友好，因此“压缩数据库载荷”不保证比“压缩 JSON”小；
-SQLite 的主要收益是原始持久化体积、索引查询、精确类型和避免全量 JavaScript 对象化。
-很小的模型还会受到 SQLite 页和 schema 的固定开销影响，例如 6,618 字节 JSON 的
-测试 fixture 对应 45,056 字节 SQLite。是否停止默认生成兼容 JSON，应在确认下游没有
-依赖后另行决定。
+v2 将 10,051 个逻辑 Node 映射为 3 个 Node 模板，将 80,000 个逻辑 Field 映射为
+8 个 Field 定义。相比 v1，其原始 SQLite 减少约 92.88%，gzip 载荷减少约 84.93%。
+292,409 B 是最终 packager 确定性 gzip 路径的实际载荷。该 fixture 是严格重复率很高的
+合成基准；数值仍会随 SQLite 版本和索引调整变化，以上为当前测量。生成阶段 v2 用时
+1.230 s，v1 用时 1.437 s；时间只代表本次环境。
 
-可复现尺寸报告位于
-`build/sqlite_size_benchmark_final/size_report.json`。最终验证结果为：Viewer 单测 11 项
-通过，Python 单元/示例/浏览器集成测试 32 项通过，兼容性与清单测试 15 项通过。
+重复键很多的 JSON 本身对 gzip 很友好；v1 的压缩数据库因此曾大于压缩 JSON，而 v2
+在该高复用模型中通过模板/Field/字符串复用进一步降到 292,409 B。真实收益仍取决于
+严格相同模板的比例。SQLite 的其他收益包括索引查询、精确类型和避免全量 JavaScript
+对象化；很小模型仍会受到 SQLite 页和 schema 固定开销影响。是否停止默认生成兼容
+JSON，应在确认下游没有依赖后另行决定。
+
+基准由 `tools/benchmark_single_html.py` 复现。v1/v2 fixture 已通过 Node、Field、搜索、
+地址、游标、64 位精度和 `file://` 单 HTML 语义对比；Viewer 模板仍由
+`viewer/apv_html` submodule 提交、gitlink、vendored 产物和 lock 四方校验。
