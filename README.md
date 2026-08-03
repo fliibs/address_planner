@@ -163,8 +163,9 @@ Append `?loadingDemo=1` to replay those captured stages slowly for visual review
 `?loadingDemo=1200` sets a 1200 ms step. Normal URLs add no delay.
 
 The title bar also provides a compact theme button that switches between palettes
-inspired by the classic VS Code Light+ and Dark+ themes. Light mode pairs a white
-editor/table surface with a light-gray workbench; dark mode uses the familiar
+inspired by the classic VS Code Light+ and Dark+ themes. Light mode adapts Light+
+into a lower-luminance cool blue-gray hierarchy, with distinct workbench canvas,
+editor/table content and raised header/menu surfaces; dark mode retains the familiar
 `#1e1e1e` editor and `#252526` workbench surfaces. Both use `#007acc` blue for
 primary interaction and selection cues, and cover the pre-React static loading
 shell, the mounted React UI, Ant Design portal content, tables and scrollbars
