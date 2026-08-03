@@ -167,8 +167,14 @@ that limit only clamps the panel; the pointer must travel another 80 px toward
 the edge before the panel snaps fully closed, making accidental collapse less
 likely. Default fixed column widths reserve most of the budget for Description,
 while compact address, size, position and access columns remain readable. A
-column can still be narrowed to 32 px; at narrow widths every table cell uses
-the same hard clipping behavior without ellipses, wrapping or overlap.
+column can still be narrowed to 32 px. Description is the fluid final column:
+its rendered width is always the table width minus the fixed columns before it.
+In the default single-line mode, the table expands to the longest Description
+currently loaded, so the docked horizontal scrollbar reaches the complete text.
+Each panel also has an independent wrap button beside its column-visibility eye;
+wrapping keeps Description in the remaining width and lets virtual rows grow to
+their measured content height. Other narrow cells continue to clip directly,
+without ellipses, wrapping or overlap.
 
 During migration, `data.json` is still generated for compatibility and semantic
 comparison. The schema v2 Viewer projection intentionally omits
