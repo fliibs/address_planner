@@ -12,6 +12,7 @@ from tkinter import TclError
 
 from ..AddressSpace import AddressSpace
 
+py_dict = {}
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -56,5 +57,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

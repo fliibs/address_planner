@@ -106,8 +106,8 @@ class ParityField(ParityFieldRoot):
         elif    sw_type == Write1Toggle:        self.sw = ParitySwWrite1Toggle(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == WriteOnce:           self.sw = ParitySwWriteOnce(self.reg_name, self.field_name, self.init_value)
         elif    sw_type == WriteOnlyOnce:       self.sw = ParitySwWriteOnce(self.reg_name, self.field_name, self.init_value)
-        elif    sw_type == Write1Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name, self.init_value)
-        elif    sw_type == Write0Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name, self.init_value)
+        elif    sw_type == Write1Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
+        elif    sw_type == Write0Pulse:         self.sw = ParitySwWritePulse(self.reg_name, self.field_name)
         else:   raise Exception(f'not support software type: {sw_type}.')
         # for hw
         if      sw_type in [Write1Pulse,Write0Pulse]:  self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
@@ -137,8 +137,8 @@ class ParityField(ParityFieldRoot):
         elif    hw_type == Write1Toggle:        self.hw = ParityHwWrite1Toggle(self.reg_name, self.field_name, self.init_value)
         elif    hw_type == WriteOnce:           self.hw = ParityHwWriteOnce(self.reg_name, self.field_name, self.init_value)
         elif    hw_type == WriteOnlyOnce:       self.hw = ParityHwWriteOnce(self.reg_name, self.field_name, self.init_value)
-        elif    hw_type == Write1Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name, self.init_value)
-        elif    hw_type == Write0Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name, self.init_value)
+        elif    hw_type == Write1Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
+        elif    hw_type == Write0Pulse:         self.hw = ParityHwWritePulse(self.reg_name, self.field_name)
         else:   raise Exception(f'not support hardware type: {hw_type}.')
 
         self.sw.is_external = self.is_external
@@ -148,7 +148,10 @@ class ParityField(ParityFieldRoot):
         if isinstance(self.sw, ParitySwWritePulse) or isinstance(self.hw, ParityHwWritePulse):
             return UInt(1,0)
         elif not isinstance(self.get_field_data(module), UInt):
-            return self.get_field_data(module)[self.index]
+            if self.get_field_data(module).attribute.width == 1:
+                return self.get_field_data(module)
+            else:
+                return self.get_field_data(module)[self.index]
         else:
             return self.get_field_data(module)
 
@@ -173,9 +176,11 @@ class ParityField(ParityFieldRoot):
         self.mux_dict['sw_rena'] = self.sw.mux_dict['sw_rena']
         
         if all(value is None for value in self.mux_dict.values()):
-            if not isinstance(self.get_field_data(module), UInt): # rdat
+            if isinstance(self.sw, ParitySwWritePulse) or isinstance(self.hw, ParityHwWritePulse):
+                return UInt(1,0)
+            elif not isinstance(self.get_field_data(module), UInt):
                 return self.get_field_data(module)[self.index]
-            else: # UINT
+            else:
                 return self.get_field_data(module)
         
         if not hasattr(module, f'{self.field_name_until_reg}_parity_ena_wdata'):
@@ -252,7 +257,7 @@ class ParitySwFieldRoot(ParityFieldRoot):
     
     def get_rmux(self, module, sig_name='', sig=None):
         sig_ena  = self.get_renable(module)
-        sig_val  = getattr(module, self.rsig_name) if sig==None else sig
+        sig_val  = getattr(module, self.wsig_name) if sig==None else sig
         self.mux_dict['sw_rena'] = [sig_ena, sig_val]
         return None
         
@@ -317,7 +322,7 @@ class ParityHwFieldRoot(ParityFieldRoot):
     
     def get_rmux(self, module, sig_name='', sig=None):
         sig_ena  = self.get_renable(module)
-        sig_val  = getattr(module, self.rsig_name) if sig==None else sig
+        sig_val  = getattr(module, self.wsig_name) if sig==None else sig
         self.mux_dict['hw_rena'] = [sig_ena, sig_val]
         return None
     
@@ -862,12 +867,12 @@ class ParitySwRAWStatus(ParitySwFieldRoot):
 
     @property
     def field_set_name(self):
-        return "%s_set_%s"% (self.reg_name.rstrip('_raw_status'),self.field_name)
+        return "%s_set_%s"% (self.reg_name.replace('_raw_status',''), self.field_name)
     
 
     @property
     def field_clear_name(self): 
-        return "%s_clear_%s"% (self.reg_name.rstrip('_raw_status'),self.field_name)
+        return "%s_clear_%s"% (self.reg_name.replace('_raw_status',''), self.field_name)
 
     def get_wenable(self, module):
         if self.sel_write:
@@ -878,11 +883,11 @@ class ParitySwRAWStatus(ParitySwFieldRoot):
     def get_wena_wdata(self, module):
         # for set field
         set_sig      = getattr(module, self.field_set_name)
-        set_sig_val  = BitOr(getattr(module, self.full_field_name), set_sig)
+        set_sig_val  = BitOr(self.get_field_data(module), set_sig)
         self.mux_dict['sw_wena'] = [SelfOr(set_sig), set_sig_val]
 
         # for clear field
         clear_sig      = getattr(module, self.field_clear_name)
-        clear_sig_val  = BitAnd(getattr(module, self.full_field_name), Inverse(clear_sig))
+        clear_sig_val  = BitAnd(self.get_field_data(module), Inverse(clear_sig))
         self.mux_dict['sw_rena'] = [SelfOr(clear_sig), clear_sig_val]
         return None

@@ -1045,7 +1045,10 @@ def _consistency_model(raw: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _header_macros(path: Path) -> dict[str, int]:
     macros: dict[str, int] = {}
-    pattern = re.compile(r"^\s*(?:#|`)define\s+([A-Z][A-Z0-9_]*)\s+([^\s/]+)", re.MULTILINE)
+    pattern = re.compile(
+        r"^[ \t]*(?:#|`)define[ \t]+([A-Z][A-Z0-9_]*)[ \t]+([^ \t\r\n/]+)",
+        re.MULTILINE,
+    )
     for name, value in pattern.findall(path.read_text(encoding="utf-8")):
         literal = re.sub(r"^\d+'h", "0x", value.lower()).replace("'h", "0x")
         try:
@@ -1058,10 +1061,16 @@ def _header_macros(path: Path) -> dict[str, int]:
 def _expect_header_fields(
     macros: dict[str, int], registers: list[dict[str, Any]], representation: str
 ) -> list[str]:
+    def value_for(name: str) -> int | None:
+        if name in macros:
+            return macros[name]
+        matches = [value for macro, value in macros.items() if macro.endswith(f"_{name}")]
+        return matches[0] if len(matches) == 1 else None
+
     errors: list[str] = []
     for register in registers:
         reg_name = register["name"].upper()
-        if macros.get(f"{reg_name}_OFFSET") != register["offset_bytes"]:
+        if value_for(f"{reg_name}_OFFSET") != register["offset_bytes"]:
             errors.append(f"{register['name']} address")
         for field in register["fields"]:
             prefix = f"{reg_name}_{field['name'].upper()}"
@@ -1070,7 +1079,7 @@ def _expect_header_fields(
                 ("WIDTH", field["width_bits"]),
                 ("RST_VAL", field["reset"]),
             ):
-                if macros.get(f"{prefix}_{suffix}") != expected:
+                if value_for(f"{prefix}_{suffix}") != expected:
                     errors.append(f"{register['name']}.{field['name']} {suffix.lower()}")
     if errors:
         raise _consistency_error(f"{representation}: " + ", ".join(errors))
@@ -1081,8 +1090,9 @@ def _expect_c_padding(path: Path, registers: list[dict[str, Any]]) -> None:
     text = path.read_text(encoding="utf-8")
     for register in registers:
         name = register["name"].upper()
+        qualified = rf"(?:[A-Z][A-Z0-9_]*_)?{re.escape(name)}"
         match = re.search(
-            rf"Definition of reg\s+{re.escape(name)}.*?typedef union\s*\{{\s*struct\s*\{{(?P<body>.*?)\}}\s*bits;\s*uint(?:32|64)_t\s+val;\s*\}}\s*{re.escape(name)}\s*;",
+            rf"Definition of reg\s+{qualified}.*?typedef union\s*\{{\s*struct\s*\{{(?P<body>.*?)\}}\s*bits;\s*uint(?:32|64)_t\s+val;\s*\}}\s*{qualified}\s*;",
             text,
             re.DOTALL,
         )
@@ -1108,8 +1118,9 @@ def _expect_vhead_layout(path: Path, registers: list[dict[str, Any]]) -> None:
     text = path.read_text(encoding="utf-8")
     for register in registers:
         name = register["name"].upper()
+        qualified = rf"(?:[A-Z][A-Z0-9_]*_)?{re.escape(name)}"
         match = re.search(
-            rf"Definition of reg\s+{re.escape(name)}.*?typedef union packed\s*\{{\s*struct packed\s*\{{(?P<body>.*?)\}}\s*bits;\s*logic\s*\[[^\]]+\]\s+val;\s*\}}\s*{re.escape(name)}\s*;",
+            rf"Definition of reg\s+{qualified}.*?typedef union packed\s*\{{\s*struct packed\s*\{{(?P<body>.*?)\}}\s*bits;\s*logic\s*\[[^\]]+\]\s+val;\s*\}}\s*{qualified}\s*;",
             text,
             re.DOTALL,
         )
@@ -1166,7 +1177,12 @@ def _expect_json(path: Path, registers: list[dict[str, Any]]) -> None:
                 raise _consistency_error(f"json: field {register['name']}.{field['name']} SW access mismatch")
             if actual.get("Hardware Access") not in access_values or access_values[actual["Hardware Access"]] != field["hw_access"]:
                 raise _consistency_error(f"json: field {register['name']}.{field['name']} HW access mismatch")
-            if actual.get("defaut_value") != field["reset"]:
+            reset_value = actual.get("Default Value", actual.get("defaut_value"))
+            try:
+                parsed_reset = int(str(reset_value), 0)
+            except (TypeError, ValueError):
+                parsed_reset = reset_value
+            if parsed_reset != field["reset"]:
                 raise _consistency_error(f"json: field {register['name']}.{field['name']} reset mismatch")
 
 
@@ -2131,7 +2147,15 @@ def capabilities(manifest: Path, baseline_contract: Path, capability_report: Pat
         bank = _advanced_capability_bank(advanced)
         bank.generate(str(stage / "advanced"), report_dv=True)
         advanced_root = stage / "advanced" / "advanced_capabilities"
-        dv_required = [advanced_root / "dv" / "tb.sv", advanced_root / "dv" / "tb.f", advanced_root / "dv" / "tc" / "tc_lib.sv", advanced_root / "dv" / "ral" / "ral_top.sv"]
+        dv_required = [
+            advanced_root / "dv" / "tb.sv",
+            advanced_root / "dv" / "tb.f",
+            advanced_root / "dv" / "tc" / "tc_lib.sv",
+            advanced_root / "ralf" / "advanced_capabilities.ralf",
+        ]
+        generated_ral = advanced_root / "dv" / "ral" / "ral_top.sv"
+        if generated_ral.is_file():
+            dv_required.append(generated_ral)
         records["advanced"] = [{"kind": "python_api", "call": "RegSpace.generate(report_dv=True)", "artifacts": [_capability_file(item, "advanced_" + item.name) for item in dv_required]}]
         rtl = next((advanced_root / "rtl").rglob("*.v"))
         rtl_evidence = _capability_file(rtl, "advanced_rtl")
@@ -2141,7 +2165,10 @@ def capabilities(manifest: Path, baseline_contract: Path, capability_report: Pat
             "register_arrays": all(f"array_{index}_rdat" in rtl_text and f"32'h{array['base_offset_bytes'] + index * array['stride_bytes']:x}" in rtl_text for index in range(array["count"])),
             "interrupt_registers": all(token in rtl_text for token in ("irq0_raw_status", "irq0_enable", "irq0_clear", "irq0_set", "irq0_mask")),
             "magic_lock_protection": all(token in rtl_text for token in ("magic", "lock", "protected")),
-            "parity_generation": "parity_sw_check_err" in rtl_text,
+            "parity_generation": any(
+                token in rtl_text
+                for token in ("parity_parity_check_err", "parity_sw_check_err")
+            ),
             "external_fields": "external_status_rdat" in rtl_text and "external_status_rvld" in rtl_text,
             "pulse_fields": "pulse_kick_rdat" in rtl_text and "pulse_kick_ena" in rtl_text,
             "multiple_reset_domains": "rst_a_n" in rtl_text and "rst_b_n" in rtl_text,

@@ -10,7 +10,9 @@ root_path, _ = os.path.split(os.path.realpath(__file__))
 dv_env = 'dv_env'
 dv_setup = 'setup_dv.sh'
 dv_tool_path = os.path.join(root_path, dv_env)
-demo_path    = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
+regbank_demo_path                 = os.path.join(root_path, 'excel/excel_demo/regbank_demo.xlsx')
+magic_and_lock_regbank_demo_path  = os.path.join(root_path, 'excel/excel_demo/magic_and_lock_regbank_demo.xlsx')
+intr_regbank_demo_path            = os.path.join(root_path, 'excel/excel_demo/intr_regbank_demo.xlsx')
 
 sys.path.append(root_path)
 from excel.ex2py import CreatPy
@@ -21,6 +23,8 @@ def main(argv=None):
     parser.add_argument('-e', type=str, help='input excel file')
     parser.add_argument('-o', type=str, help='isolated output path', default='build')
     parser.add_argument('-demo', action='store_true', help='generate an excel tamplate')
+    parser.add_argument('-demo_magic', action='store_true', help='generate an magic&lock excel tamplate')
+    parser.add_argument('-demo_intr', action='store_true', help='generate an interrupt excel tamplate')
 
     args = parser.parse_args(argv)
     output_path = Path(args.o).resolve()
@@ -28,7 +32,19 @@ def main(argv=None):
 
     if args.demo:
         target = output_path / 'regbank_demo.xlsx'
-        shutil.copyfile(demo_path, target)
+        shutil.copyfile(regbank_demo_path, target)
+        print(json.dumps({"excel_template": str(target)}, sort_keys=True))
+        return 0
+
+    if args.demo_magic:
+        target = output_path / 'magic_and_lock_regbank_demo.xlsx'
+        shutil.copyfile(magic_and_lock_regbank_demo_path, target)
+        print(json.dumps({"excel_template": str(target)}, sort_keys=True))
+        return 0
+
+    if args.demo_intr:
+        target = output_path / 'intr_regbank_demo.xlsx'
+        shutil.copyfile(intr_regbank_demo_path, target)
         print(json.dumps({"excel_template": str(target)}, sort_keys=True))
         return 0
 

@@ -31,9 +31,11 @@ class Regbank(Component):
                 self.set(f'{sub_space.rst_domain}', Input(UInt(1)))
 
         ####
+        if cfg.has_parity:  self.parity_err_inject = Input(UInt(1))
+        ####
         is_apb3             = True if "apb" in self._cfg.software_interface else False
         is_apb4             = True if "apb4" in self._cfg.software_interface else False
-        apb3_has_rack_hsk   = get_sw_read_clean_and_set(sub_space=self._cfg, outer=True) or get_field_external(sub_space=self._cfg, outer=True)
+        has_rack_hsk        = get_sw_read_clean_and_set(sub_space=self._cfg, outer=True) or get_field_external(sub_space=self._cfg, outer=True)
         ####
 
         if "apb" in self._cfg.software_interface:
@@ -51,7 +53,7 @@ class Regbank(Component):
             # self.rreq_rdy       = Wire(UInt(1))
 
             self.rack_data      = Wire(UInt(self._cfg.data_width))
-            if apb3_has_rack_hsk:
+            if has_rack_hsk:
                 self.rack_vld       = Wire(UInt(1))
                 self.rack_rdy       = Wire(UInt(1))
                 self.rack_rdy       += BitAnd(Inverse(self.p.write), self.p.sel, self.p.enable)
@@ -101,12 +103,14 @@ class Regbank(Component):
             else:                                           self.rreq_rdy += UInt(1,0)
 
 
-        if get_reg_parity(self._cfg.sub_space_list):        setattr(self, f"parity_sw_check_err", Output(UInt(1)))
+        if get_reg_parity(self._cfg.sub_space_list):
+            # setattr(self, f"parity_sw_check_err", Output(UInt(1)))
+            setattr(self, f"parity_hw_check_err", Output(UInt(1)))
 
         rack_dat_read_mux    = EmptyWhen()
         rack_read_mux        = EmptyWhen()
         wreq_rdy_mux         = EmptyWhen()
-        parity_check_err_mux = EmptyWhen()
+        parity_err_list      = []
         
         #########################################################################################################
         #   Reg box
@@ -115,8 +119,10 @@ class Regbank(Component):
             rst = getattr(self, sub_space.rst_domain)
 
             ####
+            just_write_clean_or_set     = get_sw_write_clean_and_set(sub_space)
             sub_space_writeable         = get_sw_writeable(sub_space.field_list, outer=False)
-            sub_space_all_write_pulse   = get_sw_all_pulse(sub_space.field_list, outer=False)
+            sw_all_write_pulse          = get_sw_all_pulse(sub_space.field_list, outer=False)
+            sub_space_has_read_hsk      = get_sw_read_clean_and_set(sub_space=sub_space, outer=False) or get_field_external(sub_space=sub_space, outer=False)
             ####
 
             if sub_space.start_address >= sub_space.father.offset:  start_address = int((sub_space.start_address - sub_space.father.offset)/8)
@@ -126,23 +132,27 @@ class Regbank(Component):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
                 rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
 
-                if apb3_has_rack_hsk:
+                if sub_space_has_read_hsk:
                     reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                     reg_rrdy += UInt(1,1)
                     rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
 
-                if apb3_has_rack_hsk:
+                if sub_space_has_read_hsk:
                     reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
                     reg_rvld += BitAnd(BitAnd(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
                 
             
             if get_sw_writeable(self._cfg.sub_space_list):
+                if just_write_clean_or_set or sub_space_writeable:
+                    reg_wdat = self.set('%s_wdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
+                    reg_wdat += self.wreq_data[sub_space.bit-1:0]
+
                 magic_intf_list = []
                 for magic in sub_space.get_magic_list:
                     if hasattr(self,f'{magic.module_name}_rdat'):   magic_intf_list.append(Equal(getattr(self,f'{magic.module_name}_rdat'), UInt(32,magic.field_list[0].password,'hex')))
                     else:                                           magic_intf_list.append(Equal(self.set('%s_rdat' % magic.module_name, Wire(UInt(magic.bit))), UInt(magic.bit,magic.field_list[0].password,'hex')))
 
-                if sub_space_writeable and not sub_space_all_write_pulse:
+                if sub_space_writeable and not sw_all_write_pulse:
                     reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
                     reg_wvld += BitAnd(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list)
 
@@ -186,8 +196,10 @@ class Regbank(Component):
                         field_sw_wvld  = self.set('%s_wvld' % field_name, Output(UInt(1)))
                         # field_sw_wrdy  = self.set('%s_wrdy' % field_name, Input(UInt(1)))
 
-                        field_sw_wdat += self.wreq_data[field.end_bit:field.start_bit]
-                        field_sw_wvld += reg_wvld
+                        if just_write_clean_or_set or sub_space_writeable:
+                            field_sw_wdat += reg_wdat[field.end_bit:field.start_bit]
+                        if sub_space_writeable:
+                            field_sw_wvld += reg_wvld
 
                         if is_apb4:
                             field_sw_strb =  self.set('%s_wmask' % field_name, Output(UInt(field.bit)))
@@ -229,12 +241,17 @@ class Regbank(Component):
 
                     field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
                     if is_apb4:
-                        field_wdat += BitAnd(self.wreq_data[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
+                        if field.sw_write_one_pulse:
+                            field_wdat += BitAnd(reg_wdat[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
+                        else:
+                            field_wdat += BitAnd(Inverse(reg_wdat[field.end_bit:field.start_bit]), self.p_unmask[field.end_bit:field.start_bit])
                     else:
-                        field_wdat += self.wreq_data[field.end_bit:field.start_bit]
+                        if field.sw_write_one_pulse:
+                            field_wdat += reg_wdat[field.end_bit:field.start_bit]
+                        else:
+                            field_wdat += Inverse(reg_wdat[field.end_bit:field.start_bit])
 
-                    if field.sw_write_one_pulse:    field_hw_rdat_reg+=BitAnd(field_wdat, field_lock_ena)
-                    else:                           field_hw_rdat_reg+=BitAnd(Inverse(field_wdat), field_lock_ena)
+                    field_hw_rdat_reg+=BitAnd(field_wdat, field_lock_ena)
                     
                     if field.hw_readable:
                         field_hw_rdat = self.set("%s_rdat" % field_name , Output(UInt(field.bit)))
@@ -250,7 +267,8 @@ class Regbank(Component):
                     if field.field_reg_write:
                         field_reg = self.set(field_name, Reg(UInt(field.bit,field.init_value),self.clk,rst))
                     else:
-                        field_reg = UInt(field.bit,field.init_value)
+                        field_reg = self.set(field_name, Wire(UInt(field.bit,field.init_value)))
+                        field_reg += UInt(field.bit,field.init_value)
                     reg_val = EmptyWhen()
 
                     if field.hw_writeable:
@@ -314,7 +332,7 @@ class Regbank(Component):
                                 field_masked_wdat   = self.set('%s_masked_wdat'% field_name, Wire(UInt(field.bit)))
                                 field_masked_wdat   += BitAnd(self.wreq_data[field.end_bit:field.start_bit], self.p_unmask[field.end_bit:field.start_bit])
                                 if field.sw_write_zero_to_clean or field.sw_write_zero_to_set or field.sw_write_zero_to_toggle:
-                                    field_wdat  += BitOr(field_masked_wdat, self.p_mask[field.end_bit:field.start_bit])
+                                    field_wdat  += BitOr(self.p_mask[field.end_bit:field.start_bit], field_masked_wdat)
                                 elif field.sw_write_one_to_clean or field.sw_write_one_to_set or field.sw_write_one_to_toggle:
                                     field_wdat  += field_masked_wdat
                                 else:
@@ -351,29 +369,27 @@ class Regbank(Component):
                         if field.sw_read_clean:     reg_val.when(reg_rvld).then(UInt(field.bit,0))
                         elif field.sw_read_set:     reg_val.when(reg_rvld).then(UInt(field.bit,2**(field.bit)-1))   
                         
-                        if field.field_reg_write:   rdat_list.append(field_reg)
-                        else:        
-                            if hasattr(self, f"{field_name}_rdat"):
-                                field_sw_rdat = getattr(self, f"{field_name}_rdat")
-                            else:
-                                field_sw_rdat = self.set("%s_rdat" % field_name , Wire(UInt(field.bit)))
-                                field_sw_rdat += UInt(field.bit,field.init_value)
-                            rdat_list.append(field_sw_rdat)
+                        if field.field_reg_write:
+                            rdat_list.append(field_reg)
+                        elif hasattr(self, f"{field_name}_rdat"):
+                            rdat_list.append(getattr(self, f"{field_name}_rdat"))
+                        else:
+                            rdat_list.append(field_reg)
                     else:
                         rdat_list.append(UInt(field.bit,0))
 
                     # for clear and set interrupt register 
                     if sub_space.reg_type in [IntrStatus]:
-                        field_set       = getattr(self, "%s_set_%s"% (sub_space.module_name.rstrip('_raw_status'),field.module_name))
-                        field_clear     = getattr(self, "%s_clear_%s"% (sub_space.module_name.rstrip('_raw_status'),field.module_name))
+                        field_set       = getattr(self, "%s_set_%s"% (sub_space.module_name.replace('_raw_status',''),field.module_name))
+                        field_clear     = getattr(self, "%s_clear_%s"% (sub_space.module_name.replace('_raw_status',''),field.module_name))
                         reg_val.when(SelfOr(field_set)).then(BitOr(field_reg,field_set))
                         reg_val.when(SelfOr(field_clear)).then(BitAnd(field_reg,Inverse(field_clear)))
 
-                    if field.field_reg_write:
-                        field_reg += reg_val
+                    if field.field_reg_write:  field_reg += reg_val
                         
 
             #===============================================================
+            # interrupt define
             #  Interrupt register logic
             #===============================================================
             if get_sw_readable(self._cfg.sub_space_list):
@@ -403,7 +419,8 @@ class Regbank(Component):
                     update_list   = [ SelfXor(data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
                     update_list.reverse()
                     parity_update += Combine(*update_list)
-                    parity_when.when(ena).then(parity_update) 
+                    parity_when.when(ena).then(when(self.parity_err_inject).then(Inverse(parity_update)).otherwise(parity_update))
+                    # parity_when.when(ena).then(parity_update)
 
                 if parity_when._attribute != None:      
                     parity_bit = self.set(f"{sub_space.module_name}_parity_bit", Reg(UInt(int(self._cfg.data_width/8), sub_space.parity_init_value), self.clk, rst))
@@ -417,21 +434,16 @@ class Regbank(Component):
                 check_data       = self.set(f"{sub_space.module_name}_parity_check_wdata", Wire(UInt(self._cfg.data_width)))
                 check_data_list  = getattr(sub_space, f'parity_field_data_list')(self)
                 check_data       += Combine(*check_data_list)
-                check_list = [ SelfXor(check_data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
+                check_list       = [ SelfXor(check_data[i*8+7:i*8]) for i in range(int(self._cfg.data_width/8)) ]
                 check_list.reverse()
                 parity_check_bit += Combine(*check_list)
                 parity_check_err = self.set(f"{sub_space.module_name}_parity_check_err", Wire(UInt(1)))
                 parity_check_err += NotEqual(parity_check_bit, parity_bit)
-                # hardware
-                parity_hw_check_err = self.set(f"{sub_space.module_name}_parity_hw_check_err", Output(UInt(1)))
-                parity_hw_check_err += parity_check_err
-                # software
-                parity_check_err_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(parity_check_err)
+                parity_err_list.append(parity_check_err)
 
-        if hasattr(self, f"parity_sw_check_err"): 
-            parity_check_err_mux.otherwise(UInt(1,0))  
-            parity_sw_check_err = getattr(self, f"parity_sw_check_err")
-            parity_sw_check_err += parity_check_err_mux
+        if hasattr(self, f"parity_hw_check_err"):
+            parity_hw_check_err = getattr(self, f"parity_hw_check_err")
+            parity_hw_check_err += BitOr(*parity_err_list)
 
 
         ##########################################################################################################
@@ -441,7 +453,7 @@ class Regbank(Component):
             rack_dat_read_mux.otherwise(UInt(self._cfg.data_width,2**(self._cfg.data_width)-2,'hex'))
             self.rack_data += rack_dat_read_mux
 
-            if (not is_apb3) or apb3_has_rack_hsk:
+            if has_rack_hsk or not is_apb3:
                 if not is_apb3:
                     # A valid-ready endpoint is permanently response-valid for
                     # this register map; retain that behavior while observing
@@ -452,7 +464,7 @@ class Regbank(Component):
                     self.rack_vld  += rack_read_mux
         else:
             self.rack_data += UInt(self._cfg.data_width,0)
-            if (not is_apb3) and apb3_has_rack_hsk:  self.rack_vld += UInt(1,0)
+            if (not is_apb3) and has_rack_hsk:  self.rack_vld += UInt(1,0)
 
         if not is_apb3:
             if get_sw_writeable(self._cfg.sub_space_list):

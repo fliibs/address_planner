@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "constructs": [
+    {
+      "id": "register_arrays",
+      "count": 3,
+      "base_offset_bytes": 0,
+      "stride_bytes": 4
+    },
+    {
+      "id": "interrupt_registers",
+      "field_width_bits": 1,
+      "base_offset_bytes": 64
+    },
+    {
+      "id": "magic_lock_protection",
+      "magic_password": 1515890085,
+      "magic_offset_bytes": 128,
+      "lock_offset_bytes": 132,
+      "protected_offset_bytes": 136
+    },
+    {
+      "id": "parity_generation",
+      "register_offset_bytes": 144
+    },
+    {
+      "id": "external_fields",
+      "register_offset_bytes": 148,
+      "sw_access": "RO",
+      "hw_access": "RW"
+    },
+    {
+      "id": "pulse_fields",
+      "register_offset_bytes": 152
+    },
+    {
+      "id": "multiple_reset_domains",
+      "register_offsets_bytes": [160, 164],
+      "reset_domains": ["rst_a_n", "rst_b_n"]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "capabilities": [
+    {"id": "dependency_resolution", "disposition": "retain"},
+    {"id": "register_model", "disposition": "retain"},
+    {"id": "address_space_model", "disposition": "retain"},
+    {"id": "field_access_types", "disposition": "retain"},
+    {"id": "model_validation", "disposition": "retain"},
+    {"id": "rtl_backend", "disposition": "retain"},
+    {"id": "c_header_backend", "disposition": "retain"},
+    {"id": "verilog_header_backend", "disposition": "retain"},
+    {"id": "ralf_backend", "disposition": "retain"},
+    {"id": "json_backend", "disposition": "retain"},
+    {"id": "dv_backends", "disposition": "retain"},
+    {"id": "bus_interfaces", "disposition": "retain"},
+    {"id": "register_arrays", "disposition": "retain"},
+    {"id": "interrupt_registers", "disposition": "retain"},
+    {"id": "magic_lock_protection", "disposition": "retain"},
+    {"id": "parity_generation", "disposition": "retain"},
+    {"id": "external_fields", "disposition": "retain"},
+    {"id": "pulse_fields", "disposition": "retain"},
+    {"id": "multiple_reset_domains", "disposition": "retain"},
+    {"id": "excel_cli", "disposition": "retain"},
+    {"id": "ralf_import", "disposition": "retain"},
+    {"id": "ralf_parser_cli", "disposition": "retain"},
+    {"id": "matrix_reports", "disposition": "retain"},
+    {"id": "dv_log_parser_capability", "disposition": "retain"}
+  ]
+}

@@ -30,6 +30,8 @@ def build_addrspace(tcl_interpreter):
     keys_array = tcl_interpreter.eval('set keys [dict keys $result]')
     key_list = keys_array.split(' ')
     tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
+    # print(py_dict)
+
     #### build rb
     from ..RegSpace import RegSpace
     # RALF offsets are byte-addressed and can be byte-granular.  This importer is
@@ -56,6 +58,7 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
 
     elif 'is_memory' in dict_.keys():
         # for memory block
+        print(f"Memory: {dict_['name']}: {dict_['size']}")
         mem_B = AddressSpace(name=dict_['name'], size=dict_['size'])
         if isinstance(father_copy, RegSpace):   father_copy = AddressSpace(name=father_copy.module_name, size=1e20*GB)
         father_copy.add(sub_space=mem_B, name=dict_['name'], offset=int(dict_['addr']))
@@ -63,13 +66,43 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
         # recur field dict
         if dict_['FIELD_DICT']!=None:  
             
-            reg_B = Register(name=dict_['name'], bit=dict_['width'], description=dict_['doc'])  
-            reg_B_copy = build_field_recur(dict_['FIELD_DICT'], reg_B, tcl_interpreter)
-            father_copy.add(sub_space=reg_B_copy,offset=int(dict_['addr']))
+            if dict_['inst_num'] in [0,1]:
+                print(f"Register: {dict_['name']}")
+                reg_B = Register(name=dict_['name'], bit=dict_['width'], description=dict_['doc'])
+                # reg_B = Register(name=dict_['name'], bit=dict_['width'])
+                reg_B_copy = build_field_recur(dict_['FIELD_DICT'], reg_B, tcl_interpreter)
+                if reg_B_copy!=-1:
+                    father_copy.add(sub_space=reg_B_copy,offset=int(dict_['addr']))
+
+            else:
+                # neo_dict = {}
+                # idx = 0
+                # for key, value in dict_['FIELD_DICT'].items():
+                #     name = dict_['name']+f'_{idx}'
+                #     if name not in neo_dict.keys(): neo_dict[name]={}
+                #     neo_dict[name] = value
+                #     if (int(value['addr'])+int(value['bits']))==32: idx += 1
+
+                # for i in range(int(dict_['inst_num'])+1):
+                #     name = dict_['name']+f'_{i}'
+                #     reg_B = Register(name=name)
+                #     if name not in neo_dict.keys():
+                #         reg_B_copy = build_field_recur(neo_dict[dict_['name']+f'_{i-1}'], reg_B, tcl_interpreter)
+                #     else:
+                #         reg_B_copy = build_field_recur(neo_dict[dict_['name']+f'_{i}'], reg_B, tcl_interpreter)
+                #     father_copy.add(sub_space=reg_B_copy,offset=int(dict_['addr'])+i*4)
+
+                for i in range(int(dict_['inst_num'])):
+                    name = dict_['name']+f'_{i}'
+                    reg_B = Register(name=name)
+                    reg_B_copy = build_field_recur(dict_['FIELD_DICT'], reg_B, tcl_interpreter)
+                    father_copy.add(sub_space=reg_B_copy,offset=int(dict_['addr'])+i*4)
+                # print('====',father_copy.module_name,father_copy.__dict__)
             
         # recur addr dict
         if dict_['ADDR_DICT']!=None:  
-            reg_bank_B = RegSpace(name=dict_['name'], size=16*KB,bus_width=8,software_interface='apb')
+            # print(f"AddrSpace: {dict_['name']}")
+            reg_bank_B = RegSpace(name=dict_['name'], size=64*MB,bus_width=32,software_interface='apb')
             reg_bank_B_copy = build_subspace_recur(dict_['ADDR_DICT'], reg_bank_B, tcl_interpreter)
             
             if isinstance(father_copy, RegSpace):   father_copy = AddressSpace(name=father_copy.module_name, size=1e20*GB)
@@ -85,7 +118,12 @@ def build_field_recur(dict_, father, tcl_interpreter):
     else:
         from ..Field    import Field
         sw_access = get_field_access_by_value(dict_['access'])
-        father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset']), description=dict_['doc']),offset=int(dict_['addr']))
+        if "Reserve" not in dict_['name']:
+            father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset']), description=dict_['doc']),offset=int(dict_['addr']))
+            # father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset'])),offset=int(dict_['addr']))
+        else:
+            father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset']), description=dict_['doc']),offset=int(dict_['addr']))
+            # father_copy.add(Field(name=dict_['name'],bit=int(dict_['bits']),sw_access=sw_access, init_value=int(dict_['reset'])),offset=int(dict_['addr']))
     
     return father_copy
     
@@ -127,11 +165,12 @@ def tcl_dict_recur(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             dict_[key] = {}
             tcl_dict_recur(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, dict_)
         elif  key == 'addr':                                              dict_[key]= convert_address(value)
-        elif  key == 'name':                                              dict_[key]=value  
-        elif  key == 'size':                                              dict_[key]=convert_address(value)
-        elif  key == "is_memory":                                         dict_[key]=value
-        elif  key == "width":                                             dict_[key]=int(value)*8
-        elif  key == 'doc':                                               dict_[key]=value
+        elif  key == 'name':                                              dict_[key] = value
+        elif  key == 'inst_num':                                          dict_[key] = int(value)
+        elif  key == 'size':                                              dict_[key] = convert_address(value)
+        elif  key == "is_memory":                                         dict_[key] = value
+        elif  key == "width":                                             dict_[key] = int(value)*8
+        elif  key == 'doc':                                               dict_[key] = value
         else:
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
@@ -151,12 +190,19 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             tcl_dict_field(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, father)
         elif  key == 'addr':        dict_[key]=convert_address(value)
         elif  key == 'reset':       dict_[key]=convert_reset(value)
-        elif  key == 'doc':         dict_[key]=value
+        elif  key == 'doc':         dict_[key] = value
+        # elif key == 'doc':        print(dict_)
         else:                       dict_[key]=value 
 
 
 def convert_address(address):
-    clean_address = address.replace("@", "").replace("'", "")
+    clean_address = address.replace("@", "")
+
+    radix_pos = clean_address.find("'h") if "'h" in clean_address else clean_address.find("'b")
+    if radix_pos != -1:
+        base = 16 if clean_address[radix_pos+1] == 'h' else 2
+        number_part = clean_address[radix_pos+2:]
+        return int(number_part, base)
 
     # if clean_address.startswith('h'):
     #     return int(clean_address[1:], 16)
@@ -194,8 +240,7 @@ def minimum_size(father):
     if father_copy.sub_space_list != []:
         end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
         start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
-    else:
-        return father_copy
+    else: return father_copy
     if isinstance(end_element,Register):    father_copy.size=int(end_element.offset/8+end_element.bit/8-start_element.start_address/8)
     else:                                   father_copy.size=end_element.offset+end_element.size
     return father_copy

@@ -13,7 +13,7 @@ import pytest
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-HARNESS_ROOT = PROJECT_ROOT.parents[2] / "prompts" / "tool_skill_parallel_dev"
+FIXTURES = PROJECT_ROOT / "test" / "fixtures"
 
 
 def _environment() -> dict[str, str]:
@@ -81,7 +81,7 @@ def test_ralf_module_cli_uses_package_resource_and_reports_missing_input(tmp_pat
 def test_matrix_fixed_model_report_and_rejects_unknown_connection(tmp_path: Path) -> None:
     from address_planner import MatrixSpace
 
-    fixture = HARNESS_ROOT / "runs" / "session_02" / "matrix_model.json"
+    fixture = FIXTURES / "matrix_model.json"
     report_path = MatrixSpace.report_fixed_model(fixture, tmp_path)
     report = json.loads(report_path.read_text(encoding="utf-8"))
     assert report["model"]["model_id"] == "matrix_report_model"
@@ -95,7 +95,7 @@ def test_matrix_fixed_model_report_and_rejects_unknown_connection(tmp_path: Path
 
 
 def test_dv_log_parser_is_non_mutating_and_has_process_status(tmp_path: Path) -> None:
-    fixture = HARNESS_ROOT / "runs" / "session_02" / "dv_pass.log"
+    fixture = FIXTURES / "dv_pass.log"
     passing_log = tmp_path / "pass.log"
     passing_log.write_bytes(fixture.read_bytes())
     before = _sha256(passing_log)

@@ -47,14 +47,14 @@ function createWindow() {
                 console.log(err);
               })
           }
-          
+
         },
-       
+
       ]
     },
   ];
 
-  
+
 
   // ipcMain.on('read-json', (event, val) => {
   //   console.log(val)

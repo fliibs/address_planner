@@ -9,212 +9,87 @@ field TXE {
     endian 1;
 }
 
+register L2 [1] {
+        field TXE @0;
+        field TXD @4 {
+            bits 1;
+            access rw;
+            reset 0;
+        }
+
+        field Reserve_1 @5 {
+            access rw;
+            reset 0;
+        }
+
+        field TXD_2 @10 {
+            bits 20;
+            access rw;
+            reset 0;
+        }
+
+        
+    }
+
+
 block B1 {
-    bytes 4;
-    register L1 @0x1 {
-        bytes 2;
+    register L1 @1 {
+        bytes 4;
         field TXE @0;
         field TXD @4 {
             bits 1;
             access ro;
             reset 1'h1;
-        attributes { NO_REG_TEST 1 };
+            attributes { NO_REG_TEST 1 }
         }
         
     }
 }
 
 block B2 {
-    register L1 @'h1 {
-        bits 1;
+    register L1 [1] @1 {
         field TXE @0;
         field TXD @4 {
             bits 1;
             access rw;
             reset 0;
         }
-        
-    }
-}
 
-
-block B4 {
-    register L1 @1 {
-        bits 1;
-        field TXE @0;
-        field TXD @4 {
-            bits 1;
+        field Reserve_1 @5 {
             access rw;
             reset 0;
         }
-        
-    }
-}
 
-
-block B5 {
-    register TXD @1 {
-        field TXE @0;
-        field TXD @4 {
-            bits 1;
+        field TXD_2 @10 {
+            bits 20;
             access rw;
             reset 0;
         }
     }
-    register TXD_2 @1 {
-        field TXE @0;
-        field TXD @32'h4 {
-            bits 1;
-            access wo;
-            reset 0;
-        }
-    }
-    register TXD_3 @1 {
-        field TXE @0;
-        field TXD @4 {
-            bits 1;
-            access ro;
-            reset 0;
-        }
-    }
-
+    register L2 @9;
 }
 
-block memory_block {
-    endian little;
+
+block DWC_DDRPHYA_AC1_p0 {
     bytes 2;
-    memory dwc_ddrphy_top_DCCM {
-        size 0x4000;
-        bits 16;
-        access rw;
-    }
-}
-
-block B3 {
-    bytes 2
-    memory FSP {
-        size 'h10000;
-        bits 16;
-        access rw;
-    }
-}
-
-block B7 {
-    bytes 2
-    register TXD @1 {
-        bytes 2
-        field TXD @0 {
-            bits 1;
+    register DFIMRL_p0 @'h0 {
+        bytes 1;
+        field DFIMRL_p0 @'h0 {
+            bits 5;
             access rw;
-            reset 0;
+            hard_reset 'h6;
             doc {
-                this is.
+                This Max Read Latency CSR is to be trained to ensure the Rx-Data FIFO is not read until after all dbytes have their read data valid.
+In DBYTE, this is the value, in units of DFI Clocks (DfiClk), between dfi_rddata_en and dfi_rddata_valid.
+In AC, this is the value, in units of DFI Clocks (DfiClk), between generation of the Read Pointer for reading of the RxDatFifo and Writing to the FIFO.
+
+            }
             }
         }
-    }
 }
 
 system sys1 {
     block B1 @1;
     block B2 @70000;
-    block B3 (u_core) @'h80000;
-    block B4 @'ha0500;
-    block B5 @'ha1000;
-    block B7 @'ha2000;
-    block memory_block @'ha4000;
+    block DWC_DDRPHYA_AC1_p0 @80000;
 }
-
-#puts [info vars]
-
-#parray DEF
-# puts [array names DEF]
-# puts [set DEF(sys1)]
-#sputs "wer"
-#puts $def_L1
-
-
-
-
-
-        #puts [info vars]
-
-        #puts $def_TXE
-        #puts $def_TXD
-
-        #puts "======="
-        #puts $field_dict
-
-#set myVar 42
-#puts [find_variable myVar]
-#set register_list "field1 field2"
-#array set a_reg $register_list
-#set d_reg [dict create zolli {nick_kroc}]
-#dict append d_reg key val
-
-        #set inst_dict [uplevel "set def_$name"]
-        #uplevel "set inst_$name {$inst_dict}"
-
-    #set var_offset  [lindex $args 1]
-    #set code        [lindex $args 2]
-
-    #eval $code
-
-    #puts $var_bits
-
-    # set name        [lindex $args 0]
-
-    # set mode "def_and_inst"
-
-    # if {$mode eq "def_and_inst" || $mode eq "def"} {
-    #     puts "Mode is either 'def_and_inst' or 'def'"
-    # } else {
-    #     puts "Mode is not 'def_and_inst' or 'def'"
-    # }
-
-
-# proc register {args} {
-# 
-#     #set arg_list [lrange $args 1 end]
-#     set field_list "field1 field2"
-# 
-#     set name [lindex $args 0]
-# 
-#     uplevel {lappend register_list "wer"}
-# 
-#     puts [lindex $args 1]
-# 
-#     puts [namespace current]
-# 
-#     eval [lindex $args 1]
-#     #eval [lindex $args 1]
-# 
-#     puts $field_list
-# 
-# }
-
-
-    
-     # set num_args [llength $args     ]
-     # set name     [lindex  $args 0   ]
- # 
-     # set IS_DEF  0
-     # set IS_INST 0
-     # if {$num_args == 3} {
-     #     if {![string match "@*" [lindex $args 1]]} {
-     #         error "Invalid second argument. Should start with '@', but get [lindex $args 1]."
-     #     }
-     #     set IS_DEF  1
-     #     set def_code  [lindex $args 2]
-     #     set IS_INST 1
-     #     set inst_addr [lindex $args 1]
-     # } elseif {$num_args == 2} {
-     #     if {[string match "@*" [lindex $args 1]]} {
-     #         set IS_INST 1
-     #         set inst_addr [lindex $args 1]
-     #     } else {
-     #         set IS_DEF 1
-     #         set def_code  [lindex $args 1]
-     #     }
-     # } else {
-     #     error "Error arg number, Expected 2 or 3. "
-     # }

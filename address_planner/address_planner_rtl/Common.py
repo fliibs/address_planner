@@ -1,16 +1,18 @@
 from uhdl import *
 from ..GlobalValues import *
+# import sys
+# sys.path.append("..")
 
 def get_sw_readable(sub_space_list, readable=False, outer=True):
     if outer:
         for sub_space in sub_space_list:
             for field in sub_space.filled_field_list:
                 if field.sw_readable:
-                    return True 
+                    return True
     else:
         for field in sub_space_list:
             if field.sw_readable:
-                return True   
+                return True
     return readable
 
 def get_sw_writeable(sub_space_list, writeable=False, outer=True):
@@ -22,7 +24,31 @@ def get_sw_writeable(sub_space_list, writeable=False, outer=True):
     else:
         for field in sub_space_list:
             if field.sw_writeable:
-                return True  
+                return True
+    return writeable
+
+def get_ext_sw_readable(sub_space_list, readable=False, outer=True):
+    if outer:
+        for sub_space in sub_space_list:
+            for field in sub_space.filled_field_list:
+                if field.is_external and field.sw_readable:
+                    return True
+    else:
+        for field in sub_space_list:
+            if field.is_external and field.sw_readable:
+                return True
+    return readable
+
+def get_ext_sw_writeable(sub_space_list, writeable=False, outer=True):
+    if outer:
+        for sub_space in sub_space_list:
+            for field in sub_space.filled_field_list:
+                if field.is_external and field.sw_writeable:
+                    return True
+    else:
+        for field in sub_space_list:
+            if field.is_external and field.sw_writeable:
+                return True
     return writeable
 
 def get_sw_all_pulse(sub_space_list, all_pulse=True, outer=True):

@@ -14,11 +14,11 @@ class MatrixSpace(AddressSpace):
         self.offset = offset
         self.attr = None
         self._next_offset = 0
-    
-    @property   
+
+    @property
     def _offset(self):
         return max(self.offset) if isinstance(self.offset, list) else self.offset
-     
+
     @property
     def _size(self):
         return self.size[self.offset.index(self._offset)] if isinstance(self.offset, list) else self.size
@@ -29,16 +29,16 @@ class MatrixSpace(AddressSpace):
             return '\n'.join([hex(elem) for elem in self.offset])
         else:
             return hex(self.offset)
-    
+
     @property
     def end_address(self):
         if isinstance(self.offset, list):
             return '\n'.join([hex(self.offset[idx] + self.size[idx] - 1) for idx in range(len(self.offset))])
-        else: 
+        else:
             return hex(self.offset + self.size - 1)
-    
+
     def add_attr(self, attr):
-        if attr is None:                        pass                  
+        if attr is None:                        pass
         elif not isinstance(attr, MatrixAttr):  raise Exception()
         self.attr = attr
 
@@ -50,7 +50,7 @@ class MatrixSpace(AddressSpace):
         sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
         sub_space_copy.offset = sub_space_copy.offset if offset==None else offset
         sub_space_copy.add_attr(attr)
-        
+
         self.sub_space_list.append(sub_space_copy)
         if sub_space_copy.offset != None:
             self._next_offset = sub_space_copy._offset + sub_space_copy._size
@@ -117,8 +117,8 @@ class MatrixSpace(AddressSpace):
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return destination
-        
-    
+
+
     def update(self, sub_space,name):
         for i, sub in enumerate(self.sub_space_list):
             if name == sub.module_name:
@@ -128,15 +128,15 @@ class MatrixSpace(AddressSpace):
                 sub.update(sub_space,name)
                 # sub.sub_space_list = deepcopy(update_sub)
         return
-                
-                
-        
-        
+
+
+
+
     def report_master_matrix(self):
         master_list = deepcopy(master_content)
         master_dict = self.report_master()
         attr_dict   = master_dict['attribute']
-        
+
         for key, value in master_mapping.items():
             if key in master_dict.keys():
                 master_list[value] = master_dict[key]
@@ -145,12 +145,12 @@ class MatrixSpace(AddressSpace):
             # elif key not in attr_dict.keys():
             #     print(f'[Warn] {self.module_name} has no attr: {key}')
         return {self.module_name: master_list}
-    
-    
+
+
     def report_slave_matrix(self):
         slave_dict = {}
         slave_json_list = self.report_slave()
-        
+
         for slave in slave_json_list:
             slave_list = deepcopy(slave_content)
             attr_dict = slave['attribute']
@@ -162,18 +162,18 @@ class MatrixSpace(AddressSpace):
                 # elif key not in attr_dict.keys():
                 #     print(f'[Warn] {self.module_name} has no attr: {key}')
             slave_dict[slave["name"]] = slave_list
-        
+
         return slave_dict
-    
-    
+
+
     def report_interconnect_matrix(self):
         interconnect_dict = {}
         interconnect_list = list(self.report_interconnect().values())[0]
         interconnect_dict['name'] = interconnect_list
         interconnect_dict[self.module_name] = [True for _ in interconnect_list]
         return interconnect_dict
-    
-    
+
+
     def report_master(self):
         if self.father is None or not isinstance(self.father, MatrixSpace):
             json_dict={}
@@ -186,7 +186,7 @@ class MatrixSpace(AddressSpace):
             json_dict["attribute"]  = self.report_json_attr_core()
             json_dict["children"]   = self.expand_list([c.report_interconnect() for c in self.sub_space_list])
             return json_dict
-        
+
     def report_slave(self):
         if self.father is None or not isinstance(self.father, MatrixSpace):
             return self.expand_list([c.report_slave() for c in self.sub_space_list])
@@ -195,8 +195,8 @@ class MatrixSpace(AddressSpace):
         else:
             json_list = [c.report_slave() for c in self.sub_space_list]
             return json_list
-            
-        
+
+
     def report_interconnect(self, mst_name=None):
         return {self.module_name: self.report_interconnect_core(mst_name)}
 
@@ -204,18 +204,18 @@ class MatrixSpace(AddressSpace):
         if self.father is None or not isinstance(self.father, MatrixSpace):
             return self.expand_list([c.report_interconnect_core(mst_name) for c in self.sub_space_list])
         elif self.sub_space_list == []:
-            
+
             if mst_name == None:
                 return f"{self.module_name}"
             else:
                 return f"{mst_name}.{self.module_name}"
-        else: 
+        else:
             return [c.report_interconnect_core(mst_name) for c in self.sub_space_list]
-        
-        
+
+
     def generate_matrix_excel(self, path=None):
         if path != None:        self.path = path
-        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir)
         wb = openpyxl.Workbook()
         # master
         ws_mst       = wb.active
@@ -225,16 +225,16 @@ class MatrixSpace(AddressSpace):
 
         for key, values in self.report_master_matrix().items():
             ws_mst.append(values)
-            
+
         # slave
         ws_slv      = wb.create_sheet(title="slave")
         headers1    = list(slave_mapping.keys())
         ws_slv.append(headers1)
-            
+
         for key, values in self.report_slave_matrix().items():
             ws_slv.append(values)
-            
-        # interconnection    
+
+        # interconnection
         ws2          = wb.create_sheet(title="interconnection")
         mapping_dict = self.report_interconnect_matrix()
         headers2     = ['name'] + list(mapping_dict['name'])
@@ -251,8 +251,8 @@ class MatrixSpace(AddressSpace):
         if path != None:        self.path = path
         json_list= [self.report_json_core()]
         jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir) 
-        with open(self.matrix_path, 'w') as f:
+        if not os.path.exists(self._json_dir):  os.makedirs(self._json_dir)
+        with open(self.matrix_json_path, 'w') as f:
             f.write(jtext)
 
     def report_json_core(self):
@@ -283,7 +283,7 @@ class MatrixSpace(AddressSpace):
         else:
             json_list = [c.report_json_core() for c in self.sub_space_list]
             return json_list
-        
+
     def expand_list(self, sub_list):
         return [item for elem in sub_list for item in (self.expand_list(elem) if isinstance(elem, list) else [elem])]
 
@@ -296,27 +296,27 @@ class MatrixSpace(AddressSpace):
         for key, val in self.attr.attr_dict.items():
             json_dict[key]      = val
         return json_dict
-    
-    
+
+
 
 
 class MatrixAttr:
-    def __init__(self, name='', support_incr=None, support_wrap=None, 
-                 support_fixed=None, rd_enable=True, wr_enable=True, 
+    def __init__(self, name='', support_incr=None, support_wrap=None,
+                 support_fixed=None, rd_enable=True, wr_enable=True,
                  support_reordering=None, w_req_auser_width=None,
-                 wuser_width=None, buser_width=None, 
-                 r_req_auser_width=None, ruser_width=None, 
+                 wuser_width=None, buser_width=None,
+                 r_req_auser_width=None, ruser_width=None,
                  rd_id_width=None, wr_id_width=None,
                  rd_ost=None, wr_ost=None, ignore_signal='',
-                 pre='', post='', upper='', clk='clk', 
-                 freq=1000, rst='rst_n', hier='tb.dut', 
-                 wr_latency=None, rd_latency=None, 
+                 pre='', post='', upper='', clk='clk',
+                 freq=1000, rst='rst_n', hier='tb.dut',
+                 wr_latency=None, rd_latency=None,
                  wr_bandwidth='', rd_bandwidth='',
-                 cacheline_size=None, support_write_evict=None, 
-                 no_shareable_min_addr=None, no_shareable_max_addr=None, 
-                 inner_min_addr=None, inner_max_addr=None, 
+                 cacheline_size=None, support_write_evict=None,
+                 no_shareable_min_addr=None, no_shareable_max_addr=None,
+                 inner_min_addr=None, inner_max_addr=None,
                  outer_min_addr=None, outer_max_addr=None, **kwargs):
-        
+
         self.name = name
         self.support_incr       = support_incr
         self.support_wrap       = support_wrap
@@ -334,11 +334,11 @@ class MatrixAttr:
         self.rd_ost             = rd_ost
         self.wr_ost             = wr_ost
         self.ignore_signal      = ignore_signal
-        self.pre                = pre 
-        self.post               = post 
+        self.pre                = pre
+        self.post               = post
         self.upper              = upper
-        self.clk                = clk 
-        self.freq               = freq 
+        self.clk                = clk
+        self.freq               = freq
         self.rst                = rst
         self.hier               = hier
         self.wr_latency         = wr_latency
@@ -353,15 +353,15 @@ class MatrixAttr:
         self.inner_max_addr       = inner_max_addr
         self.outer_min_addr       = outer_min_addr
         self.outer_max_addr       = outer_max_addr
-        
+
         for key, value in kwargs.items():
             if not hasattr(self, key):
                 setattr(self, key, value)
             else:
                 raise AttributeError(f"'{key}' is not a valid class member.")
 
-    @property    
-    def attr_dict(self):      
+    @property
+    def attr_dict(self):
         all_members = {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
         return all_members
 
@@ -372,7 +372,7 @@ class MatrixAttr:
         if name in self.__dict__:
             return self.__dict__[name]
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
-            
+
     def __repr__(self):
         all_members = {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
         return f"MatrixAttr({all_members})"
@@ -383,120 +383,120 @@ class MatrixAttr:
     #     return new_copy
 
 class SlvMatrixAttr(MatrixAttr):
-    def __init__(self, name='', 
-                 support_incr=True, 
-                 support_wrap=True, 
-                 support_fixed=True, 
-                 rd_enable=True, 
-                 wr_enable=True, 
-                 support_reordering='NA', 
-                 w_req_auser_width='NA', 
-                 wuser_width='NA', 
-                 buser_width='NA', 
-                 r_req_auser_width='NA', 
-                 ruser_width='NA', 
-                 rd_id_width='NA', 
-                 wr_id_width='NA', 
-                 rd_ost='NA', 
-                 wr_ost='NA', 
+    def __init__(self, name='',
+                 support_incr=True,
+                 support_wrap=True,
+                 support_fixed=True,
+                 rd_enable=True,
+                 wr_enable=True,
+                 support_reordering='NA',
+                 w_req_auser_width='NA',
+                 wuser_width='NA',
+                 buser_width='NA',
+                 r_req_auser_width='NA',
+                 ruser_width='NA',
+                 rd_id_width='NA',
+                 wr_id_width='NA',
+                 rd_ost='NA',
+                 wr_ost='NA',
                  ignore_signal='',
                  pre='',
                  post='',
                  upper='',
-                 clk='clk', 
-                 freq=1000, 
-                 rst='rst_n', 
-                 hier='tb.dut', 
-                 wr_latency='NA', 
-                 rd_latency='NA', 
-                 wr_bandwidth='', 
+                 clk='clk',
+                 freq=1000,
+                 rst='rst_n',
+                 hier='tb.dut',
+                 wr_latency='NA',
+                 rd_latency='NA',
+                 wr_bandwidth='',
                  rd_bandwidth='',
-                 cacheline_size='NA', 
-                 support_write_evict='NA', 
-                 no_shareable_min_addr='NA', 
-                 no_shareable_max_addr='NA', 
-                 inner_min_addr='NA', 
-                 inner_max_addr='NA', 
-                 outer_min_addr='NA', 
+                 cacheline_size='NA',
+                 support_write_evict='NA',
+                 no_shareable_min_addr='NA',
+                 no_shareable_max_addr='NA',
+                 inner_min_addr='NA',
+                 inner_max_addr='NA',
+                 outer_min_addr='NA',
                  outer_max_addr='NA', **kwargs):
-        super().__init__(name, support_incr, 
-                         support_wrap, support_fixed, 
-                         rd_enable, wr_enable, 
-                         support_reordering, w_req_auser_width, 
-                         wuser_width, buser_width, 
-                         r_req_auser_width, ruser_width, 
-                         rd_id_width, wr_id_width, 
+        super().__init__(name, support_incr,
+                         support_wrap, support_fixed,
+                         rd_enable, wr_enable,
+                         support_reordering, w_req_auser_width,
+                         wuser_width, buser_width,
+                         r_req_auser_width, ruser_width,
+                         rd_id_width, wr_id_width,
                          rd_ost, wr_ost, ignore_signal,
-                         pre, post, upper, clk, 
+                         pre, post, upper, clk,
                          freq, rst, hier,
                          wr_latency, rd_latency,
-                         wr_bandwidth, rd_bandwidth, 
-                         cacheline_size, support_write_evict, 
-                         no_shareable_min_addr, 
+                         wr_bandwidth, rd_bandwidth,
+                         cacheline_size, support_write_evict,
+                         no_shareable_min_addr,
                          no_shareable_max_addr,
                          inner_min_addr, inner_max_addr,
                          outer_min_addr, outer_max_addr, **kwargs)
 
-    
+
 class MstMatrixAttr(MatrixAttr):
-    def __init__(self, name='', 
-                 support_incr=True, 
-                 support_wrap=True, 
-                 support_fixed=True, 
-                 rd_enable=True, 
-                 wr_enable=True, 
-                 support_reordering='NA', 
-                 support_exclusive='NA', 
-                 unique_id='NA', 
-                 max_len='NA', 
+    def __init__(self, name='',
+                 support_incr=True,
+                 support_wrap=True,
+                 support_fixed=True,
+                 rd_enable=True,
+                 wr_enable=True,
+                 support_reordering='NA',
+                 support_exclusive='NA',
+                 unique_id='NA',
+                 max_len='NA',
                  min_size='NA',
-                 w_req_auser_width='NA', 
+                 w_req_auser_width='NA',
                  r_req_auser_width='NA',
-                 wuser_width='NA', 
-                 buser_width='NA', 
-                 ruser_width='NA', 
+                 wuser_width='NA',
+                 buser_width='NA',
+                 ruser_width='NA',
                  rd_id_width='NA',
-                 wr_id_width='NA', 
-                 rd_ost='NA', 
-                 wr_ost='NA', 
+                 wr_id_width='NA',
+                 rd_ost='NA',
+                 wr_ost='NA',
                  ignore_signal='',
                  pre='',
                  post='',
                  upper='',
-                 clk='clk', 
-                 freq=1000, 
-                 rst='rst_n', 
-                 hier='tb.dut', 
-                 wr_latency='NA', 
-                 rd_latency='NA', 
-                 wr_bandwidth='', 
+                 clk='clk',
+                 freq=1000,
+                 rst='rst_n',
+                 hier='tb.dut',
+                 wr_latency='NA',
+                 rd_latency='NA',
+                 wr_bandwidth='',
                  rd_bandwidth='',
-                 cacheline_size='NA', 
-                 support_write_evict='NA', 
-                 no_shareable_min_addr='NA', 
-                 no_shareable_max_addr='NA', 
-                 inner_min_addr='NA', 
-                 inner_max_addr='NA', 
-                 outer_min_addr='NA', 
+                 cacheline_size='NA',
+                 support_write_evict='NA',
+                 no_shareable_min_addr='NA',
+                 no_shareable_max_addr='NA',
+                 inner_min_addr='NA',
+                 inner_max_addr='NA',
+                 outer_min_addr='NA',
                  outer_max_addr='NA', **kwargs):
-        super().__init__(name, support_incr, 
-                         support_wrap, support_fixed, 
-                         rd_enable, wr_enable, 
-                         support_reordering, w_req_auser_width, 
-                         wuser_width, buser_width, 
-                         r_req_auser_width, ruser_width, 
-                         rd_id_width, wr_id_width, 
+        super().__init__(name, support_incr,
+                         support_wrap, support_fixed,
+                         rd_enable, wr_enable,
+                         support_reordering, w_req_auser_width,
+                         wuser_width, buser_width,
+                         r_req_auser_width, ruser_width,
+                         rd_id_width, wr_id_width,
                          rd_ost, wr_ost, ignore_signal,
-                         pre, post, upper, clk, 
-                         freq, rst, hier, 
+                         pre, post, upper, clk,
+                         freq, rst, hier,
                          wr_latency, rd_latency,
-                         wr_bandwidth, rd_bandwidth, 
-                         cacheline_size, support_write_evict, 
-                         no_shareable_min_addr, 
+                         wr_bandwidth, rd_bandwidth,
+                         cacheline_size, support_write_evict,
+                         no_shareable_min_addr,
                          no_shareable_max_addr,
                          inner_min_addr, inner_max_addr,
                          outer_min_addr, outer_max_addr, **kwargs)
-        
+
         self.support_exclusive  = support_exclusive
         self.unique_id          = unique_id
         self.max_len            = max_len

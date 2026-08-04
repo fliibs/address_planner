@@ -2,4 +2,6 @@
 Jinja2==3.1.2
 openpyxl==3.1.5
 networkx==3.1
-matplotlib==3.7.2
+matplotlib==3.7.2; python_version < "3.13"
+matplotlib==3.10.9; python_version >= "3.13"
+python-docx==1.2.0

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "model_id": "representative_register_model",
+  "name": "representative_bank",
+  "description": "Repository-local acceptance model",
+  "size_bytes": 256,
+  "bus_width": 32,
+  "software_interface": "apb",
+  "registers": [
+    {
+      "name": "control",
+      "offset_bytes": 0,
+      "width_bits": 32,
+      "fields": [
+        {
+          "name": "enable",
+          "lsb": 0,
+          "width_bits": 1,
+          "sw_access": "RW",
+          "hw_access": "RO",
+          "reset": 1
+        },
+        {
+          "name": "mode",
+          "lsb": 4,
+          "width_bits": 3,
+          "sw_access": "RW",
+          "hw_access": "RO",
+          "reset": 2
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "offset_bytes": 4,
+      "width_bits": 32,
+      "fields": [
+        {
+          "name": "ready",
+          "lsb": 0,
+          "width_bits": 1,
+          "sw_access": "RO",
+          "hw_access": "RW",
+          "reset": 0
+        }
+      ]
+    },
+    {
+      "name": "events",
+      "offset_bytes": 8,
+      "width_bits": 32,
+      "fields": [
+        {
+          "name": "pending",
+          "lsb": 0,
+          "width_bits": 4,
+          "sw_access": "W1C",
+          "hw_access": "RW",
+          "reset": 10
+        }
+      ]
+    }
+  ]
+}

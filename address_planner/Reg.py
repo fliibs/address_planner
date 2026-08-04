@@ -2,10 +2,8 @@ from .GlobalValues  import *
 from .RegSpace      import RegSpace
 from .Field         import *
 from .Parity        import *
+from uhdl.core.Variable import Expression, CutExpression
 import math
-from functools import reduce
-import copy
-
 
 class Register(RegSpace):
 
@@ -35,13 +33,17 @@ class Register(RegSpace):
             if member not in field.lock_list:
                 field.lock_list.append(member)
 
-        if not Options.MultiPortOption:  
+        if not Options.MultiPortOption:
             if not self.inclusion_detect(field):
                 raise Exception('Field inclusion detect')
 
             for exist_field in self.field_list:
                 if self.collision_detect(exist_field,field):
-                    raise ValueError('Field overlap detect')
+                    raise ValueError(
+                        f'Field collision detect: '
+                        f'{exist_field.father.module_name+"_"+exist_field.name} and '
+                        f'{field.father.module_name+"_"+field.name}'
+                    )
         self.field_list.append(field)
 
         self._next_offset = offset + field.bit
@@ -98,8 +100,12 @@ class Register(RegSpace):
         return self.start_address + self.end_bit
 
     @property
+    def global_end_address(self):
+        return self.global_start_address + self.end_bit
+
+    @property
     def module_name_until_regbank(self):
-        return self.father.module_name + '_' + self.module_name
+        return self.father.init_name + '_' + self.module_name
     
     @property
     def sorted_field_list(self):
@@ -146,7 +152,7 @@ class Register(RegSpace):
     def hex_offset(self):
         hex_value = hex(int(self.reg_offset/8))
         if hex_value == '0x0':
-            return '%d\'h0'%(self.bit)
+            return '\'h0'
         else:
             return '\'h'+hex_value.lstrip('0x')
 
@@ -231,59 +237,11 @@ class Register(RegSpace):
             if field_last == field.full_field_name: continue
             else:
                 field_last = field.full_field_name
-                field.get_ena(module)
+                sig_rena = field.get_ena(module)
                 for ena in field.mux_dict.values():
                     if ena != None and ena[0] not in ena_list:
                         ena_list.append(ena[0])
         return ena_list
-    # def parity_hw_wena_list(self, module):
-    #     hw_wena_list = []
-    #     for field in self.parity_field_list:
-    #         sig_wena = field.hw.get_wenable(module)
-    #         if sig_wena != None and sig_wena not in hw_wena_list:
-    #             hw_wena_list.append(sig_wena)
-    #     return hw_wena_list
-    
-    # def parity_hw_wena_data_list(self, module):
-    #     data_list = [i.get_hw_wena_wdata(module) for i in reversed(self.parity_field_list)]
-    #     return data_list
-
-    # def parity_hw_rena_list(self, module):
-    #     hw_rena_list = []
-    #     for field in self.parity_field_list:
-    #         sig_rena = field.hw.get_renable(module)
-    #         if sig_rena != None and sig_rena not in hw_rena_list:
-    #             hw_rena_list.append(sig_rena)
-    #     return hw_rena_list
-    
-    # def parity_hw_rena_data_list(self, module):
-    #     data_list = [ i.get_hw_rena_wdata(module) for i in reversed(self.parity_field_list)]
-    #     return data_list
-    
-    # def parity_sw_wena_list(self, module):
-    #     sw_wena_list = []
-    #     for field in self.parity_field_list:
-    #         sig_wena = field.sw.get_wenable(module)
-    #         if sig_wena != None and sig_wena not in sw_wena_list:
-    #             sw_wena_list.append(sig_wena)
-    #     return sw_wena_list
-    
-    # def parity_sw_wena_data_list(self, module):
-    #     data_list = [ i.get_sw_wena_wdata(module) for i in reversed(self.parity_field_list)]
-    #     return data_list
-    
-    # def parity_sw_rena_list(self, module):
-    #     sw_rena_list = []
-    #     for field in self.parity_field_list:
-    #         sig_rena = field.sw.get_renable(module)
-    #         if sig_rena != None and sig_rena not in sw_rena_list:
-    #             sw_rena_list.append(sig_rena)
-    #     return sw_rena_list
-
-    # def parity_sw_rena_data_list(self, module):
-    #     data_list = [ i.get_sw_rena_wdata(module) for i in reversed(self.parity_field_list)]
-    #     return data_list
-
     #########################################################################################
     # output generate
     #

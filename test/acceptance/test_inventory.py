@@ -250,7 +250,7 @@ def _behavior_manifest(tmp_path: Path) -> Path:
     rtl.write_text("module Regbank_cfg_RegSpace0 (); endmodule\n", encoding="utf-8")
     filelist = rtl.with_name("filelist.f")
     filelist.write_text(f"{rtl}\n", encoding="utf-8")
-    fixture = Path(os.environ["ADDRESS_PLANNER_MODEL_DEFINITION"])
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "representative_register_model.json"
     payload["model"] = {
         "id": "representative_register_model",
         "path": str(fixture),
