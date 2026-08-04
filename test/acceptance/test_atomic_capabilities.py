@@ -14,9 +14,8 @@ import address_planner.GlobalValues as global_values
 
 
 ROOT = Path(__file__).resolve().parents[2]
-WORKFLOW_ROOT = ROOT.parents[2] / "prompts" / "tool_skill_parallel_dev"
-FIXTURES = WORKFLOW_ROOT / "runs" / "session_02"
-CONTRACT = WORKFLOW_ROOT / "results" / "session_02_baseline_contract.json"
+FIXTURES = ROOT / "test" / "fixtures"
+CONTRACT = FIXTURES / "baseline_contract.json"
 
 
 def _digest_tree(root: Path) -> str:

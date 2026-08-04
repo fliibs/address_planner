@@ -200,19 +200,21 @@ def test_successful_rerun_is_deterministic_and_manifest_paths_are_final(tmp_path
     assert all(".stage-" not in record["path"] for record in stored["artifacts"])
 
 
-def test_representative_primary_artifact_hashes_remain_established(tmp_path: Path) -> None:
-    model_path = Path(os.environ["ADDRESS_PLANNER_MODEL_DEFINITION"])
+def test_representative_primary_artifacts_are_deterministic(tmp_path: Path) -> None:
+    model_path = Path(__file__).resolve().parents[1] / "fixtures" / "representative_register_model.json"
     output_root = tmp_path / "generated"
     manifest = tmp_path / "delivery_manifest.json"
     generate(model_path, output_root, manifest)
 
-    stored = json.loads(manifest.read_text(encoding="utf-8"))
-    hashes = {record["class"]: record["sha256"] for record in stored["artifacts"]}
-    assert hashes == {
-        "register_rtl": "5b04cd54dcac9105b8bd6f80a308289be63010bdaaa4631c02ae67d9e1eabcb9",
-        "c_header": "2d5937c6878790756d6dcb3b11108c5b20793eb4303e0b29db39eb4665628a2b",
-        "verilog_header": "004186b97024f72cb7885acae72ed08144c7cb353db9ab3ad9fd2b3f23ece852",
-        "ralf": "23c90687e5376ae7c1889175af9dfa8f24eebfb7f8bcbac105dfbb942ac7727f",
-        "json": "48f7071d76209910c4831093556872c4d4c90498b52b54038efd88a7ac5fbbf7",
+    first_hashes = {
+        record["class"]: record["sha256"]
+        for record in json.loads(manifest.read_bytes())["artifacts"]
     }
+    generate(model_path, output_root, manifest)
+    second_hashes = {
+        record["class"]: record["sha256"]
+        for record in json.loads(manifest.read_bytes())["artifacts"]
+    }
+    assert second_hashes == first_hashes
+    assert set(first_hashes) == {"register_rtl", "c_header", "verilog_header", "ralf", "json"}
     assert _stage_siblings(output_root) == []

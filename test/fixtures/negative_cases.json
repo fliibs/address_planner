@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "address_overlap",
+      "expected_error": "address overlap"
+    },
+    {
+      "id": "register_misalignment",
+      "expected_error": "aligned to 4 bytes"
+    },
+    {
+      "id": "field_overlap",
+      "expected_error": "Field collision"
+    },
+    {
+      "id": "invalid_access_type",
+      "expected_error": "must be FieldAccess"
+    },
+    {
+      "id": "reset_value_too_wide",
+      "expected_error": "does not fit field width"
+    },
+    {
+      "id": "non_positive_width",
+      "expected_error": "width must be positive"
+    },
+    {
+      "id": "array_out_of_range",
+      "expected_error": "not included in address space"
+    }
+  ]
+}

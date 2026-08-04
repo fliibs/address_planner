@@ -5,7 +5,6 @@ from .AddressLogicRoot  import *
 from .GlobalValues      import *
 from .ralf_parser.ralf_parse import build_addrspace,py_dict
 from .address_planner_rtl.MatrixCFG import *
-from .gen_doc.doc import *
 
 import os
 import builtins
@@ -338,60 +337,13 @@ class AddressSpace(AddressLogicRoot):
         with open(self.json_path, 'w') as f:
             f.write(jtext)
 
-        root_path = os.environ.get('PARSER_PATH')
-        if root_path == None:
-            print("[Warning] no env PARSER_PATH, will not generate index.html.")
-        else:
-            index_path      = "apv_html/apv_html_main/py/index.html"
-            script_path     = "apv_html/apv_html_main/py/main.py"
-            full_index_path = os.path.join(root_path, index_path)
-            full_script_path = os.path.join(root_path, script_path)
-            shutil.copy(full_index_path, self._html_dir)
-            print(f'python3 {full_script_path} -html {self.index_html_path} -json {self.json_path}')
-            os.system(f'python3 {full_script_path} -html {self.index_html_path} -json {self.json_path}')
-
         if gen_doc:
-            print("generate doc ! ")
-            # Create a new document
-            doc = Document()
+            from .gen_doc.doc import build_address_map_document
 
-            # Style settings
-            style = doc.styles['Normal']
-            font = style.font
-            font.name = 'Times New Roman'
-            font.size = Pt(12)
-
-            heading1_style = doc.styles['Heading 1']
-            heading1_font = heading1_style.font
-            heading1_font.name = 'Times New Roman'
-            heading1_font.size = Pt(20)
-
-            heading2_style = doc.styles['Heading 2']
-            heading2_font = heading2_style.font
-            heading2_font.name = 'Times New Roman'
-            heading2_font.size = Pt(18)
-
-            heading3_style = doc.styles['Heading 3']
-            heading3_font = heading3_style.font
-            heading3_font.name = 'Times New Roman'
-            heading3_font.size = Pt(16)
-
-            # Add the main title to the document
-            title = "Address map"
-            doc.add_heading(title, level=0)
-            doc.add_paragraph("")
-
-            # Parse the JSON data
             doc_path = os.path.join(self._html_dir, "doc.docx")
-            data = []
             with open(self.json_path, 'r') as file:
                 data = json.load(file)
-
-            # Traverse the JSON data
-            traverse_json_with_numbering(doc, data[0])
-
-            # Save the document
-            doc.save(doc_path)
+            build_address_map_document(data[0], doc_path)
         
 
     def report_json_core(self):

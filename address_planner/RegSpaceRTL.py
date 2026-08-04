@@ -119,6 +119,7 @@ class Regbank(Component):
             rst = getattr(self, sub_space.rst_domain)
 
             ####
+            just_write_clean_or_set     = get_sw_write_clean_and_set(sub_space)
             sub_space_writeable         = get_sw_writeable(sub_space.field_list, outer=False)
             sw_all_write_pulse          = get_sw_all_pulse(sub_space.field_list, outer=False)
             sub_space_has_read_hsk      = get_sw_read_clean_and_set(sub_space=sub_space, outer=False) or get_field_external(sub_space=sub_space, outer=False)

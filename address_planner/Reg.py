@@ -2,7 +2,7 @@ from .GlobalValues  import *
 from .RegSpace      import RegSpace
 from .Field         import *
 from .Parity        import *
-from .uhdl.uhdl.core.variable import Expression, CutExpression
+from uhdl.core.Variable import Expression, CutExpression
 import math
 
 class Register(RegSpace):

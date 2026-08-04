@@ -5,6 +5,8 @@ from copy               import deepcopy
 from .RegSpaceRTL import *
 import shutil
 import re
+import subprocess
+import warnings
 
 class RegSpace(AddressSpace):
 
@@ -27,7 +29,7 @@ class RegSpace(AddressSpace):
         alignment = max(1, self.bus_width // 8)
         if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
             raise ValueError("register offset must be a non-negative integer")
-        if offset % alignment:
+        if not Options.MultiPortOption and offset % alignment:
             raise ValueError(
                 f"register offset must be aligned to {alignment} bytes for bus width {self.bus_width}"
             )
@@ -170,10 +172,24 @@ class RegSpace(AddressSpace):
 
     # report waive file ====================================================
     def report_waive(self):
+        template_path = os.path.join(
+            os.path.dirname(__file__),
+            'report_template',
+            APG_WAIVER_FILE_REG_SPACE,
+        )
+        if not os.path.isfile(template_path):
+            warnings.warn(
+                'internal v3p0 requested a register waiver report, but its '
+                'reg_waiver.j2 source was never committed; skipping waiver output',
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return None
         text = self.report_from_template(APG_WAIVER_FILE_REG_SPACE)
         os.makedirs(os.path.dirname(self.waive_path), exist_ok=True)
         with open(self.waive_path,'w') as f:
             f.write(text)
+        return self.waive_path
             
 
     # report and check ralf ==============================================
@@ -476,13 +492,32 @@ class RegSpace(AddressSpace):
     
     def report_dv_ral(self):
         if self.sub_space_list == []:
-            return []
-        else:
-            # prj_root=os.getenv("PRJ_ROOT")
-            path = os.path.join(self._dv_dir, 'ral')
-            os.makedirs(path, exist_ok=True)
-            print(f"ralgen -full64 -t {self.module_name} -o {path}/ral_top -uvm {self._ralf_dir}/{self.module_name}.ralf")
-            os.system(f"ralgen -full64 -t {self.module_name} -o {path}/ral_top -uvm {self._ralf_dir}/{self.module_name}.ralf")
+            return None
+        ralgen = shutil.which('ralgen')
+        if ralgen is None:
+            warnings.warn(
+                'ralgen is unavailable; generated the DV scaffold and RALF input '
+                'but skipped the optional UVM RAL model',
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return None
+        path = os.path.join(self._dv_dir, 'ral')
+        os.makedirs(path, exist_ok=True)
+        output = os.path.join(path, 'ral_top')
+        source = os.path.join(self._ralf_dir, f'{self.module_name}.ralf')
+        completed = subprocess.run(
+            [ralgen, '-full64', '-t', self.module_name, '-o', output, '-uvm', source],
+            check=False,
+        )
+        if completed.returncode:
+            warnings.warn(
+                f'ralgen exited with status {completed.returncode}; DV scaffold remains available',
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return None
+        return f'{output}.sv'
     
     def move_dv_env(self):
         dir_path, _ = os.path.split(os.path.realpath(__file__))

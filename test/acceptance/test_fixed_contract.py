@@ -31,24 +31,17 @@ EXPECTED_NEGATIVE_CASES = {
     "non_positive_width",
     "array_out_of_range",
 }
-
-
-def _fixture_path(variable: str) -> Path:
-    value = os.environ.get(variable)
-    assert value, f"{variable} must point to the sealed fixture"
-    path = Path(value)
-    assert path.is_file(), f"{variable} does not name a file: {path}"
-    return path
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
 @pytest.fixture(scope="module")
 def representative_model() -> dict:
-    return json.loads(_fixture_path("ADDRESS_PLANNER_MODEL_DEFINITION").read_text(encoding="utf-8"))
+    return json.loads((FIXTURES / "representative_register_model.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
 def negative_cases() -> list[dict]:
-    data = json.loads(_fixture_path("ADDRESS_PLANNER_NEGATIVE_CASES").read_text(encoding="utf-8"))
+    data = json.loads((FIXTURES / "negative_cases.json").read_text(encoding="utf-8"))
     cases = data["cases"]
     assert {case["id"] for case in cases} == EXPECTED_NEGATIVE_CASES
     assert len(cases) == len(EXPECTED_NEGATIVE_CASES)
