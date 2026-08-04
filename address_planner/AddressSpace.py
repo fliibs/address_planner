@@ -330,20 +330,19 @@ class AddressSpace(AddressLogicRoot):
 
 
     # report and check json ==========================================
-    def report_json(self, gen_doc=False):
-        json_list= [self.report_json_core()]
-        jtext = json.dumps(json_list, ensure_ascii=False, indent=2)
-        if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir) 
-        with open(self.json_path, 'w') as f:
-            f.write(jtext)
+    def report_json(self, gen_doc=False, write_json=True):
+        root = self.report_json_core()
+        if write_json:
+            jtext = json.dumps([root], ensure_ascii=False, indent=2)
+            if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir)
+            with open(self.json_path, 'w') as f:
+                f.write(jtext)
 
         if gen_doc:
             from .gen_doc.doc import build_address_map_document
 
             doc_path = os.path.join(self._html_dir, "doc.docx")
-            with open(self.json_path, 'r') as file:
-                data = json.load(file)
-            build_address_map_document(data[0], doc_path)
+            build_address_map_document(root, doc_path)
         
 
     def report_json_core(self):
@@ -446,10 +445,18 @@ class AddressSpace(AddressLogicRoot):
         viewer_template_path=None,
         report_viewer=True,
         sqlite_schema_version=None,
+        report_json=False,
     ):
+        """Generate address artifacts.
+
+        The SQLite-backed single HTML is the default display output. Set
+        ``report_json=True`` only when a legacy ``data.json`` consumer still
+        needs the expanded tree.
+        """
         if path != None:
             self.path = path
-        self.report_json(gen_doc)
+        if report_json or gen_doc:
+            self.report_json(gen_doc, write_json=report_json)
         if report_viewer:
             self.report_single_html(
                 viewer_template_path,

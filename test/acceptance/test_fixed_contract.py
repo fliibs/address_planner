@@ -78,7 +78,7 @@ def _build_model(model: dict) -> RegSpace:
 
 def test_fixture_model_generates_all_required_outputs(tmp_path: Path, representative_model: dict) -> None:
     bank = _build_model(representative_model)
-    bank.generate(str(tmp_path))
+    bank.generate(str(tmp_path), report_json=True)
     output_root = tmp_path / representative_model["name"]
     required = {
         "register_rtl": next((output_root / "rtl").rglob("*.v")),

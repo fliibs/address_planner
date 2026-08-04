@@ -43,7 +43,9 @@ def test_excel_cli_generates_only_below_requested_output(tmp_path: Path) -> None
     payload = json.loads(completed.stdout.splitlines()[-1])
     assert Path(payload["script"]).is_file()
     assert (tmp_path / "datalog.txt").is_file()
-    assert (tmp_path / "generated" / "reg_bank_table" / "html" / "data.json").is_file()
+    html_dir = tmp_path / "generated" / "reg_bank_table" / "html"
+    assert not (html_dir / "data.json").exists()
+    assert (html_dir / "reg_bank_table_address_map.html").is_file()
 
 
 def test_ralf_module_cli_uses_package_resource_and_reports_missing_input(tmp_path: Path) -> None:
@@ -63,7 +65,9 @@ def test_ralf_module_cli_uses_package_resource_and_reports_missing_input(tmp_pat
     assert completed.returncode == 0, completed.stderr
     report = json.loads((tmp_path / "valid" / "report.json").read_text(encoding="utf-8"))
     assert report["input_sha256"] == _sha256(fixture)
-    assert (tmp_path / "valid" / "ralf_import" / "html" / "data.json").is_file()
+    html_dir = tmp_path / "valid" / "ralf_import" / "html"
+    assert not (html_dir / "data.json").exists()
+    assert (html_dir / "ralf_import_address_map.html").is_file()
 
     missing_command = list(command)
     missing_command[4] = str(tmp_path / "missing.ralf")

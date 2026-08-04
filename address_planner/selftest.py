@@ -583,7 +583,7 @@ def generate(model_definition: Path, output_dir: Path, manifest: Path) -> dict[s
         prior_json_key = GlobalValues.key
         GlobalValues.key = 0
         try:
-            bank.generate(str(stage_output_root))
+            bank.generate(str(stage_output_root), report_json=True)
         finally:
             GlobalValues.key = prior_json_key
         _normalize_staged_output_paths(stage_output_root, output_root)

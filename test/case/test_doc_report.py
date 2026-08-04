@@ -13,5 +13,6 @@ def test_gen_doc_writes_a_readable_address_map(tmp_path: Path) -> None:
 
     report = tmp_path / "doc_top" / "html" / "doc.docx"
     assert report.is_file()
+    assert not (report.parent / "data.json").exists()
     paragraphs = [paragraph.text for paragraph in Document(report).paragraphs]
     assert paragraphs == ["Address Map", "1 doc_top", "1.1 child"]

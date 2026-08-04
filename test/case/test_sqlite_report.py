@@ -576,15 +576,29 @@ def test_atomic_replacement_preserves_existing_delivery_mode(tmp_path):
     assert stat.S_IMODE(output.stat().st_mode) == 0o640
 
 
-def test_generate_can_publish_json_and_single_html_together(tmp_path):
+def test_generate_defaults_to_single_html_without_json(tmp_path):
     model = _fixture_model()
     template = _viewer_template(tmp_path)
     model.generate(str(tmp_path / "generated"), viewer_template_path=template)
 
     html_dir = tmp_path / "generated" / "top" / "html"
-    assert (html_dir / "data.json").is_file()
+    assert not (html_dir / "data.json").exists()
     assert (html_dir / "top_address_map.html").is_file()
     assert not list(html_dir.glob("*.sqlite"))
+
+
+def test_generate_can_explicitly_publish_json_and_single_html_together(tmp_path):
+    model = _fixture_model()
+    template = _viewer_template(tmp_path)
+    model.generate(
+        str(tmp_path / "generated"),
+        viewer_template_path=template,
+        report_json=True,
+    )
+
+    html_dir = tmp_path / "generated" / "top" / "html"
+    assert (html_dir / "data.json").is_file()
+    assert (html_dir / "top_address_map.html").is_file()
 
 
 def test_generate_threads_explicit_legacy_schema_to_single_html(tmp_path):

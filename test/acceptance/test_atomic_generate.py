@@ -87,7 +87,7 @@ def test_failed_generation_preserves_prior_delivery_at_every_publish_boundary(
             model, _bank = real_parse(path)
 
             class BrokenBank:
-                def generate(self, _path: str) -> None:
+                def generate(self, _path: str, **_kwargs) -> None:
                     raise RuntimeError("injected backend failure")
 
             return model, BrokenBank()
@@ -140,7 +140,7 @@ def test_failed_first_generation_publishes_neither_final_tree_nor_manifest(
         model, _bank = real_parse(path)
 
         class BrokenBank:
-            def generate(self, _path: str) -> None:
+            def generate(self, _path: str, **_kwargs) -> None:
                 raise RuntimeError("injected first-publish backend failure")
 
         return model, BrokenBank()

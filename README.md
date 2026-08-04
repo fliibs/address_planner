@@ -192,8 +192,10 @@ wrapping keeps Description in the remaining width and lets virtual rows grow to
 their measured content height. Other narrow cells continue to clip directly,
 without ellipses, wrapping or overlap.
 
-During migration, `data.json` is still generated for compatibility and semantic
-comparison. The schema v2 Viewer projection intentionally omits
+Normal `generate()` calls no longer write the legacy `data.json`; the SQLite
+single HTML is the default display artifact. Existing integrations can opt in
+with `top.generate("build/example", report_json=True)`, or call
+`top.report_json()` directly. The schema v2 Viewer projection intentionally omits
 `node_attributes`, because none of those values are displayed. See
 [the architecture document](doc/single_html_sqlite_viewer_architecture.md) for
 the schema, memory model, migration plan and validation requirements.

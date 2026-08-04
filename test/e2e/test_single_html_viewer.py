@@ -57,11 +57,8 @@ def test_generated_single_html_opens_offline_and_queries_on_demand(tmp_path):
     html = output_root / model.module_name / "html" / f"{model.module_name}_address_map.html"
     legacy_json = output_root / model.module_name / "html" / "data.json"
     assert html.is_file()
-    assert legacy_json.is_file()
+    assert not legacy_json.exists(), "legacy JSON must be opt-in"
     assert not list(html.parent.glob("*.sqlite")), "intermediate database must not be delivered"
-    # Keep JSON generation as a migration assertion, then remove it before the
-    # browser starts. A successful UI can now only have come from this HTML.
-    legacy_json.unlink()
 
     options = Options()
     options.binary_location = chrome

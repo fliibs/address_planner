@@ -776,9 +776,11 @@ Phase 1 到 Phase 5 已完成；Phase 6 仍是只在目标设备内存超标时�
 
 本方案第一阶段已在 `address_planner` 和 `apv_html` 两个仓库实现：
 
-- `address_planner` 默认继续生成兼容用 `data.json`，同时生成 SQLite 驱动的
-  `<model_name>_address_map.html`；SQLite 默认 schema v2，普通调用不需要传 Viewer
-  模板路径。迁移调用者可显式传入 `schema_version=SCHEMA_VERSION_V1`。
+- `address_planner` 默认只生成 SQLite 驱动的
+  `<model_name>_address_map.html`，不再落盘兼容用 `data.json`；旧调用者可通过
+  `generate(..., report_json=True)` 显式保留 JSON。SQLite 默认 schema v2，普通调用
+  不需要传 Viewer 模板路径；迁移调用者可显式传入
+  `schema_version=SCHEMA_VERSION_V1`。
 - SQLite Writer、单 HTML Packager 和内置 Viewer 模板都随 Python 包交付；
   中间 SQLite 仅在调用者显式请求时保留。
 - Writer v2 将 64 位绝对地址留在 occurrence，并复用内容寻址的 Node 模板、Field
