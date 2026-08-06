@@ -10,8 +10,8 @@
   },
   "lock_version": 1,
   "template": {
-    "sha256": "3aa9eeb66dde5b4cb615137cb260916b659ef3061c3520113cf78331c39ca439",
-    "size_bytes": 1972643,
+    "sha256": "d0a77485e788a2ddb75ba7e3ca2eeece52d8cb033feec97fad65cf77d04fa66b",
+    "size_bytes": 1972946,
     "source": "viewer/apv_html/dist/address-planner-viewer.template.html",
     "vendored": "address_planner/report_template/address_planner_viewer.template.html"
   },

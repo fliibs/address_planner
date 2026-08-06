@@ -98,7 +98,7 @@ def test_generated_single_html_opens_offline_and_queries_on_demand(tmp_path):
         ), "AddressSpace children appeared before expansion"
 
         driver.find_element(
-            By.CSS_SELECTOR, '[data-testid="expand-node-1"]'
+            By.CSS_SELECTOR, '[data-testid="node-row-1"] .numeric-cell'
         ).click()
         wait.until(
             expected.text_to_be_present_in_element(
@@ -110,7 +110,7 @@ def test_generated_single_html_opens_offline_and_queries_on_demand(tmp_path):
         ), "Register appeared before its Bank was expanded"
 
         driver.find_element(
-            By.CSS_SELECTOR, '[data-testid="expand-node-2"]'
+            By.CSS_SELECTOR, '[data-testid="node-row-2"] .numeric-cell'
         ).click()
         wait.until(
             expected.text_to_be_present_in_element(
