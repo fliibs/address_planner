@@ -100,6 +100,13 @@ proc field {args} {
 
     # puts "$param(name).field: $param(is_inst)"
 
+    # Some vendor RALFs instantiate a placeholder field named "reserved"
+    # without defining it first.  It carries no register semantics, so skip
+    # only that undefined instance instead of looking up a missing DEF entry.
+    if {!$param(is_def) && $param(is_inst) && [string equal -nocase $param(name) "reserved"]} {
+        return
+    }
+
     if {$param(is_def)} {
         eval $param(def_code)
         # create def_var data struct

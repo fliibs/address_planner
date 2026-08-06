@@ -11,6 +11,28 @@ import re
 py_dict = {}
 
 
+class RalfParseError(ValueError):
+    """Raised when a RALF input cannot be converted into an address model."""
+
+
+class RalfNumericParseError(RalfParseError):
+    """Carry the failing RALF token and Tcl hierarchy to the file-level caller."""
+
+    def __init__(self, raw_value, hierarchy):
+        self.raw_value = raw_value
+        self.hierarchy = hierarchy
+        super().__init__(
+            f"invalid RALF numeric value {raw_value!r} at Tcl hierarchy {hierarchy}"
+        )
+
+
+def convert_address_with_context(value, hierarchy):
+    try:
+        return convert_address(value)
+    except (TypeError, ValueError) as exc:
+        raise RalfNumericParseError(value, hierarchy) from exc
+
+
 def search_longest_string(tcl_interpreter):
     keys =  tcl_interpreter.eval('array names DEF')
     max_length_key  = max(keys.split(' '),key=lambda k: len(tcl_interpreter.eval(f'set result [dict get $DEF({k})]')))
@@ -164,10 +186,10 @@ def tcl_dict_recur(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
             tcl_dict_recur(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, dict_)
-        elif  key == 'addr':                                              dict_[key]= convert_address(value)
+        elif  key == 'addr':                                              dict_[key] = convert_address_with_context(value, tcl_dict_tmp)
         elif  key == 'name':                                              dict_[key] = value
         elif  key == 'inst_num':                                          dict_[key] = int(value)
-        elif  key == 'size':                                              dict_[key] = convert_address(value)
+        elif  key == 'size':                                              dict_[key] = convert_address_with_context(value, tcl_dict_tmp)
         elif  key == "is_memory":                                         dict_[key] = value
         elif  key == "width":                                             dict_[key] = int(value)*8
         elif  key == 'doc':                                               dict_[key] = value
@@ -188,7 +210,7 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
             keys_dict = tcl_interpreter.eval('set keys [dict keys $value]')
             dict_[key] = {}
             tcl_dict_field(keys_dict.split(' '), dict_[key], tcl_dict_tmp, tcl_interpreter, father)
-        elif  key == 'addr':        dict_[key]=convert_address(value)
+        elif  key == 'addr':        dict_[key] = convert_address_with_context(value, tcl_dict_tmp)
         elif  key == 'reset':       dict_[key]=convert_reset(value)
         elif  key == 'doc':         dict_[key] = value
         # elif key == 'doc':        print(dict_)
@@ -196,29 +218,33 @@ def tcl_dict_field(key_list, dict_, tcl_dict, tcl_interpreter, father=None):
 
 
 def convert_address(address):
-    clean_address = address.replace("@", "")
+    clean_address = str(address).strip().replace("@", "").replace("_", "")
+    if not clean_address:
+        raise ValueError("address is empty")
 
-    radix_pos = clean_address.find("'h") if "'h" in clean_address else clean_address.find("'b")
-    if radix_pos != -1:
-        base = 16 if clean_address[radix_pos+1] == 'h' else 2
-        number_part = clean_address[radix_pos+2:]
-        return int(number_part, base)
+    normalized = clean_address.lower()
 
-    # if clean_address.startswith('h'):
-    #     return int(clean_address[1:], 16)
-    # elif clean_address.startswith('b'):
-    #     return int(clean_address[1:], 2)
-    radix_pos = clean_address.find('h') if 'h' in clean_address else clean_address.find('b')
-    if radix_pos != -1:
-        base = 16 if clean_address[radix_pos] == 'h' else 2 
-        number_part = clean_address[radix_pos+1:]
-        return int(number_part, base)
-    elif clean_address.startswith('0x'):
-        return int(clean_address[2:], 16)
-    elif clean_address.startswith('0b'):
-        return int(clean_address[2:], 2)
-    else:
-        return int(clean_address)
+    # Standard prefixes must be recognized before legacy h/b markers.  A
+    # character such as the 'b' in 0xfb4 is a hexadecimal digit, not a binary
+    # radix marker.
+    if normalized.startswith('0x'):
+        return int(normalized[2:], 16)
+    if normalized.startswith('0b'):
+        return int(normalized[2:], 2)
+
+    # Retain the historical RALF/Verilog spellings: 32'h100, 'h100, h100,
+    # 32h100 and their binary/decimal equivalents.  Requiring a full-string
+    # match prevents a radix letter embedded in a hexadecimal value from being
+    # interpreted as a marker.
+    radix_match = re.fullmatch(
+        r"(?:[0-9]+)?'?(?P<radix>[hbd])(?P<number>[0-9a-f]+)",
+        normalized,
+    )
+    if radix_match:
+        base = {'h': 16, 'b': 2, 'd': 10}[radix_match.group('radix')]
+        return int(radix_match.group('number'), base)
+
+    return int(clean_address, 10)
     
     
 def convert_reset(reset):

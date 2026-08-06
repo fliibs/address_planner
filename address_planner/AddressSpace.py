@@ -1,9 +1,14 @@
 from copy               import deepcopy
 from functools          import reduce
-from tkinter            import Tcl
+from tkinter            import Tcl, TclError
 from .AddressLogicRoot  import *
 from .GlobalValues      import *
-from .ralf_parser.ralf_parse import build_addrspace,py_dict
+from .ralf_parser.ralf_parse import (
+    RalfNumericParseError,
+    RalfParseError,
+    build_addrspace,
+    py_dict,
+)
 from .address_planner_rtl.MatrixCFG import *
 
 import os
@@ -136,7 +141,16 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
 
 
-    def add_ralf(self,ralf_file,offset,name=None):
+    def add_ralf(self, ralf_file=None, offset=None, name=None, *, sub_space=None):
+        if ralf_file is None:
+            ralf_file = sub_space
+        elif sub_space is not None:
+            raise TypeError("add_ralf() accepts either 'ralf_file' or legacy 'sub_space', not both")
+        if ralf_file is None:
+            raise TypeError("add_ralf() missing RALF input: use 'ralf_file' or legacy 'sub_space'")
+        if offset is None:
+            raise TypeError("add_ralf() missing required argument: 'offset'")
+
         ralf_path = Path(ralf_file).expanduser().resolve()
         if not ralf_path.is_file():
             raise FileNotFoundError(f'RALF input does not exist: {ralf_path}')
@@ -149,14 +163,37 @@ class AddressSpace(AddressLogicRoot):
         tcl_interpreter = Tcl()
         parser_tcl = Path(__file__).resolve().parent / 'ralf_parser' / 'ralf_parser.tcl'
         tcl_interpreter.call('source', str(parser_tcl))
-        tcl_interpreter.eval(env_tcl_code)
+        try:
+            tcl_interpreter.eval(env_tcl_code)
+        except TclError as exc:
+            try:
+                error_info = tcl_interpreter.eval('set ::errorInfo')
+            except TclError:
+                error_info = str(exc)
+            raise RalfParseError(
+                f"failed to evaluate RALF file {ralf_path}: {exc}\n"
+                f"Tcl errorInfo: {error_info}"
+            ) from exc
         # A RALF description can intentionally contain alternate register views at
         # one address.  Keep that source-level information during import, while
         # restoring the normal overlap policy before returning to the caller.
         original_multiport = Options.MultiPortOption
         Options.MultiPortOption = True
         try:
-            reg_copy = build_addrspace(tcl_interpreter)
+            try:
+                reg_copy = build_addrspace(tcl_interpreter)
+            except RalfNumericParseError as exc:
+                line_numbers = [
+                    line_number
+                    for line_number, line in enumerate(env_tcl_code.splitlines(), start=1)
+                    if str(exc.raw_value) in line
+                ]
+                locations = ', '.join(str(line) for line in line_numbers) or 'not found'
+                raise RalfParseError(
+                    f"failed to parse RALF file {ralf_path}: "
+                    f"numeric value={exc.raw_value!r}, "
+                    f"hierarchy={exc.hierarchy}, candidate lines={locations}"
+                ) from exc
         finally:
             Options.MultiPortOption = original_multiport
         self.add(reg_copy, offset, name)

@@ -1,0 +1,27 @@
+#%Module4.0
+
+# Replace both @...@ values when installing this template in the intranet
+# module tree. planner_root is the directory containing address_planner/__init__.py.
+set planner_root "@ADDRESS_PLANNER_ROOT@"
+set uhdl_module "@UHDL_MODULE@"
+
+conflict addr_planner
+module load python3/3.11
+module load $uhdl_module
+
+if {![file isfile [file join $planner_root address_planner __init__.py]]} {
+    error "Address Planner root lacks address_planner/__init__.py: $planner_root"
+}
+if {![file isfile [file join $planner_root address_planner _runtime.py]]} {
+    error "Address Planner deployment is incomplete: missing address_planner/_runtime.py"
+}
+if {![info exists env(UHDL_ROOT)]} {
+    error "$uhdl_module did not set UHDL_ROOT"
+}
+if {![file isfile [file join $env(UHDL_ROOT) uhdl __init__.py]]} {
+    error "UHDL_ROOT must be the project root containing uhdl/__init__.py: $env(UHDL_ROOT)"
+}
+
+setenv ADDRESS_PLANNER_ROOT $planner_root
+prepend-path PATH $planner_root
+prepend-path PYTHONPATH $planner_root
