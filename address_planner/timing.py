@@ -1,7 +1,8 @@
 """Opt-in, bounded phase timing for long address-map runs.
 
-Set ADDRESS_PLANNER_TIMING=1 before import. Records go to stderr and are
-flushed immediately; redirect stderr to a file to retain partial runs.
+Set ADDRESS_PLANNER_TIMING_LEVEL before import: 1=off, 2=coarse, 3=detailed.
+Records go to stderr and are flushed immediately. Legacy timing variables
+remain supported when the level is absent.
 """
 
 import atexit
@@ -17,8 +18,15 @@ from time import perf_counter, process_time
 from time import perf_counter as _log_clock
 
 
-ENABLED = os.environ.get("ADDRESS_PLANNER_TIMING", "").lower() in ("1", "true", "yes")
-DETAIL = os.environ.get("ADDRESS_PLANNER_TIMING_DETAIL", "coarse")
+_level = os.environ.get("ADDRESS_PLANNER_TIMING_LEVEL")
+if _level is not None:
+    if _level not in ("1", "2", "3"):
+        raise ValueError("ADDRESS_PLANNER_TIMING_LEVEL must be 1, 2 or 3")
+    ENABLED = _level != "1"
+    DETAIL = "detailed" if _level == "3" else "coarse"
+else:
+    ENABLED = os.environ.get("ADDRESS_PLANNER_TIMING", "").lower() in ("1", "true", "yes")
+    DETAIL = os.environ.get("ADDRESS_PLANNER_TIMING_DETAIL", "coarse")
 _COARSE_PHASES = {"script.total", "python.file", "add_ralf", "generate", "regspace.generate"}
 _stack = ContextVar("address_planner_timing_stack", default=())
 _stats = {}

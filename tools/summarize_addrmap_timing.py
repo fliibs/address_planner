@@ -75,7 +75,7 @@ def main():
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return
     if not result['processes']:
-        print('No timing records found. Enable ADDRESS_PLANNER_TIMING before import.')
+        print('No timing records found. Set ADDRESS_PLANNER_TIMING_LEVEL=2 or 3 before import.')
     for process in result['processes']:
         print(f"PID {process['pid']}  script status: {process['script_status'] or 'not recorded'}")
         print(f"{'phase':32} {'calls':>8} {'self(s)':>12} {'wall(s)':>12} {'cpu(s)':>12} {'errors':>7}")

@@ -7,7 +7,31 @@
 此测试分支另外包含此前按内网截图恢复的模板和用户要求补入的 waiver；
 因此分支整体与现场 v3p4 的兼容性仍需内网比较确认。
 
-## 内网运行
+## 三档开关
+
+| 档位 | 含义 | 是否增加时间信息 |
+|---|---|---|
+| 1（默认） | 关闭计时 | 不增加时间日志、进度或汇总，保留原有生成日志 |
+| 2 | 粗粒度 | 每个 RALF、import_inst 加载的 PY、整体生成和总脚本耗时 |
+| 3 | 细粒度 | 第 2 档再展开内部工序；高频复制/模板操作累计后汇总 |
+
+统一使用 `--timing-level 1/2/3`。没有 CLI 开关时读取
+`ADDRESS_PLANNER_TIMING_LEVEL`，都没有设置时入口默认第 1 档。
+第 1 档不预先导入 planner，让原脚本保留自己的初始化输出顺序。
+`--timing-detail off/coarse/detailed` 仍作为 1/2/3 的兼容别名，不能同时指定两种 CLI 开关。
+
+直接运行原脚本时，也可在首次 import 前设置同一个环境变量：
+
+```sh
+env ADDRESS_PLANNER_TIMING_LEVEL=1 python3 ./cmn_reg_addrmap.py
+env ADDRESS_PLANNER_TIMING_LEVEL=2 python3 ./cmn_reg_addrmap.py
+env ADDRESS_PLANNER_TIMING_LEVEL=3 python3 ./cmn_reg_addrmap.py
+```
+
+显式 LEVEL 优先于旧的 `ADDRESS_PLANNER_TIMING` / `ADDRESS_PLANNER_TIMING_DETAIL`。
+原脚本直接启动时没有入口的 script.total，若要总脚本统计使用下述入口工具。
+
+## 内网运行（第 2 档示例）
 
 先按现有 module 配好 Python/UHDL。`ADDRESS_PLANNER_ROOT` 指向本次修复后的
 工程根目录；`UHDL_ROOT` 必须包含 `uhdl/__init__.py`。
@@ -16,14 +40,14 @@
 在原来运行 `cmn_reg_addrmap.py` 的工作目录执行，csh/tcsh 示例：
 
 ```csh
-python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" ./cmn_reg_addrmap.py >& addrmap_timing.log
+python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-level 2 ./cmn_reg_addrmap.py >& addrmap_timing.log
 echo $status
 ```
 
 Bash 示例：
 
 ```bash
-python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" ./cmn_reg_addrmap.py >addrmap_timing.log 2>&1
+python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-level 2 ./cmn_reg_addrmap.py >addrmap_timing.log 2>&1
 echo $?
 ```
 
@@ -46,9 +70,9 @@ tail -f addrmap_timing.log
 `cpu_s`；正常退出或 Python 异常退出时还输出 `summary`。强制杀进程可能没有
 结束或汇总记录，但已打印的 `start` 可以帮助判断当时正在执行哪个阶段。
 
-## 默认只看三段过程和总时间
+## 第 2 档只看三段过程和总时间
 
-默认 `coarse` 模式不对读取、预处理、Tcl、根选择、对象复制、模板等细工序
+第 2 档 `coarse` 模式不对读取、预处理、Tcl、根选择、对象复制、模板等细工序
 读取时钟或登记统计，也不逐寄存器/字段打印。
 
 | 阶段 | 测量范围 |
@@ -73,7 +97,7 @@ tail -f addrmap_timing.log
 定位到某一段慢之后再开启详细模式：
 
 ```sh
-python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-detail detailed ./cmn_reg_addrmap.py > detailed.log 2>&1
+python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-level 3 ./cmn_reg_addrmap.py > detailed.log 2>&1
 ```
 
 不用入口工具时，在首次 import 前设置 `ADDRESS_PLANNER_TIMING=1` 和
@@ -90,7 +114,7 @@ CPU 时间来自当前 Python 进程；明显小于实际耗时时，应结合 I
 如果大段时间落在尚未细分的阶段，可对缩小输入启用函数级统计：
 
 ```sh
-python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --profile addrmap.pstats ./cmn_reg_addrmap.py
+python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-level 3 --profile addrmap.pstats ./cmn_reg_addrmap.py
 python3 -c 'import pstats; pstats.Stats("addrmap.pstats").strip_dirs().sort_stats("cumulative").print_stats(40)'
 ```
 
@@ -199,14 +223,14 @@ Bash 的完整测试版调用示例（在原生成入口的工作目录执行）
 ```bash
 export ADDRESS_PLANNER_ROOT=/path/to/address_planner_performance_trial
 # UHDL_ROOT 使用与现场 v3p4 相同的设置
-/usr/bin/time -v python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" \
+/usr/bin/time -v python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-level 2 \
     ./cmn_reg_addrmap.py > addrmap_timing.log 2>&1
 rc=$?
 echo "exit_code=$rc"
 python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --top 20
 ```
 
-本地验证：72 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
+本地验证：82 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
 原重构的两项 selftest 对 reserved 命名/SV 位序的要求仍与恢复的内网格式冲突，
 未宣称全量 selftest 通过，也未验证内网 SpyGlass waiver 的实际告警匹配。
 
@@ -219,7 +243,7 @@ python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing
 | 模式 | 进程总耗时中位数 | 生成过程中位数 | 完整日志大小中位数 | 计时记录数 |
 |---|---:|---:|---:|---:|
 | 关闭计时 | 2.244 s | 1.849 s | 29,004 B | 0 |
-| 默认粗粒度 | 2.268 s | 1.888 s | 87,037 B | 75 |
+| 粗粒度（第 2 档） | 2.268 s | 1.888 s | 87,037 B | 75 |
 | 详细模式 | 2.366 s | 1.966 s | 368,729 B | 504 |
 
 粗粒度的进程总耗时中位数增加约 1.1%，生成过程增加约 2.1%；详细模式分别
@@ -240,5 +264,5 @@ logging_overhead；需要定量测量时，在同一输入、机器和输出存�
 影响的耗时比例，s 是这些部分在实际输入上的加速倍数；此公式暂不计日志开销。
 例如假设 s=3：p=50% 时约 5 小时 20 分，p=80% 时约 3 小时 44 分。
 这两项是条件推算，不是实测预测。若主要耗时在未优化的 I/O、RTL/外部工具等，
-全程可能仍接近 8 小时。先用默认粗粒度确定 RALF 导入、PY 集成还是最终生成
+全程可能仍接近 8 小时。先用粗粒度（第 2 档）确定 RALF 导入、PY 集成还是最终生成
 占主导，再只对那个瓶颈进行细化和估计。
