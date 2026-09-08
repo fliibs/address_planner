@@ -12,6 +12,8 @@ import sys
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", type=Path, help="optional cProfile .pstats path (adds overhead)")
+    parser.add_argument("--timing-detail", choices=("coarse", "detailed"), default="coarse",
+                        help="default: only Python files, RALF imports and generation totals")
     parser.add_argument("script", type=Path)
     parser.add_argument("script_args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -20,9 +22,10 @@ def main():
         parser.error(f"script does not exist: {script}")
     project_root = Path(__file__).resolve().parents[1]
     os.environ["ADDRESS_PLANNER_TIMING"] = "1"
+    os.environ["ADDRESS_PLANNER_TIMING_DETAIL"] = args.timing_detail
     os.environ["ADDRESS_PLANNER_ROOT"] = str(project_root)
     sys.path.insert(0, str(project_root))
-    from address_planner.timing import phase
+    from address_planner.timing import phase, source_context
 
     # Match `python path/to/script.py ...`, retaining the caller's cwd.
     sys.path.insert(0, str(script.parent))
@@ -31,7 +34,7 @@ def main():
     if args.profile:
         args.profile = args.profile.expanduser().resolve()
         args.profile.parent.mkdir(parents=True, exist_ok=True)
-    with phase("script.total", script, progress=True):
+    with source_context(script), phase("script.total", script, progress=True):
         try:
             if profiler:
                 profiler.enable()

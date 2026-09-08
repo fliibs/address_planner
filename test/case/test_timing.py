@@ -27,6 +27,7 @@ def test_disabled_timer_is_silent_and_does_not_read_clock(monkeypatch, capsys):
 
 def test_nested_times_and_exception_are_reported(monkeypatch, capsys):
     monkeypatch.setattr(timing, "ENABLED", True)
+    monkeypatch.setattr(timing, "DETAIL", "detailed")
     monkeypatch.setattr(timing, "_stats", {})
     ticks = iter([0.0, 1.0, 4.0, 8.0])
     monkeypatch.setattr(timing, "perf_counter", lambda: next(ticks))
@@ -50,6 +51,7 @@ def test_nested_times_and_exception_are_reported(monkeypatch, capsys):
 
 def test_summary_does_not_grow_with_object_names(monkeypatch, capsys):
     monkeypatch.setattr(timing, "ENABLED", True)
+    monkeypatch.setattr(timing, "DETAIL", "detailed")
     monkeypatch.setattr(timing, "_stats", {})
     for i in range(100):
         with timing.phase("copy", str(i)):
@@ -57,3 +59,48 @@ def test_summary_does_not_grow_with_object_names(monkeypatch, capsys):
     assert len(timing._stats) == 1
     assert timing._stats["copy"]["calls"] == 100
     assert records(capsys) == []
+
+
+def test_coarse_mode_skips_fine_clocks_and_details(monkeypatch, capsys):
+    monkeypatch.setattr(timing, "ENABLED", True)
+    monkeypatch.setattr(timing, "DETAIL", "coarse")
+    monkeypatch.setattr(timing, "_stats", {})
+    def unexpected(*args):
+        raise AssertionError('fine instrumentation should be bypassed')
+    monkeypatch.setattr(timing, 'perf_counter', unexpected)
+    with timing.phase('template.render', progress=True):
+        pass
+    @timing.timed('address.integrate', progress=True, detail=unexpected)
+    def call():
+        return 42
+    assert call() == 42
+    assert not timing._stats
+    assert records(capsys) == []
+
+
+def test_model_python_context_and_parent_operations(tmp_path, monkeypatch, capsys):
+    from address_planner.GlobalValues import import_inst
+    monkeypatch.setattr(timing, "ENABLED", True)
+    monkeypatch.setattr(timing, "_stats", {})
+    child = tmp_path / 'child.py'
+    parent = tmp_path / 'parent.py'
+    child.write_text('regBank = object()\n')
+    parent.write_text(
+        'from address_planner import import_inst\n'
+        f'regBank = import_inst({str(child)!r})\n'
+    )
+    with timing.source_context('soc.py'), timing.phase('script.total', 'soc.py', progress=True):
+        assert import_inst(str(parent)) is not None
+        assert timing._source.get() == 'soc.py'
+    assert timing._source.get() == ''
+    output = records(capsys)
+    starts = [r for r in output if r['event'] == 'start']
+    assert [r['source'] for r in starts] == ['soc.py', str(parent), str(child)]
+    assert starts[1]['parent_id'] == starts[0]['operation_id']
+    assert starts[2]['parent_id'] == starts[1]['operation_id']
+    ends = {r['operation_id']: r for r in output if r['event'] == 'end'}
+    assert set(ends) == {r['operation_id'] for r in starts}
+    for start in starts:
+        end = ends[start['operation_id']]
+        assert end['source'] == start['source']
+        assert end['wall_s'] >= end['self_wall_s'] >= 0

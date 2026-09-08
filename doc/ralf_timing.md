@@ -46,23 +46,42 @@ tail -f addrmap_timing.log
 `cpu_s`；正常退出或 Python 异常退出时还输出 `summary`。强制杀进程可能没有
 结束或汇总记录，但已打印的 `start` 可以帮助判断当时正在执行哪个阶段。
 
-## 看哪些阶段
+## 默认只看三段过程和总时间
+
+默认 `coarse` 模式不对读取、预处理、Tcl、根选择、对象复制、模板等细工序
+读取时钟或登记统计，也不逐寄存器/字段打印。
 
 | 阶段 | 测量范围 |
 |---|---|
-| `script.total` | 原始 Python 脚本整体，包括模型构建和输出 |
-| `add_ralf` / `ralf.read` / `ralf.preprocess` | 每次导入、文件读取、文本预处理 |
-| `ralf.tcl_eval` | Tcl 执行 RALF 定义 |
-| `ralf.select_root` / `ralf.tcl_to_python` | 根定义选择、Tcl 字典转 Python |
-| `ralf.build_objects` / `ralf.deepcopy` | 地址树构建、其中的拷贝 |
-| `ralf.attach` / `address.add.deepcopy` / `register.add.deepcopy` | 挂接对象及复制 |
-| `generate` / `report_sqlite` / `html.package` | 总输出、SQLite 报告、压缩与 HTML 打包 |
-| `json.build` / `json.write` / `docx.build` | 启用 JSON/Word 时的独立耗时 |
-| `report_ralf` / `report_chead` / `report_vhead` | RALF、C 头、Verilog 头输出 |
-| `template.load` / `template.render` | 模板加载编译、渲染累计成本 |
+| `python.file` | `import_inst()` 加载并执行一个 Python 文件，取回指定模型；含其中的下层导入 |
+| `add_ralf` | 单个 RALF 从导入到挂接模型的完整过程，记录输入文件名和目标模型 |
+| `generate` / `regspace.generate` | 地址图或寄存器产物的完整生成过程；粗模式避免重复记录基类 generate |
+| `script.total` | SoC Python 总入口的整体耗时 |
+
+进度行以 `[addr-planner-stage]` 开头，中文说明“开始/完成/失败”、对象、所属 PY、
+总耗时、自身耗时。相同 `#编号` 配对开始和结束，`parent` 标记所属上层过程。
+例如：`soc.py -> subsystem.py -> ip.py -> ip.ralf` 会保留对应的嵌套关系。
+读取和执行 Python 是同一过程；不把执行模块时的建模时间误写成纯文件读取时间。
+
+使用汇总工具可以单独看到每个 PY 的次数、累计耗时和自身耗时。同一个 IP PY
+重复导入时会累计次数。PY 的自身时间扣除已计时子过程，仍包含本文件组装、
+复制、校验及其他未单独计时的工作，不能等同于纯 Python CPU 时间。
+
+自动逐文件记录覆盖原入口和仓库的 `import_inst()` 路径；普通 Python import、
+用户自行写的 exec/importlib 加载器不会被全局跟踪，其时间包含在外层过程。
+
+定位到某一段慢之后再开启详细模式：
+
+```sh
+python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" --timing-detail detailed ./cmn_reg_addrmap.py > detailed.log 2>&1
+```
+
+不用入口工具时，在首次 import 前设置 `ADDRESS_PLANNER_TIMING=1` 和
+`ADDRESS_PLANNER_TIMING_DETAIL=detailed`；未指定粒度即 coarse。
+详细模式才测 RALF 内部、上层挂接、各报告、SQLite/HTML、模板等阶段。
 
 每个阶段的汇总包含调用次数、错误次数、累计耗时、单次最大值。
-细粒度拷贝/模板操作只做累计，不逐个寄存器打印，也不保存每个对象的历史。
+详细模式下，细粒度拷贝/模板操作只做累计，不逐个寄存器打印，也不保存每个对象的历史。
 汇总按 `self_wall_s` 降序排列。`wall_s` 是包含子阶段的时间，**不能把各行相加**；
 `self_wall_s` 扣除了已计时子阶段，但仍包括未单独埋点的工作。
 CPU 时间来自当前 Python 进程；明显小于实际耗时时，应结合 I/O、调度、网络盘
@@ -187,6 +206,39 @@ echo "exit_code=$rc"
 python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --top 20
 ```
 
-本地验证：69 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
+本地验证：72 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
 原重构的两项 selftest 对 reserved 命名/SV 位序的要求仍与恢复的内网格式冲突，
 未宣称全量 selftest 通过，也未验证内网 SpyGlass waiver 的实际告警匹配。
+
+## 记录时间本身的开销
+
+同一 `soc.py -> subsystem.py -> ip.py -> ip.ralf` 输入，共 16 个 IP、2048 个寄存器。
+关闭、粗粒度、详细三种模式各执行 5 次，轮换顺序，未开 cProfile，日志写入本机
+/home 文件系统。15 次运行中，每次 28 个生成文件均逐字节一致。
+
+| 模式 | 进程总耗时中位数 | 生成过程中位数 | 完整日志大小中位数 | 计时记录数 |
+|---|---:|---:|---:|---:|
+| 关闭计时 | 2.244 s | 1.849 s | 29,004 B | 0 |
+| 默认粗粒度 | 2.268 s | 1.888 s | 87,037 B | 75 |
+| 详细模式 | 2.366 s | 1.966 s | 368,729 B | 504 |
+
+粗粒度的进程总耗时中位数增加约 1.1%，生成过程增加约 2.1%；详细模式分别
+增加约 5.4% / 6.3%。短样例存在调度、GC、文件系统缓存波动，不作为固定开销保证。
+每次日志末尾额外记录 write+flush 的累计耗时；本例粗粒度中位数 0.004759 秒、
+145 次写入，详细模式 0.026103 秒、978 次写入。该计数截至统计行之前，
+不包含格式化和计时记账；评估总开销使用上述关闭/开启计时的完整 A/B 结果。
+完整日志大小包含生成器原本已有的输出，不能全部算作新增计时日志。
+
+这些是本地磁盘结果，不代表内网网络盘表现。应保留现场生成日志末尾的
+logging_overhead；需要定量测量时，在同一输入、机器和输出存储位置分别关闭/
+开启粗计时，顺序运行并比较外层 time -v，不同时运行两份任务。
+
+## 原先 8 小时能降到多久
+
+尚无真实 SoC 阶段占比，不能直接用合成样例倍数除以 8 小时。
+条件估算为 `新耗时 = 8h × [(1 - p) + p / s]`，其中 p 是旧运行中受此次优化
+影响的耗时比例，s 是这些部分在实际输入上的加速倍数；此公式暂不计日志开销。
+例如假设 s=3：p=50% 时约 5 小时 20 分，p=80% 时约 3 小时 44 分。
+这两项是条件推算，不是实测预测。若主要耗时在未优化的 I/O、RTL/外部工具等，
+全程可能仍接近 8 小时。先用默认粗粒度确定 RALF 导入、PY 集成还是最终生成
+占主导，再只对那个瓶颈进行细化和估计。

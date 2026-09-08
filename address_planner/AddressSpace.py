@@ -120,6 +120,9 @@ class AddressSpace(AddressLogicRoot):
         return res
         
 
+    @timed("address.integrate", progress=True,
+           detail=lambda self, sub_space, offset, name=None:
+           f"{sub_space.module_name} -> {self.global_name} instance={name or sub_space.module_name} offset={offset}")
     def add(self,sub_space,offset,name=None):
         with phase("address.add.deepcopy"):
             sub_space_copy = deepcopy(sub_space)
@@ -143,7 +146,9 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
 
 
-    @timed("add_ralf", progress=True)
+    @timed("add_ralf", progress=True,
+           detail=lambda self, ralf_file=None, offset=None, name=None, *, sub_space=None:
+           f"{ralf_file if ralf_file is not None else sub_space} -> {self.global_name} instance={name} offset={offset}")
     def add_ralf(self, ralf_file=None, offset=None, name=None, *, sub_space=None):
         if ralf_file is None:
             ralf_file = sub_space
@@ -165,9 +170,10 @@ class AddressSpace(AddressLogicRoot):
             env_tcl_code = env_tcl_code.replace("[", "").replace("]", "")
             env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
 
-        tcl_interpreter = Tcl()
-        parser_tcl = Path(__file__).resolve().parent / 'ralf_parser' / 'ralf_parser.tcl'
-        tcl_interpreter.call('source', str(parser_tcl))
+        with phase("ralf.tcl_setup", ralf_path, progress=True):
+            tcl_interpreter = Tcl()
+            parser_tcl = Path(__file__).resolve().parent / 'ralf_parser' / 'ralf_parser.tcl'
+            tcl_interpreter.call('source', str(parser_tcl))
         try:
             with phase("ralf.tcl_eval", ralf_path, progress=True):
                 tcl_interpreter.eval(env_tcl_code)

@@ -12,23 +12,58 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
+from itertools import count
 from time import perf_counter, process_time
+from time import perf_counter as _log_clock
 
 
 ENABLED = os.environ.get("ADDRESS_PLANNER_TIMING", "").lower() in ("1", "true", "yes")
+DETAIL = os.environ.get("ADDRESS_PLANNER_TIMING_DETAIL", "coarse")
+_COARSE_PHASES = {"script.total", "python.file", "add_ralf", "generate", "regspace.generate"}
 _stack = ContextVar("address_planner_timing_stack", default=())
 _stats = {}
+_source = ContextVar("address_planner_timing_source", default="")
+_operation_ids = count(1)
+_log_wall_s = 0.0
+_log_writes = 0
+
+
+def _enabled_for(name):
+    if not ENABLED:
+        return False
+    if DETAIL == "detailed":
+        return True
+    if name not in _COARSE_PHASES:
+        return False
+    # RegSpace.generate calls the base implementation; report the enclosing
+    # operation once in coarse mode, including its extra RTL/waiver work.
+    return not (name == "generate" and any(
+        frame["phase"] == "regspace.generate" for frame in _stack.get()))
+
+
+def _write_log(text):
+    global _log_wall_s, _log_writes
+    start = _log_clock()
+    try:
+        print(text, file=sys.stderr, flush=True)
+    finally:
+        _log_wall_s += _log_clock() - start
+        _log_writes += 1
 
 _PHASE_LABELS = {
     "script.total": "整个生成脚本",
+    "python.file": "加载并执行 Python 模型文件",
+    "address.integrate": "将子模型集成到上层地址空间",
     "add_ralf": "导入 RALF（含读取、解析、构建和挂接）",
     "ralf.read": "读取 RALF 文件",
     "ralf.preprocess": "预处理 RALF 文本",
+    "ralf.tcl_setup": "初始化 Tcl 并加载解析器",
     "ralf.tcl_eval": "Tcl 执行 RALF 定义",
     "ralf.select_root": "选择 RALF 根定义",
     "ralf.tcl_to_python": "Tcl 数据转换为 Python",
     "ralf.build_model": "构建完整 RALF 模型",
     "ralf.build_objects": "构建寄存器和地址树",
+    "ralf.minimum_size": "整理模型地址范围和尺寸",
     "ralf.deepcopy": "RALF 构建中的对象复制",
     "ralf.attach": "挂接导入的地址树",
     "address.add.deepcopy": "添加地址空间时复制对象",
@@ -56,18 +91,53 @@ _PHASE_LABELS = {
 def _emit(record):
     record = {"timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "pid": os.getpid(), **record}
-    print("[addr-planner-timing] " + json.dumps(record, ensure_ascii=True),
-          file=sys.stderr, flush=True)
+    _write_log("[addr-planner-timing] " + json.dumps(record, ensure_ascii=True))
+
+
+def _progress(event, name, detail, operation_id, parent_id, source, depth,
+              wall=None, own=None, status="ok"):
+    stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    action = "开始" if event == "start" else ("完成" if status == "ok" else "失败")
+    text = (f"[addr-planner-stage] {stamp} PID={os.getpid()} "
+            f"{'  ' * depth}{action} #{operation_id} parent={parent_id} "
+            f"{_PHASE_LABELS.get(name, name)} [{name}]")
+    if detail:
+        text += f" | 对象={detail}"
+    if source:
+        text += f" | 所属PY={source}"
+    if wall is not None:
+        text += f" | 总耗时={wall:.6f}s 自身耗时={own:.6f}s"
+    _write_log(text)
+
+
+@contextmanager
+def _source_scope(path):
+    token = _source.set(str(path))
+    try:
+        yield
+    finally:
+        _source.reset(token)
+
+
+def source_context(path):
+    """Identify the currently executing model Python file without tracing calls."""
+    return _source_scope(path) if ENABLED else nullcontext()
 
 
 @contextmanager
 def _measure(phase, detail, progress):
     parents = _stack.get()
-    frame = {"child_wall": 0.0}
+    operation_id = next(_operation_ids) if progress else None
+    parent_id = next((p.get("operation_id") for p in reversed(parents)
+                      if p.get("operation_id") is not None), None)
+    source = _source.get()
+    identity = {"operation_id": operation_id, "parent_id": parent_id, "source": source}
+    frame = {"child_wall": 0.0, "operation_id": operation_id, "phase": phase}
     token = _stack.set(parents + (frame,))
     if progress:
         _emit({"event": "start", "phase": phase, "detail": str(detail),
-               "depth": len(parents), "pid": os.getpid()})
+               "depth": len(parents), "pid": os.getpid(), **identity})
+        _progress("start", phase, detail, operation_id, parent_id, source, len(parents))
     wall_start, cpu_start = perf_counter(), process_time()
     status = "ok"
     try:
@@ -95,23 +165,26 @@ def _measure(phase, detail, progress):
             _emit({"event": "end", "phase": phase, "detail": str(detail),
                    "depth": len(parents), "pid": os.getpid(), "status": status,
                    "wall_s": round(wall, 6), "cpu_s": round(cpu, 6),
-                   "self_wall_s": round(own, 6)})
+                   "self_wall_s": round(own, 6), **identity})
+            _progress("end", phase, detail, operation_id, parent_id, source,
+                      len(parents), wall, own, status)
 
 
 def phase(name, detail="", *, progress=False):
     """Time a fixed phase name; per-object details are never kept in memory."""
-    return _measure(name, detail, progress) if ENABLED else nullcontext()
+    return _measure(name, detail, progress) if _enabled_for(name) else nullcontext()
 
 
-def timed(name, *, progress=False):
+def timed(name, *, progress=False, detail=None):
     """Decorate a phase, bypassing instrumentation entirely when disabled."""
     def decorate(func):
         @wraps(func)
         def wrapped(*args, **kwargs):
-            if not ENABLED:
+            if not _enabled_for(name):
                 return func(*args, **kwargs)
-            detail = getattr(args[0], "module_name", "") if args else ""
-            with phase(name, detail, progress=progress):
+            description = (detail(*args, **kwargs) if detail is not None else
+                           getattr(args[0], "module_name", "") if args else "")
+            with phase(name, description, progress=progress):
                 return func(*args, **kwargs)
         return wrapped
     return decorate
@@ -141,7 +214,12 @@ def print_summary():
             f"{row['wall_s']:12.6f} {row['max_s']:12.6f} {row['errors']:6d}  "
             + _PHASE_LABELS.get(name, name)
         )
-    print('\n'.join(lines), file=sys.stderr, flush=True)
+    _write_log('\n'.join(lines))
+    io_wall, writes = _log_wall_s, _log_writes
+    _emit({"event": "logging_overhead", "detail": DETAIL,
+           "write_flush_wall_s": round(io_wall, 6), "writes": writes})
+    _write_log(f"日志写入/flush 截至此处累计：{io_wall:.6f} 秒，共 {writes} 次；"
+               "不含格式化和计时记账，总开销以关闭/开启计时的 A/B 运行比较为准。")
 
 
 if ENABLED:

@@ -21,10 +21,13 @@ def summarize(path, top=10):
                 malformed += 1
                 continue
             pid = row.get('pid')
-            state = processes.setdefault(pid, {'phases': {}, 'active': {}, 'slowest': [], 'script_status': None})
+            state = processes.setdefault(pid, {'phases': {}, 'active': {}, 'slowest': [],
+                                              'script_status': None, 'python_files': {}})
             event = row.get('event')
             if event == 'summary':
                 state['phases'][row['phase']] = row
+            elif event == 'logging_overhead':
+                state['logging_overhead'] = row
             elif event == 'start':
                 state['active'][row['depth']] = row
             elif event == 'end':
@@ -34,6 +37,18 @@ def summarize(path, top=10):
                 del state['slowest'][top:]
                 if row['phase'] == 'script.total':
                     state['script_status'] = row['status']
+                if row['phase'] in ('python.file', 'script.total'):
+                    source = row.get('source') or row.get('detail', '').split('::', 1)[0]
+                    if source:
+                        file_row = state['python_files'].setdefault(source, {
+                            'source': source, 'calls': 0, 'errors': 0,
+                            'wall_s': 0.0, 'self_wall_s': 0.0, 'max_s': 0.0,
+                        })
+                        file_row['calls'] += 1
+                        file_row['errors'] += row['status'] != 'ok'
+                        file_row['wall_s'] += row['wall_s']
+                        file_row['self_wall_s'] += row.get('self_wall_s', 0.0)
+                        file_row['max_s'] = max(file_row['max_s'], row['wall_s'])
     result = {'malformed_records': malformed, 'processes': []}
     for pid, state in processes.items():
         result['processes'].append({
@@ -41,6 +56,8 @@ def summarize(path, top=10):
             'phases': sorted(state['phases'].values(), key=lambda r: -r['self_wall_s']),
             'active_at_log_end': list(state['active'].values()),
             'slowest_completed': state['slowest'],
+            'python_files': sorted(state['python_files'].values(), key=lambda r: -r['self_wall_s']),
+            'logging_overhead': state.get('logging_overhead'),
         })
     return result
 
@@ -69,8 +86,16 @@ def main():
         print('Slowest completed operations (inclusive times; do not sum):')
         for row in process['slowest_completed']:
             print(f"  {row['wall_s']:10.3f}s {row['phase']} {row.get('detail', '')} [{row['status']}]")
+        if process['python_files']:
+            print('Python 文件耗时（秒）：total 含下层工序，self 扣除已计时子工序；total 不可相加。')
+            print(f"{'calls':>7} {'self(s)':>12} {'total(s)':>12} {'max(s)':>12} {'errors':>7}  文件")
+            for row in process['python_files']:
+                print(f"{row['calls']:7d} {row['self_wall_s']:12.6f} {row['wall_s']:12.6f} {row['max_s']:12.6f} {row['errors']:7d}  {row['source']}")
         for row in process['active_at_log_end']:
             print(f"  OPEN: {row['phase']} {row.get('detail', '')} (no matching end in this log)")
+        overhead = process['logging_overhead']
+        if overhead:
+            print(f"日志写入/flush: {overhead['write_flush_wall_s']:.6f}s, {overhead['writes']} 次；总计时开销需 A/B 比较。")
     if result['malformed_records']:
         print(f"Ignored {result['malformed_records']} malformed/truncated timing record(s).")
 

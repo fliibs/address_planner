@@ -67,7 +67,8 @@ def build_addrspace(tcl_interpreter):
     with phase("ralf.build_objects", progress=True):
         reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
     # reg_bank_B_copy.generate('build/ralf')
-    reg_bank_B_copy = minimum_size(reg_bank_B_copy)
+    with phase("ralf.minimum_size", progress=True):
+        reg_bank_B_copy = minimum_size(reg_bank_B_copy)
     return reg_bank_B_copy
 
 

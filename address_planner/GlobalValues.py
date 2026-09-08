@@ -1,5 +1,6 @@
 import os,sys
 import importlib.util
+from .timing import phase as _timing_phase, source_context as _timing_source_context
 from enum   import Enum,unique
 
 APG_BUS_WIDTH = 32
@@ -230,10 +231,12 @@ def import_inst(file_path, module_name='regBank'):
     file_path = get_full_path(file_path)
     if '.py' in file_path:
         try:
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            return getattr(module, module_name)
+            with _timing_source_context(os.path.abspath(file_path)):
+                with _timing_phase("python.file", f"{file_path}::{module_name}", progress=True):
+                    spec = importlib.util.spec_from_file_location(module_name, file_path)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    return getattr(module, module_name)
         except ImportError as err:
             print("[ImportError]", err)
     else:
