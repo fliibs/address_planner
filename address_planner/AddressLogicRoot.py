@@ -1,4 +1,5 @@
 from .timing import phase
+from .template_cache import TEMPLATE_BYTECODE_CACHE
 from jinja2     import PackageLoader,Environment
 import os
 import builtins
@@ -176,7 +177,10 @@ class AddressLogicRoot(object):
 
     def report_from_template(self,template,extra_in_namespace={}):
         with phase("template.load"):
-            env = Environment(loader=PackageLoader('address_planner','report_template'))
+            env = Environment(
+                loader=PackageLoader('address_planner','report_template'),
+                bytecode_cache=TEMPLATE_BYTECODE_CACHE,
+            )
             template = env.get_template(template)
             template.globals['builtins'] = builtins
             for k,v in extra_in_namespace.items():

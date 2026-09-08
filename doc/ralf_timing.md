@@ -3,7 +3,9 @@
 此改动基于 `main@1638f36`。`@'h0x20000`、`@'H0X20000`、
 `32'h0x2_0000` 会先归一化为现有 `'h...` 格式；普通 `0xfb4`、
 `0xb10`、二进制、十进制以及旧版 `add_ralf(sub_space=...)` 继续支持。
-不修改输入 RALF、地址分配、输出模板或默认生成选项。
+性能优化本身不修改输入 RALF、地址分配、输出模板或默认生成选项。
+此测试分支另外包含此前按内网截图恢复的模板和用户要求补入的 waiver；
+因此分支整体与现场 v3p4 的兼容性仍需内网比较确认。
 
 ## 内网运行
 
@@ -107,3 +109,80 @@ python3 "$ADDRESS_PLANNER_ROOT/tools/benchmark_ralf_import.py" --registers 100 2
 需要用同一输入、机器、文件系统和生成选项，记录旧/新 commit、Python/UHDL
 版本、RALF 数量与总大小，分别跑出分阶段日志。优先看耗时是在导入还是输出；
 若 `template.load`、`report_sqlite` 或文件输出占主导，再针对该阶段优化。
+
+## 模板重复编译优化（2026-09-08 补充）
+
+100 个 bank、每个 8 个寄存器的合成样例中，原实现调用模板加载 502 次，
+每次创建新的 Jinja Environment 并重新编译。带 cProfile 的定位运行里，
+该阶段占 6.788 / 9.038 秒；这些带 profiler 的数值仅用于定位。
+
+现在使用最多 64 项的进程内字节码缓存。仍为每次渲染创建独立环境，避免
+head_type 等变量串到下一次渲染；每次读取源文件并由 Jinja 校验内容摘要，
+源码修改会触发重新编译，不依赖 mtime。不缓存模型、渲染结果，不写磁盘缓存。
+
+关闭计时和 cProfile、顺序进行三轮开关 A/B（包含同一脚本的导入、模型构建和
+生成，均开启 JSON，生成 HTML/RALF/C/Verilog 等 308 个文件）：
+
+| 缓存 | 三轮耗时（秒） | 中位数 |
+|---|---|---|
+| 关闭 | 4.262 / 3.957 / 3.717 | 3.957 |
+| 开启 | 1.281 / 1.208 / 1.198 | 1.208 |
+
+三轮每轮的 308 个文件均逐字节一致。此样例约 3.28 倍提速，不能作为真实 SoC
+的收益承诺。缓存开关在 import 时读取，独立隔离此项优化时可运行：
+
+```sh
+env ADDRESS_PLANNER_TEMPLATE_CACHE=0 python3 your_map.py
+env ADDRESS_PLANNER_TEMPLATE_CACHE=1 python3 your_map.py
+```
+
+两次使用独立输出目录，否则会覆盖对比结果。此开关不关闭 RALF 构建优化。
+
+## 从日志提取热点
+
+```sh
+python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --top 20
+python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --json > timing-summary.json
+```
+
+工具按 self 耗时排序，列出最慢的已完成操作和没有 end 的阶段。可用于尚未
+完成或异常截断的日志；没有汇总时会明确说明，不把部分耗时当成全程耗时。
+不要将包含子调用的 wall 时间相加。长日志按行读取，不保留所有对象事件。
+
+## 导入内网后与 v3p4 对比
+
+本包用于独立目录试用；现有 v3p4 保留，比较通过后再决定使用。
+本包不包含 UHDL、内网 RALF 或 Python 第三方依赖，沿用现场同一套环境。
+
+1. 记录两边源码版本/目录、Python/UHDL 版本及命令。固定同一输入、生成选项、
+   机器和存储位置；分别使用独立输出目录，检查脚本内是否还有绝对输出路径。
+2. v3p4 按原命令运行，测试版用上面的 profile_addrmap.py 包围原入口。
+   全程性能比较使用两边相同的 `/usr/bin/time -v` 外层测量，均关闭 cProfile；
+   它包含 Python 启动时间，并提供最大 RSS。先不要同时跑两边以免互相争抢资源。
+3. 确认两边正常退出、生成选项一致，再逐文件比较。示例：
+
+```sh
+diff -qr /path/to/v3p4_output /path/to/test_output > output-diff.log
+```
+
+   退出 0 表示目录相同；1 表示有差异；大于 1 表示比较失败。不要忽略 `.h`、
+   `.vh`、RALF、CSV 或 waiver 的空格/顺序差异。新增、缺失文件也需检查。
+   HTML/SQLite 若不同，需要检查数据和页面行为，不能只看文件大小认定等价。
+4. 保留两边完整生成日志、time 输出、output-diff.log 和测试版 timing-summary.json。
+   真实 SoC 的耗时瓶颈和输出兼容性以这次内网结果为准。
+
+Bash 的完整测试版调用示例（在原生成入口的工作目录执行）：
+
+```bash
+export ADDRESS_PLANNER_ROOT=/path/to/address_planner_performance_trial
+# UHDL_ROOT 使用与现场 v3p4 相同的设置
+/usr/bin/time -v python3 -u "$ADDRESS_PLANNER_ROOT/tools/profile_addrmap.py" \
+    ./cmn_reg_addrmap.py > addrmap_timing.log 2>&1
+rc=$?
+echo "exit_code=$rc"
+python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --top 20
+```
+
+本地验证：69 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
+原重构的两项 selftest 对 reserved 命名/SV 位序的要求仍与恢复的内网格式冲突，
+未宣称全量 selftest 通过，也未验证内网 SpyGlass waiver 的实际告警匹配。
