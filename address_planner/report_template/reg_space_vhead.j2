@@ -24,6 +24,7 @@
     `define {{ '%-40s' % '%s_OFFSET'  % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.offset/8)|int)}}
     `define {{ '%-40s' % '%s_RST_VAL' % ss.module_name_until_regbank.upper()}} {{ss.hex_transform((ss.init_value)|int)}}
 
+
 `endif
 
 {% for field in ss.sorted_field_list %}

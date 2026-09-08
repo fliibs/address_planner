@@ -4,8 +4,11 @@
 `32'h0x2_0000` 会先归一化为现有 `'h...` 格式；普通 `0xfb4`、
 `0xb10`、二进制、十进制以及旧版 `add_ralf(sub_space=...)` 继续支持。
 性能优化本身不修改输入 RALF、地址分配、输出模板或默认生成选项。
-此测试分支另外包含此前按内网截图恢复的模板和用户要求补入的 waiver；
-因此分支整体与现场 v3p4 的兼容性仍需内网比较确认。
+非性能部分按现场 v3p4 的完整 diff 照片对齐：恢复 `add_ralf()` 的
+AddressSpace/RegSpace 对象输入兼容，恢复四个头模板的空格、空白行和文件末尾状态，
+包括全局 Verilog 宏名的 60 列对齐。`reg_waiver.j2` 按用户明确要求保留，
+它是相对于现场 v3p4 有意增加的功能。照片不能证明不可见字符逐字节一致；
+整包兼容性仍需在内网使用同一输入比较生成结果。
 
 ## 三档开关
 
@@ -230,7 +233,8 @@ echo "exit_code=$rc"
 python3 "$ADDRESS_PLANNER_ROOT/tools/summarize_addrmap_timing.py" addrmap_timing.log --top 20
 ```
 
-本地验证：82 项 case 通过；缓存源码变更检测、跨调用变量隔离和容量限制通过；
+本地验证：86 项 case 通过，包含对象输入的两种类型和两种参数名；
+缓存源码变更检测、跨调用变量隔离和容量限制通过；
 原重构的两项 selftest 对 reserved 命名/SV 位序的要求仍与恢复的内网格式冲突，
 未宣称全量 selftest 通过，也未验证内网 SpyGlass waiver 的实际告警匹配。
 

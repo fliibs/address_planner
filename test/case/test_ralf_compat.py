@@ -8,13 +8,32 @@ from tkinter import Tcl, TclError
 
 import pytest
 
-from address_planner import AddressSpace, MB
+from address_planner import AddressSpace, RegSpace, MB
 from address_planner.ralf_parser.ralf_parse import (
     RalfNumericParseError,
     RalfParseError,
     convert_address,
     convert_address_with_context,
 )
+
+
+@pytest.mark.parametrize("space_type", [AddressSpace, RegSpace])
+@pytest.mark.parametrize("keyword", ["ralf_file", "sub_space"])
+def test_add_ralf_accepts_intranet_model_objects(space_type, keyword):
+    child = space_type("ip", 4096)
+    parent = AddressSpace("soc", MB)
+
+    result = parent.add_ralf(**{keyword: child}, offset=256, name="ip0")
+
+    assert result is None  # Preserve the intranet self.add() return contract.
+    attached, = parent.sub_space_list
+    assert attached is not child
+    assert attached.father is parent
+    assert (attached.module_name, attached.offset) == ("ip0", 256)
+    attached.description = "parent-local change"
+    assert child.description == ""
+    assert child.father is None
+    assert (child.module_name, child.offset) == ("ip", 0)
 
 
 @pytest.mark.parametrize(

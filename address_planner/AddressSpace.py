@@ -158,6 +158,12 @@ class AddressSpace(AddressLogicRoot):
             raise TypeError("add_ralf() missing RALF input: use 'ralf_file' or legacy 'sub_space'")
         if offset is None:
             raise TypeError("add_ralf() missing required argument: 'offset'")
+        if isinstance(ralf_file, AddressSpace):
+            return self.add(
+                sub_space=ralf_file,
+                offset=offset,
+                name=name,
+            )
 
         ralf_path = Path(ralf_file).expanduser().resolve()
         if not ralf_path.is_file():

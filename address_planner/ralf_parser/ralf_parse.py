@@ -241,8 +241,7 @@ def convert_address(address):
     if not clean_address:
         raise ValueError("address is empty")
 
-    # Some intranet RALF producers combine Verilog and C hex prefixes.
-    normalized = clean_address.lower().replace("'h0x", "'h")
+    normalized = clean_address.lower().replace("'h0x","'h")
 
     # Standard prefixes must be recognized before legacy h/b markers.  A
     # character such as the 'b' in 0xfb4 is a hexadecimal digit, not a binary
