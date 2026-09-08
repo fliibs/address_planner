@@ -1,0 +1,27 @@
+waive -du Regbank_{{space.module_name}} -rule STARC02-2.10.5.1
+
+{% for ss in space.sorted_subspace_list -%}
+{% for field in ss.sorted_field_list -%}
+{%- if field.is_external -%}
+waive -du Regbank_{{space.module_name}} -rule W240 -msg {{'{'}}Input '{{ss.module_name}}_{{field.module_name}}_rrdy' declared but not read.{{'['}}Hierarchy: ':Regbank_{{space.module_name}}'{{']}'}}
+waive -du Regbank_{{space.module_name}} -rule W240 -msg {{'{'}}Input '{{ss.module_name}}_{{field.module_name}}_wrdy' declared but not read.{{'['}}Hierarchy: ':Regbank_{{space.module_name}}'{{']}'}}
+
+waive -du Regbank_{{space.module_name}} -rule UnloadedInPort-ML -msg {{'{Detected unloaded(unconnected)input port'}} Regbank_{{space.module_name}}.{{ss.module_name}}_{{field.module_name}}_rrdy{{')}'}}
+waive -du Regbank_{{space.module_name}} -rule UnloadedInPort-ML -msg {{'{Detected unloaded(unconnected)input port'}} Regbank_{{space.module_name}}.{{ss.module_name}}_{{field.module_name}}_wrdy{{')}'}}
+
+{% endif -%}
+{% endfor %}
+{%- if ss.report_waive_reg_wdat_port not in '[]' -%}
+waive -du Regbank_{{space.module_name}} -msg {Detected unloaded(unconnected) net Regbank_{{space.module_name}}.{{ss.module_name}}_wdat{{ss.report_waive_reg_wdat_port}}} -rule { UnloadedNet-ML }
+waive -du { Regbank_{{space.module_name}} } -msg {Not all elements of array '{{ss.module_name}}_wdat[*]' are 'read' [Hierarchy: ':Regbank_{{space.module_name}}']} -rule { W111 }
+waive -du { Regbank_{{space.module_name}} } -msg {Not all bits of bus '{{ss.module_name}}_wdat'({{ss.report_waive_reg_wdat_num}} bits) are read [Hierarchy: ':Regbank_{{space.module_name}}']} -rule { W498 }
+
+{% endif -%}
+
+{% endfor -%}
+
+{%- if ('apb4' in space.software_interface) and (space.report_waive_wdat_num) -%}
+waive -du Regbank_{{space.module_name}} -msg {Detected unloaded(unconnected) net Regbank_{{space.module_name}}.p_mask[*]} -rule { UnloadedNet-ML }
+waive -du { Regbank_{{space.module_name}} } -msg {Not all elements of array 'p_mask[*]' are 'read' [Hierarchy: ':Regbank_{{space.module_name}}']} -rule { W111 }
+waive -du { Regbank_{{space.module_name}} } -msg {Not all bits of bus 'p_mask'({{space.report_waive_wdat_num}} bits) are read [Hierarchy: ':Regbank_{{space.module_name}}']} -rule { W498 }
+{% endif -%}
