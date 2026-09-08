@@ -19,6 +19,39 @@ ENABLED = os.environ.get("ADDRESS_PLANNER_TIMING", "").lower() in ("1", "true", 
 _stack = ContextVar("address_planner_timing_stack", default=())
 _stats = {}
 
+_PHASE_LABELS = {
+    "script.total": "整个生成脚本",
+    "add_ralf": "导入 RALF（含读取、解析、构建和挂接）",
+    "ralf.read": "读取 RALF 文件",
+    "ralf.preprocess": "预处理 RALF 文本",
+    "ralf.tcl_eval": "Tcl 执行 RALF 定义",
+    "ralf.select_root": "选择 RALF 根定义",
+    "ralf.tcl_to_python": "Tcl 数据转换为 Python",
+    "ralf.build_model": "构建完整 RALF 模型",
+    "ralf.build_objects": "构建寄存器和地址树",
+    "ralf.deepcopy": "RALF 构建中的对象复制",
+    "ralf.attach": "挂接导入的地址树",
+    "address.add.deepcopy": "添加地址空间时复制对象",
+    "register.add.deepcopy": "添加寄存器时复制对象",
+    "generate": "生成地址图和报告（含各输出阶段）",
+    "regspace.generate": "生成寄存器产物（含各输出阶段）",
+    "report_chead": "生成 C 头文件",
+    "report_vhead": "生成 Verilog 头文件",
+    "report_ralf": "生成 RALF 文件",
+    "regspace.report_ralf": "生成寄存器 RALF 文件",
+    "regspace.report_rtl": "生成寄存器 RTL",
+    "regspace.report_dv": "生成 DV 产物",
+    "report_json": "生成 JSON/Word 报告",
+    "json.build": "构建 JSON 数据",
+    "json.write": "写入 JSON 文件",
+    "docx.build": "生成 Word 文档",
+    "report_single_html": "生成单 HTML（含数据库和打包）",
+    "report_sqlite": "生成 SQLite 数据库",
+    "html.package": "压缩数据并打包 HTML",
+    "template.load": "加载和编译模板",
+    "template.render": "渲染模板",
+}
+
 
 def _emit(record):
     record = {"timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -86,10 +119,29 @@ def timed(name, *, progress=False):
 
 def print_summary():
     """Print inclusive and self times; inclusive rows must not be summed."""
-    for name, row in sorted(_stats.items(), key=lambda item: -item[1]["self_wall_s"]):
+    rows = sorted(_stats.items(), key=lambda item: -item[1]["self_wall_s"])
+    for name, row in rows:
         _emit({"event": "summary", "phase": name,
                **{key: round(value, 6) if isinstance(value, float) else value
                   for key, value in row.items()}})
+    if not rows:
+        return
+    lines = [f"\n[addr-planner-time-summary] PID {os.getpid()} 耗时汇总（单位：秒）"]
+    if "script.total" in _stats:
+        lines.append(f"整个脚本累计耗时：{_stats['script.total']['wall_s']:.6f} 秒")
+    lines.extend([
+        "按 self(s) 从大到小排序，用于找热点。",
+        "self(s)=自身耗时；total(s)=含子阶段的累计耗时；max(s)=单次最大耗时。",
+        "父子阶段有重叠，不能将 total(s) 列相加；细小耗时直接显示小数，不使用科学计数法。",
+        f"{'phase':32} {'calls':>7} {'self(s)':>12} {'total(s)':>12} {'max(s)':>12} {'errors':>6}  阶段含义",
+    ])
+    for name, row in rows:
+        lines.append(
+            f"{name:32} {row['calls']:7d} {row['self_wall_s']:12.6f} "
+            f"{row['wall_s']:12.6f} {row['max_s']:12.6f} {row['errors']:6d}  "
+            + _PHASE_LABELS.get(name, name)
+        )
+    print('\n'.join(lines), file=sys.stderr, flush=True)
 
 
 if ENABLED:

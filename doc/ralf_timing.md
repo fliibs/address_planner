@@ -37,7 +37,11 @@ tail -f addrmap_timing.log
 未设置时计时默认关闭；这种方式没有入口的 `script.total` 包围计时。
 总脚本计时不包含 Python 启动及入口预先加载 Address Planner 依赖的时间。
 
-计时输出写入 stderr，每条立即 flush，格式为 `[addr-planner-timing]` 加 JSON。
+计时输出写入 stderr，每条立即 flush，机器可读记录为 `[addr-planner-timing]` 加 JSON。
+退出时会额外打印 `[addr-planner-time-summary]` 可读汇总表，标注中文阶段含义，
+所有耗时以秒的小数显示。例如 `5.2e-05` 在表中显示为 `0.000052` 秒（52 微秒）。
+查看 `total(s)` 了解每个阶段的累计时间；查看按降序排列的 `self(s)` 定位自身热点。
+`max(s)` 是该阶段单次调用的最大耗时，`calls` 是调用次数，`errors` 是失败次数。
 包含 UTC 时间、PID、阶段、对象/文件、状态、实际耗时 `wall_s`、进程 CPU 时间
 `cpu_s`；正常退出或 Python 异常退出时还输出 `summary`。强制杀进程可能没有
 结束或汇总记录，但已打印的 `start` 可以帮助判断当时正在执行哪个阶段。

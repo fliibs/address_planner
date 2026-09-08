@@ -9,7 +9,8 @@ from address_planner import timing
 
 def records(capsys):
     return [json.loads(line.split("] ", 1)[1])
-            for line in capsys.readouterr().err.splitlines()]
+            for line in capsys.readouterr().err.splitlines()
+            if line.startswith('[addr-planner-timing] ')]
 
 
 def test_disabled_timer_is_silent_and_does_not_read_clock(monkeypatch, capsys):
