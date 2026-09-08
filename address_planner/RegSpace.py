@@ -1,3 +1,4 @@
+from .timing import phase, timed
 import json
 from .GlobalValues  import *
 from .AddressSpace  import AddressSpace
@@ -34,7 +35,8 @@ class RegSpace(AddressSpace):
                 f"register offset must be aligned to {alignment} bytes for bus width {self.bus_width}"
             )
         bit_offset     = offset*8
-        sub_space_copy = deepcopy(sub_space)
+        with phase("register.add.deepcopy"):
+            sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = bit_offset
         sub_space_copy.father = self
         sub_space_copy.module_name = sub_space_copy.module_name if name==None else name
@@ -193,12 +195,14 @@ class RegSpace(AddressSpace):
             
 
     # report and check ralf ==============================================
+    @timed("regspace.report_ralf", progress=True)
     def report_ralf(self):
         output_path = self._ralf_dir+'/'
         self.report_ralf_core(output_path)
     
     
     # report and check rtl ==============================================
+    @timed("regspace.report_rtl", progress=True)
     def report_rtl(self):
         component = RegSpaceRTL(self).u
         component.output_dir = self._rtl_dir
@@ -209,6 +213,7 @@ class RegSpace(AddressSpace):
         
 
     # total ==============================================================
+    @timed("regspace.generate", progress=True)
     def generate(
         self,
         path=None,
@@ -240,6 +245,7 @@ class RegSpace(AddressSpace):
         super().check(path)
         self.check_rtl()
 
+    @timed("regspace.report_dv", progress=True)
     def report_dv(self):
         self.report_dv_testbench()
         self.report_dv_filelist()

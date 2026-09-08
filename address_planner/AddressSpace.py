@@ -1,3 +1,4 @@
+from .timing import phase, timed
 from copy               import deepcopy
 from functools          import reduce
 from tkinter            import Tcl, TclError
@@ -120,7 +121,8 @@ class AddressSpace(AddressLogicRoot):
         
 
     def add(self,sub_space,offset,name=None):
-        sub_space_copy = deepcopy(sub_space)
+        with phase("address.add.deepcopy"):
+            sub_space_copy = deepcopy(sub_space)
         sub_space_copy.offset = offset
         sub_space_copy.father = self
         # sub_space_copy.module_name = name
@@ -141,6 +143,7 @@ class AddressSpace(AddressLogicRoot):
         self.add(sub_space=sub_space,offset=self._next_offset,name=name)
 
 
+    @timed("add_ralf", progress=True)
     def add_ralf(self, ralf_file=None, offset=None, name=None, *, sub_space=None):
         if ralf_file is None:
             ralf_file = sub_space
@@ -154,17 +157,20 @@ class AddressSpace(AddressLogicRoot):
         ralf_path = Path(ralf_file).expanduser().resolve()
         if not ralf_path.is_file():
             raise FileNotFoundError(f'RALF input does not exist: {ralf_path}')
-        with ralf_path.open('r', encoding='utf-8') as f:
-            env_tcl_code = f.read()
+        with phase("ralf.read", ralf_path, progress=True):
+            with ralf_path.open('r', encoding='utf-8') as f:
+                env_tcl_code = f.read()
 
-        env_tcl_code = env_tcl_code.replace("[","").replace("]","")
-        env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
+        with phase("ralf.preprocess", ralf_path, progress=True):
+            env_tcl_code = env_tcl_code.replace("[", "").replace("]", "")
+            env_tcl_code = re.sub(r'\([^)]*\)', '', env_tcl_code)
 
         tcl_interpreter = Tcl()
         parser_tcl = Path(__file__).resolve().parent / 'ralf_parser' / 'ralf_parser.tcl'
         tcl_interpreter.call('source', str(parser_tcl))
         try:
-            tcl_interpreter.eval(env_tcl_code)
+            with phase("ralf.tcl_eval", ralf_path, progress=True):
+                tcl_interpreter.eval(env_tcl_code)
         except TclError as exc:
             try:
                 error_info = tcl_interpreter.eval('set ::errorInfo')
@@ -196,7 +202,8 @@ class AddressSpace(AddressLogicRoot):
                 ) from exc
         finally:
             Options.MultiPortOption = original_multiport
-        self.add(reg_copy, offset, name)
+        with phase("ralf.attach", ralf_path, progress=True):
+            self.add(reg_copy, offset, name)
         return reg_copy
 
     def add_matrix(self, matrix, name=None, attr=None):
@@ -281,6 +288,7 @@ class AddressSpace(AddressLogicRoot):
     #     #    ss.report_html()
 
 
+    @timed("report_chead", progress=True)
     def report_chead(self):
         chead_name_list = self.report_chead_core()
         chead_name_list += [self.chead_global_name]
@@ -318,6 +326,7 @@ class AddressSpace(AddressLogicRoot):
 
 
     # report v head.==============================================
+    @timed("report_vhead", progress=True)
     def report_vhead(self):
         vhead_name_list = self.report_vhead_core()
         vhead_name_list += [self.vhead_global_name]
@@ -354,6 +363,7 @@ class AddressSpace(AddressLogicRoot):
         
 
     # report and check ralf ==============================================
+    @timed("report_ralf", progress=True)
     def report_ralf(self):
         output_path = self._ralf_dir+'/'
         self.recursive_report_ralf_core(output_path)
@@ -367,19 +377,23 @@ class AddressSpace(AddressLogicRoot):
 
 
     # report and check json ==========================================
+    @timed("report_json", progress=True)
     def report_json(self, gen_doc=False, write_json=True):
-        root = self.report_json_core()
+        with phase("json.build", self.module_name, progress=True):
+            root = self.report_json_core()
         if write_json:
-            jtext = json.dumps([root], ensure_ascii=False, indent=2)
-            if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir)
-            with open(self.json_path, 'w') as f:
-                f.write(jtext)
+            with phase("json.write", self.json_path, progress=True):
+                jtext = json.dumps([root], ensure_ascii=False, indent=2)
+                if not os.path.exists(self._html_dir):  os.makedirs(self._html_dir)
+                with open(self.json_path, 'w') as f:
+                    f.write(jtext)
 
         if gen_doc:
             from .gen_doc.doc import build_address_map_document
 
             doc_path = os.path.join(self._html_dir, "doc.docx")
-            build_address_map_document(root, doc_path)
+            with phase("docx.build", doc_path, progress=True):
+                build_address_map_document(root, doc_path)
         
 
     def report_json_core(self):
@@ -396,6 +410,7 @@ class AddressSpace(AddressLogicRoot):
         json_dict["children"]   = [c.report_json_core() for c in self.sorted_subspace_list]
         return json_dict
 
+    @timed("report_sqlite", progress=True)
     def report_sqlite(self, database_path=None, *, schema_version=None):
         """Write the normalized SQLite report used by the single-HTML viewer.
 
@@ -417,6 +432,7 @@ class AddressSpace(AddressLogicRoot):
             self, database_path, schema_version=schema_version
         )
 
+    @timed("report_single_html", progress=True)
     def report_single_html(
         self,
         viewer_template_path=None,
@@ -460,11 +476,12 @@ class AddressSpace(AddressLogicRoot):
 
         try:
             self.report_sqlite(database_path, schema_version=schema_version)
-            return package_single_html(
-                database_path,
-                viewer_template_path,
-                output_html_path,
-            )
+            with phase("html.package", output_html_path, progress=True):
+                return package_single_html(
+                    database_path,
+                    viewer_template_path,
+                    output_html_path,
+                )
         finally:
             if owns_database:
                 try:
@@ -474,6 +491,7 @@ class AddressSpace(AddressLogicRoot):
     
 
     # total ========================================
+    @timed("generate", progress=True)
     def generate(
         self,
         path=None,

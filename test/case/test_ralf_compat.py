@@ -23,6 +23,10 @@ from address_planner.ralf_parser.ralf_parse import (
         ("@0xfb4", 0xFB4),
         ("@0xb10", 0xB10),
         ("@0x800", 0x800),
+        ("@'h0x20000", 0x20000),
+        ("@'H0Xb000", 0xB000),
+        ("32'h0x2_0000", 0x20000),
+        ("@'h0x0000", 0),
         ("@0b100", 4),
         ("32'h1_000", 0x1000),
         ("16b1010", 10),
@@ -31,6 +35,61 @@ from address_planner.ralf_parser.ralf_parse import (
 )
 def test_convert_address_supported_literals(literal: str, expected: int) -> None:
     assert convert_address(literal) == expected
+
+
+@pytest.mark.parametrize("literal", ["@'h0x", "@'h0xZZ", "bad'h0x100", "@'b102"])
+def test_malformed_literals_are_not_silently_accepted(literal):
+    with pytest.raises(ValueError):
+        convert_address(literal)
+
+
+def test_system_block_instances_with_combined_hex_prefix(tmp_path):
+    source = tmp_path / "dma.ralf"
+    source.write_text("""
+register ctrl { bytes 4;
+    field enable @0 { bits 1; access rw; reset 1; }
+}
+block common { register ctrl @0; }
+block ch1 { register ctrl @0; }
+block ch2 { register ctrl @0; }
+system peri_dma {
+    bytes 8;
+    block common @'h0x20000;
+    block ch1 @'h0x0000;
+    block ch2 @'H0X1000;
+}
+""")
+    model = AddressSpace("soc", MB).add_ralf(source, 0)
+    assert [child.offset for child in model.sub_space_list] == [0x20000, 0, 0x1000]
+    assert len({id(child) for child in model.sub_space_list}) == 3
+    for bank in model.sub_space_list:
+        assert bank.father is model
+        assert bank.sub_space_list[0].father is bank
+    first, second, _ = model.sub_space_list
+    first.sub_space_list[0].field_list[0].init_value = 0
+    assert second.sub_space_list[0].field_list[0].init_value == 1
+
+
+def test_recursive_helpers_preserve_caller_tree():
+    from address_planner import RegSpace, Register, Field, ReadWrite
+    from address_planner.ralf_parser.ralf_parse import (
+        build_subspace_recur, build_field_recur, minimum_size,
+    )
+    bank = RegSpace("existing", 4096)
+    register = Register("r", bit=32)
+    register.add(Field("value", bit=1, sw_access=ReadWrite, init_value=0), 0)
+    bank.add(register, 0)
+    cloned = build_subspace_recur({}, bank, None)
+    assert bank.size == 4096
+    assert cloned is not bank
+    assert cloned.sub_space_list[0].father is cloned
+    cloned.sub_space_list[0].field_list[0].init_value = 1
+    assert bank.sub_space_list[0].field_list[0].init_value == 0
+    field_clone = build_field_recur({}, register, None)
+    field_clone.field_list[0].init_value = 1
+    assert register.field_list[0].init_value == 0
+    resized = minimum_size(bank)
+    assert resized.size == 4 and bank.size == 4096
 
 
 def test_convert_address_error_retains_raw_value_and_hierarchy() -> None:
@@ -43,7 +102,7 @@ def test_convert_address_error_retains_raw_value_and_hierarchy() -> None:
 
 @pytest.mark.parametrize(
     ("literal", "expected_bytes"),
-    [("@0xfb4", 0xFB4), ("@0xb10", 0xB10)],
+    [("@0xfb4", 0xFB4), ("@0xb10", 0xB10), ("@'h0x20000", 0x20000)],
 )
 def test_standard_prefixes_survive_real_ralf_import(
     tmp_path: Path, literal: str, expected_bytes: int

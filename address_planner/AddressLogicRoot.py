@@ -1,3 +1,4 @@
+from .timing import phase
 from jinja2     import PackageLoader,Environment
 import os
 import builtins
@@ -174,10 +175,11 @@ class AddressLogicRoot(object):
         # if not os.path.exists(self._ral_model_dir):     os.makedirs(self._ral_model_dir)    
 
     def report_from_template(self,template,extra_in_namespace={}):
-        env = Environment(loader=PackageLoader('address_planner','report_template'))
-        template = env.get_template(template)
-        template.globals['builtins'] = builtins
-        for k,v in extra_in_namespace.items():
-            template.globals[k] = v
-        text = template.render(space=self)
-        return text
+        with phase("template.load"):
+            env = Environment(loader=PackageLoader('address_planner','report_template'))
+            template = env.get_template(template)
+            template.globals['builtins'] = builtins
+            for k,v in extra_in_namespace.items():
+                template.globals[k] = v
+        with phase("template.render"):
+            return template.render(space=self)

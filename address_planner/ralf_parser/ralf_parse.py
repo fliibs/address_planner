@@ -1,3 +1,4 @@
+from ..timing import phase, timed
 from tkinter import Tcl
 from ..GlobalValues import *
 from copy               import deepcopy
@@ -33,12 +34,14 @@ def convert_address_with_context(value, hierarchy):
         raise RalfNumericParseError(value, hierarchy) from exc
 
 
+@timed("ralf.select_root", progress=True)
 def search_longest_string(tcl_interpreter):
     keys =  tcl_interpreter.eval('array names DEF')
     max_length_key  = max(keys.split(' '),key=lambda k: len(tcl_interpreter.eval(f'set result [dict get $DEF({k})]')))
     return max_length_key
 
 
+@timed("ralf.build_model", progress=True)
 def build_addrspace(tcl_interpreter):
 
     # search the longest string 
@@ -51,7 +54,8 @@ def build_addrspace(tcl_interpreter):
     data_array = tcl_interpreter.eval(f'set result [dict get {tcl_array}]')
     keys_array = tcl_interpreter.eval('set keys [dict keys $result]')
     key_list = keys_array.split(' ')
-    tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
+    with phase("ralf.tcl_to_python", progress=True):
+        tcl_dict_recur(key_list, dict_=py_dict[key_array], tcl_dict=tcl_array, tcl_interpreter=tcl_interpreter)
     # print(py_dict)
 
     #### build rb
@@ -60,7 +64,8 @@ def build_addrspace(tcl_interpreter):
     # an address-model path, not a promise that every imported map can use the
     # 32-bit register-RTL backend.
     reg_bank_B = RegSpace(name=py_dict[key_array]['name'], size=1e20*GB,bus_width=8,software_interface='apb')
-    reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
+    with phase("ralf.build_objects", progress=True):
+        reg_bank_B_copy = build_subspace_recur(py_dict[key_array]['ADDR_DICT'], reg_bank_B, tcl_interpreter=tcl_interpreter)
     # reg_bank_B_copy.generate('build/ralf')
     reg_bank_B_copy = minimum_size(reg_bank_B_copy)
     return reg_bank_B_copy
@@ -68,15 +73,23 @@ def build_addrspace(tcl_interpreter):
 
 
 def build_subspace_recur(dict_, father, tcl_interpreter):
+    # Keep the caller's tree isolated, but do not clone the growing tree for
+    # every child. Recursive work below owns this one private copy.
+    with phase("ralf.deepcopy"):
+        owned = deepcopy(father)
+    return _build_subspace_inplace(dict_, owned, tcl_interpreter)
+
+
+def _build_subspace_inplace(dict_, father, tcl_interpreter):
     from ..Reg      import Register
     from ..RegSpace import RegSpace 
     from ..AddressSpace import AddressSpace
 
-    father_copy = deepcopy(father)
+    father_copy = father
     if 'name' not in dict_.keys():   
         for key in dict_.keys():   
-            father_copy = build_subspace_recur(dict_[key], father_copy, tcl_interpreter)
-        father_copy = minimum_size(father_copy)
+            father_copy = _build_subspace_inplace(dict_[key], father_copy, tcl_interpreter)
+        father_copy = _minimum_size_inplace(father_copy)
 
     elif 'is_memory' in dict_.keys():
         # for memory block
@@ -134,9 +147,14 @@ def build_subspace_recur(dict_, father, tcl_interpreter):
         
 
 def build_field_recur(dict_, father, tcl_interpreter):
-    father_copy = deepcopy(father)
+    with phase("ralf.deepcopy"):
+        owned = deepcopy(father)
+    return _build_field_inplace(dict_, owned, tcl_interpreter)
+
+
+def _build_field_inplace(dict_, father_copy, tcl_interpreter):
     if 'name' not in dict_.keys():  
-        for key in dict_.keys():    father_copy = build_field_recur(dict_[key], father_copy, tcl_interpreter)
+        for key in dict_.keys():    father_copy = _build_field_inplace(dict_[key], father_copy, tcl_interpreter)
     else:
         from ..Field    import Field
         sw_access = get_field_access_by_value(dict_['access'])
@@ -222,7 +240,8 @@ def convert_address(address):
     if not clean_address:
         raise ValueError("address is empty")
 
-    normalized = clean_address.lower()
+    # Some intranet RALF producers combine Verilog and C hex prefixes.
+    normalized = clean_address.lower().replace("'h0x", "'h")
 
     # Standard prefixes must be recognized before legacy h/b markers.  A
     # character such as the 'b' in 0xfb4 is a hexadecimal digit, not a binary
@@ -261,8 +280,13 @@ def convert_reset(reset):
 
 
 def minimum_size(father):
+    with phase("ralf.deepcopy"):
+        owned = deepcopy(father)
+    return _minimum_size_inplace(owned)
+
+
+def _minimum_size_inplace(father_copy):
     from ..Reg import Register
-    father_copy   = deepcopy(father)
     if father_copy.sub_space_list != []:
         end_element   = max(father_copy.sub_space_list, key=lambda element: element.bit_offset)
         start_element = min(father_copy.sub_space_list, key=lambda element: element.bit_offset)
