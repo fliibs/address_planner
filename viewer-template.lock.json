@@ -16,7 +16,7 @@
     "vendored": "address_planner/report_template/address_planner_viewer.template.html"
   },
   "viewer": {
-    "commit": "9bda714ec6aeeebcf2a96d63a78155e6beada85f",
+    "commit": "b68ebfe71cd003ffd86ac1b6ce83b96c74d01d86",
     "path": "viewer/apv_html",
     "repository": "https://github.com/fliibs/apv_html.git"
   }
