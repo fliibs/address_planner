@@ -48,6 +48,11 @@ class Regbank(Component):
             else:
                 self.p          =  APB3(addr_width=self._cfg.bus_width)
 
+            # Keep the legacy regbank APB port names without changing UHDL globally.
+            for sig in self.p.io_list:
+                if sig.name.startswith('p_'):
+                    sig.set_name('p' + sig.name[2:])
+
             self.rreq_addr      = Wire(UInt(self._cfg.bus_width))
             # self.rreq_vld       = Wire(UInt(1))
             # self.rreq_rdy       = Wire(UInt(1))
@@ -69,11 +74,9 @@ class Regbank(Component):
 
             self.p.rdata        += self.rack_data
             self.p.ready        += UInt(1,1)
-            # This peripheral does not enforce APB protection attributes, but it
-            # explicitly observes them so APB4's required PPROT input remains
-            # lint-clean while PSLVERR stays permanently low.
+            # Match the intranet interface: no PPROT; PSLVERR remains low.
             if is_apb4:
-                self.p.slverr   += BitAnd(UInt(1,0), SelfOr(self.wreq_data), SelfOr(self.p.prot), SelfOr(self.p_mask))
+                self.p.slverr   += BitAnd(UInt(1,0), SelfOr(self.wreq_data), SelfOr(self.p_mask))
             else:
                 self.p.slverr   += BitAnd(UInt(1,0), SelfOr(self.wreq_data))
 
@@ -130,16 +133,16 @@ class Regbank(Component):
 
             if get_sw_readable(self._cfg.sub_space_list):
                 reg_rdat = self.set('%s_rdat' % sub_space.module_name, Wire(UInt(sub_space.bit)))
-                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rdat)
+                rack_dat_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rdat)
 
                 if sub_space_has_read_hsk:
                     reg_rrdy = self.set('%s_rrdy' % sub_space.module_name, Wire(UInt(1)))
                     reg_rrdy += UInt(1,1)
-                    rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_rrdy)
+                    rack_read_mux.when(Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address))).then(reg_rrdy)
 
                 if sub_space_has_read_hsk:
                     reg_rvld = self.set('%s_rvld' % sub_space.module_name, Wire(UInt(1)))
-                    reg_rvld += BitAnd(BitAnd(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address,'hex')))
+                    reg_rvld += BitAnd(BitAnd(self.rack_rdy, self.rack_vld), Equal(self.rreq_addr,UInt(self._cfg.bus_width,start_address)))
                 
             
             if get_sw_writeable(self._cfg.sub_space_list):
@@ -149,17 +152,17 @@ class Regbank(Component):
 
                 magic_intf_list = []
                 for magic in sub_space.get_magic_list:
-                    if hasattr(self,f'{magic.module_name}_rdat'):   magic_intf_list.append(Equal(getattr(self,f'{magic.module_name}_rdat'), UInt(32,magic.field_list[0].password,'hex')))
-                    else:                                           magic_intf_list.append(Equal(self.set('%s_rdat' % magic.module_name, Wire(UInt(magic.bit))), UInt(magic.bit,magic.field_list[0].password,'hex')))
+                    if hasattr(self,f'{magic.module_name}_rdat'):   magic_intf_list.append(Equal(getattr(self,f'{magic.module_name}_rdat'), UInt(32,magic.field_list[0].password)))
+                    else:                                           magic_intf_list.append(Equal(self.set('%s_rdat' % magic.module_name, Wire(UInt(magic.bit))), UInt(magic.bit,magic.field_list[0].password)))
 
                 if sub_space_writeable and not sw_all_write_pulse:
                     reg_wvld = self.set('%s_wvld' % sub_space.module_name, Wire(UInt(1)))
-                    reg_wvld += BitAnd(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list)
+                    reg_wvld += BitAnd(self.wreq_vld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address)),*magic_intf_list)
 
                 if not is_apb3:
                     reg_wrdy = self.set('%s_wrdy' % sub_space.module_name, Wire(UInt(1)))
                     reg_wrdy += UInt(1,1)
-                    wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address,'hex'))).then(reg_wrdy)
+                    wreq_rdy_mux.when(Equal(self.wreq_addr, UInt(self._cfg.bus_width,start_address))).then(reg_wrdy)
         
 
             ##########################################################################################################
@@ -237,7 +240,7 @@ class Regbank(Component):
                         lock_intf_list.append(field_lock_inv)
 
                     field_lock_ena = self.set('%s_ena'% field_name, Wire(UInt(field_hw_rdat_reg.width)))
-                    field_lock_ena += BitAnd(Fanout(BitAnd(pulse_wvld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address,'hex')),*magic_intf_list),field_hw_rdat_reg.width),*lock_intf_list)
+                    field_lock_ena += BitAnd(Fanout(BitAnd(pulse_wvld, Equal(self.wreq_addr,UInt(self._cfg.bus_width,start_address)),*magic_intf_list),field_hw_rdat_reg.width),*lock_intf_list)
 
                     field_wdat = self.set('%s_wdat'% field_name, Wire(UInt(field.bit)))
                     if is_apb4:
@@ -450,7 +453,7 @@ class Regbank(Component):
         #  Register Level Interface 
         ##########################################################################################################
         if get_sw_readable(self._cfg.sub_space_list):
-            rack_dat_read_mux.otherwise(UInt(self._cfg.data_width,2**(self._cfg.data_width)-2,'hex'))
+            rack_dat_read_mux.otherwise(UInt(self._cfg.data_width,2**(self._cfg.data_width)-2))
             self.rack_data += rack_dat_read_mux
 
             if has_rack_hsk or not is_apb3:

@@ -54,7 +54,7 @@ def main(argv=None):
     task_regbuilder(args, prs_out[0])
     # task_dv_setup(args, prs_out[1])
 
-    print(json.dumps({"generated_root": str(output_path / "generated"), "script": prs_out[0]}, sort_keys=True))
+    print(json.dumps({"generated_root": str(output_path), "script": prs_out[0]}, sort_keys=True))
     return 0
 
 

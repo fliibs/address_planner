@@ -221,7 +221,7 @@ def CreatPy(input_path, output_path):
             ADD = ADD.replace('{add}','add')
         pyCode += ADD.replace('{cnt}',str(index)).replace('{OffsetAddress}',str(RegMap[regName]['OffsetAddress']))
 
-    generated_output = output_dir / "generated"
+    generated_output = output_dir
     pyCode += PyTemp.Gen.replace('{build}', str(generated_output)).replace('{name}',RegBankMes['name'])
     
     if RegBankMes['check'] == 'true':

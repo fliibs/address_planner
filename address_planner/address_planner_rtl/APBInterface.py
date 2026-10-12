@@ -54,7 +54,8 @@ class APB4(APB3):
     def __init__(self, data_width=APG_DATA_WIDTH, addr_width=APG_ADDR_WIDTH):
         super().__init__(data_width, addr_width)
         self.strb_width = int(self.data_width/8)
-        self.prot   = Input(UInt(3))
+        # Intranet interface contract: byte strobes without a PPROT port.
+        # self.prot   = Input(UInt(3))
         self.strb   = Input(UInt(self.strb_width))
 
     def reverse(self):
@@ -69,7 +70,7 @@ class APB4Reverse(Bundle):
         self.strb_width = int(self.data_width/8)
 
         self.addr   = Output(UInt(self.addr_width))
-        self.prot   = Output(UInt(3))
+        # self.prot   = Output(UInt(3))
         self.sel    = Output(UInt(1))
         self.enable = Output(UInt(1))
         self.write  = Output(UInt(1))
@@ -82,5 +83,4 @@ class APB4Reverse(Bundle):
 
 # if __name__=="__main__":
 #     u_apb = APB().reverse()
-
 

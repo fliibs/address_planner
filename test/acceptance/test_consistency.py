@@ -1,11 +1,13 @@
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import pytest
 
 from address_planner import AddressSpace, Field, RegSpace, Register
-from address_planner.selftest import ManifestValidationError, consistency, generate
+from address_planner.selftest import ManifestValidationError, _expect_rtl, consistency, generate
+from address_planner._runtime import RuntimeConfigurationError
 
 
 def _digest(path: Path) -> str:
@@ -83,6 +85,23 @@ def test_consistency_rejects_tampered_artifact_without_changing_inputs(tmp_path)
         consistency(manifest)
 
     assert {"manifest": _digest(manifest), "json": _digest(json_artifact)} == before
+
+
+@pytest.mark.parametrize("radix", ["b", "h"])
+def test_rtl_address_check_accepts_equal_radices_but_rejects_wrong_value(tmp_path, radix):
+    manifest = _generated(tmp_path)
+    raw = json.loads(manifest.read_text(encoding="utf-8"))
+    rtl = tmp_path / next(item["path"] for item in raw["artifacts"] if item["class"] == "register_rtl")
+    text = rtl.read_text(encoding="utf-8")
+    digits = "b" if radix == "b" else "x"
+    literal = f"32'{radix}{format(4, digits)}"
+    text, count = re.subn(r"\brreq_addr\s*==\s*32'b100\b", f"rreq_addr == {literal}", text)
+    assert count == 1
+    rtl.write_text(text, encoding="utf-8")
+    _expect_rtl(rtl, _model()["registers"])
+    rtl.write_text(text.replace(f"rreq_addr == {literal}", f"rreq_addr == 32'{radix}{format(12, digits)}"), encoding="utf-8")
+    with pytest.raises(RuntimeConfigurationError, match="status read address decode mismatch"):
+        _expect_rtl(rtl, _model()["registers"])
 
 
 def test_json_register_addresses_include_parent_byte_base_and_filled_fields_use_register_width():

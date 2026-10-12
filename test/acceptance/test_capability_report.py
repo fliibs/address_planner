@@ -78,7 +78,7 @@ def test_canonical_json_accepts_all_supported_interfaces_and_distinguishes_proto
 ) -> None:
     expected = {
         "apb3": ("apb", {"base_apb_ports", "no_p_strb", "no_p_prot"}),
-        "apb4": ("apb4", {"base_apb_ports", "p_strb_4_bits", "p_prot_3_bits"}),
+        "apb4": ("apb4", {"base_apb_ports", "p_strb_4_bits", "no_p_prot"}),
         "valid_ready": ("vr", {"valid_ready_ports", "no_apb_ports"}),
     }
     for bus_id, (interface, checks) in expected.items():

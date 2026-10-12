@@ -1219,8 +1219,9 @@ def _expect_rtl(path: Path, registers: list[dict[str, Any]]) -> None:
     text = path.read_text(encoding="utf-8")
     for register in registers:
         reg = register["name"]
-        address_pattern = rf"rreq_addr\s*==\s*32'h{register['offset_bytes']:x}"
-        if not re.search(address_pattern, text):
+        # UInt's display radix differs across supported UHDL versions.
+        addresses = re.findall(r"\brreq_addr\s*==\s*(32'[bh][0-9a-fA-F_]+)\b", text)
+        if not any(_rtl_literal(value) == register['offset_bytes'] for value in addresses):
             raise _consistency_error(f"register_rtl: {reg} read address decode mismatch")
         rdat = re.search(rf"assign\s+{re.escape(reg)}_rdat\s*=\s*\{{(?P<body>[^;]+)\}}\s*;", text)
         if rdat is None:
@@ -1452,14 +1453,14 @@ def _behavior_testbench(module_name: str) -> str:
     {module_name} dut (
         .clk                 (clk),
         .rst_n               (rst_n),
-        .p_addr              (p_addr),
-        .p_sel               (p_sel),
-        .p_enable            (p_enable),
-        .p_write             (p_write),
-        .p_wdata             (p_wdata),
-        .p_ready             (p_ready),
-        .p_rdata             (p_rdata),
-        .p_slverr            (p_slverr),
+        .paddr               (p_addr),
+        .psel                (p_sel),
+        .penable             (p_enable),
+        .pwrite              (p_write),
+        .pwdata              (p_wdata),
+        .pready              (p_ready),
+        .prdata              (p_rdata),
+        .pslverr             (p_slverr),
         .control_enable_rdat (control_enable_rdat),
         .control_mode_rdat   (control_mode_rdat),
         .status_ready_wdat   (status_ready_wdat),
@@ -1709,14 +1710,15 @@ def _bus_protocol_evidence(bus_id: str, interface: str, generated_manifest: Path
     def has(name: str, width: int | None = None) -> bool:
         match = re.search(rf"\b(?:input|output)\s*(?:reg\s+)?(?:\[\s*(\d+)\s*:\s*0\s*\]\s*)?{re.escape(name)}\b", text)
         return match is not None and (width is None or (int(match.group(1)) + 1 if match.group(1) is not None else 1) == width)
-    apb_ports = ("p_addr", "p_sel", "p_enable", "p_write", "p_wdata", "p_ready", "p_rdata", "p_slverr")
+    apb_ports = ("paddr", "psel", "penable", "pwrite", "pwdata", "pready", "prdata", "pslverr")
     vr_ports = ("rreq_addr", "rreq_vld", "rreq_rdy", "rack_data", "rack_vld", "rack_rdy", "wreq_addr", "wreq_vld", "wreq_rdy", "wreq_data")
     if interface == "apb":
-        checks = {"base_apb_ports": all(has(name) for name in apb_ports), "no_p_strb": not has("p_strb"), "no_p_prot": not has("p_prot")}
+        checks = {"base_apb_ports": all(has(name) for name in apb_ports), "no_p_strb": not has("pstrb") and not has("p_strb"), "no_p_prot": not has("pprot") and not has("p_prot")}
     elif interface == "apb4":
-        checks = {"base_apb_ports": all(has(name) for name in apb_ports), "p_strb_4_bits": has("p_strb", 4), "p_prot_3_bits": has("p_prot", 3)}
+        # Authorized intranet contract: strobes retained, PPROT absent.
+        checks = {"base_apb_ports": all(has(name) for name in apb_ports), "p_strb_4_bits": has("pstrb", 4), "no_p_prot": not has("pprot") and not has("p_prot")}
     elif interface == "vr":
-        checks = {"valid_ready_ports": all(has(name) for name in vr_ports), "no_apb_ports": not any(has(name) for name in apb_ports + ("p_strb", "p_prot"))}
+        checks = {"valid_ready_ports": all(has(name) for name in vr_ports), "no_apb_ports": not any(has(name) for name in apb_ports + ("pstrb", "pprot", "p_strb", "p_prot"))}
     else:
         raise RuntimeConfigurationError(f"unsupported sealed bus interface {interface!r}")
     if not all(checks.values()):

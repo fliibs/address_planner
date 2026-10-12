@@ -43,7 +43,9 @@ def test_excel_cli_generates_only_below_requested_output(tmp_path: Path) -> None
     payload = json.loads(completed.stdout.splitlines()[-1])
     assert Path(payload["script"]).is_file()
     assert (tmp_path / "datalog.txt").is_file()
-    html_dir = tmp_path / "generated" / "reg_bank_table" / "html"
+    assert Path(payload["generated_root"]) == tmp_path.resolve()
+    assert not (tmp_path / "generated").exists()
+    html_dir = tmp_path / "reg_bank_table" / "html"
     assert not (html_dir / "data.json").exists()
     assert (html_dir / "reg_bank_table_address_map.html").is_file()
 
