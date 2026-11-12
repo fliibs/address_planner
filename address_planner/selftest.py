@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import importlib.metadata
 import inspect
@@ -10,6 +11,8 @@ import json
 import os
 import platform
 import re
+import shlex
+import signal
 import shutil
 import stat
 import subprocess
@@ -1382,6 +1385,202 @@ def compile_rtl(manifest: Path, tool: str) -> dict[str, Any]:
     }
 
 
+def _compile_filelist_profile(filelist: Path, cwd: Path) -> list[str]:
+    """Inspect the bounded native profile without rewriting the tool's filelist.
+
+    Missing inputs are left to the actual compiler. Unknown options must not be
+    dropped or interpreted as a different source closure.
+    """
+    unsupported: list[str] = []
+
+    def read(path: Path, base: Path, active: set[Path]) -> None:
+        if path in active:
+            unsupported.append(f"recursive filelist: {path}")
+            return
+        if not path.is_file():
+            return
+        text = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines()
+                         if not line.lstrip().startswith("//"))
+        try:
+            tokens = shlex.split(text, comments=True)
+        except ValueError as error:
+            unsupported.append(f"filelist quoting: {error}")
+            return
+        index = 0
+        while index < len(tokens):
+            token = tokens[index]
+            index += 1
+            if token in ("-f", "-F", "-v", "-y"):
+                if index == len(tokens):
+                    unsupported.append(f"missing argument for {token}")
+                    return
+                value = os.path.expandvars(tokens[index])
+                index += 1
+                if "$" in value:
+                    unsupported.append(f"unresolved environment variable: {value}")
+                target = (base / value).resolve()
+                if token in ("-f", "-F"):
+                    read(target, target.parent if token == "-F" else base, active | {path})
+            elif token.startswith(("+incdir+", "+define+", "+libext+")):
+                if "$" in os.path.expandvars(token):
+                    unsupported.append(f"unresolved environment variable: {token}")
+            elif token.startswith(("-", "+", "`")):
+                unsupported.append(f"unsupported filelist option: {token}")
+            elif token != "//" and "$" in os.path.expandvars(token):
+                unsupported.append(f"unresolved environment variable: {token}")
+
+    read(filelist, cwd, set())
+    return unsupported
+
+
+def _compile_diagnostics(output: str, backend: str) -> tuple[list[dict[str, Any]], str]:
+    """Read diagnostic records, not project acceptance or unused dispositions."""
+    lines = output.splitlines()
+    header = re.compile(
+        r"^(?:%(?P<vseverity>Warning|Error|Fatal)(?:-(?P<vcode>[A-Za-z0-9_]+))?:"
+        r"|(?P<sseverity>Warning|Error|Fatal|Lint)-\[(?P<scode>[^]]+)\])"
+    )
+    records: list[dict[str, Any]] = []
+    unknown = False
+    for index, line in enumerate(lines):
+        match = header.match(line)
+        if match:
+            if records:
+                records[-1]["line_end"] = index
+            records.append({"severity": (match["vseverity"] or match["sseverity"]).lower(),
+                            "code": match["vcode"] or match["scode"],
+                            "line_start": index + 1, "line_end": len(lines)})
+        elif re.match(r"^(?:%[A-Za-z]*(?:Warning|Error|Fatal)|Warning\b|Error\b|Fatal\b|Lint\b)", line):
+            unknown = True
+    for record in records:
+        record["raw"] = "\n".join(lines[record["line_start"] - 1:record["line_end"]])
+    completed = bool(re.search(
+        r"(?m)^- Verilator: Walltime" if backend == "verilator"
+        else r"(?m)^CPU time:.*to compile.*to elab", output))
+    # A real fatal compile can stop before its normal completion footer.
+    has_error = any(record["severity"] in ("error", "fatal") for record in records)
+    status = "COMPLETE" if output.strip() and not unknown and (completed or has_error) else "UNSUPPORTED"
+    return records, status
+
+
+def _compile_backend(args: argparse.Namespace) -> dict[str, Any]:
+    """Execute one explicit backend and write an ordinary, non-acceptance receipt.
+
+    Canonical manifests are read-only inputs. This deliberately does not call
+    compile_rtl(), publish strict_compile records, or supply an A05 substitute.
+    """
+    if args.work_dir is None or args.report is None:
+        raise RuntimeConfigurationError("explicit backend compile requires --work-dir and --report")
+    if not args.timeout > 0:
+        raise RuntimeConfigurationError("--timeout must be positive")
+    top = args.top
+    if args.manifest is not None:
+        if args.cwd is not None:
+            raise RuntimeConfigurationError("--cwd is only supported with --filelist")
+        inventory(args.manifest)
+        manifest = args.manifest.resolve()
+        raw = json.loads(manifest.read_text(encoding="utf-8"))
+        lists = [item for item in raw["auxiliary_artifacts"] if item["class"] == "filelist"]
+        if len(lists) != 1:
+            raise RuntimeConfigurationError("manifest must contain exactly one complete RTL filelist")
+        filelist = _manifest_relative_path(lists[0]["path"], manifest.parent, "filelist")
+        if top is None:
+            rtl = [item for item in raw["artifacts"] if item["class"] == "register_rtl"]
+            if len(rtl) != 1:
+                raise RuntimeConfigurationError("cannot determine a unique generated top")
+            source = _manifest_relative_path(rtl[0]["path"], manifest.parent, "register_rtl")
+            names = re.findall(r"(?m)^\s*module\s+([A-Za-z_][A-Za-z0-9_$]*)\b", source.read_text())
+            if len(names) != 1:
+                raise RuntimeConfigurationError("cannot determine a unique generated top; supply --top")
+            top = names[0]
+    else:
+        if args.filelist is None or args.cwd is None or top is None:
+            raise RuntimeConfigurationError("native compile requires --filelist, --cwd and --top")
+        filelist = args.filelist.resolve()
+    if not isinstance(top, str) or not _NAME_PATTERN.fullmatch(top):
+        raise RuntimeConfigurationError("--top must be a legal module identifier")
+    work = args.work_dir.absolute()
+    report = args.report.absolute()
+    cwd = args.cwd.resolve() if args.cwd is not None else work
+    protected = (resolve_address_planner_root(), resolve_uhdl_root())
+    if any(_below(target, root) for target in (work, report, cwd) for root in protected):
+        raise RuntimeConfigurationError("compile outputs/CWD must be outside the runtime source roots")
+    if report.exists() or report.is_symlink() or work.exists() or work.is_symlink():
+        raise RuntimeConfigurationError("compile work directory and receipt must be fresh; retain previous attempts")
+    if args.cwd is not None and not cwd.is_dir():
+        raise RuntimeConfigurationError(f"native compile CWD is not a directory: {cwd}")
+    work.mkdir(parents=True)
+    log = work / "compile.log"
+    requested = args.tool or args.backend
+    executable = shutil.which(requested)
+    mode = "parse_elaboration_lint" if args.backend == "verilator" else "compile_elaborate_link"
+    receipt: dict[str, Any] = {
+        "backend": args.backend, "tool": requested, "version": "unavailable", "mode": mode,
+        "top": top, "filelist": str(filelist), "working_dir": str(cwd),
+        "command": [], "exit_code": None, "timed_out": False, "log_path": str(log),
+        "timestamp_start": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "compilation_status": "NOT_EVALUATED", "diagnostic_status": "UNSUPPORTED", "diagnostics": [],
+        "candidate_acceptance": "NOT_EVALUATED",
+        "coverage": {"operation": (["parse", "elaboration", "enabled_lint"] if args.backend == "verilator"
+                                     else ["compile", "elaboration", "link", "enabled_lint"]),
+                     "behavior": "NOT_EVALUATED", "required_project_structure": "NOT_EVALUATED",
+                     "cross_backend_diagnostic_equivalence": False},
+        "limitations": ["Compile facts only; project-required structure, diagnostic dispositions and behavior remain separate.",
+                        "Backend diagnostics are not equivalent or a proof of all required connections."],
+    }
+    profile = _compile_filelist_profile(filelist, cwd)
+    if executable is None or profile:
+        message = f"compile tool unavailable: {requested}" if executable is None else "\n".join(profile)
+        log.write_text(message + "\n", encoding="utf-8")
+        receipt["limitations"].append(message)
+        receipt["cli_exit_code"] = 2
+    else:
+        tool = str(Path(executable).resolve())
+        receipt["tool"] = tool
+        if args.backend == "verilator":
+            command = [tool, "--lint-only", "-Wall", "-Wno-fatal", "--top-module", top, "-f", str(filelist)]
+        else:
+            command = [tool, "-full64", "-sverilog", "+lint=all", "-notice", "-f", str(filelist),
+                       "-top", top, f"-Mdir={work / 'csrc'}", "-o", str(work / "simv"),
+                       "-l", str(work / "vcs_compile.log")]
+        receipt["command"] = command
+        with log.open("w", encoding="utf-8") as stream:
+            try:
+                process = subprocess.Popen(command, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT,
+                                           text=True, start_new_session=True)
+                try:
+                    receipt["exit_code"] = process.wait(timeout=args.timeout)
+                except subprocess.TimeoutExpired:
+                    receipt["timed_out"] = True
+                    os.killpg(process.pid, signal.SIGKILL)
+                    receipt["exit_code"] = process.wait()
+            except OSError as error:
+                stream.write(f"compile process could not start: {error}\n")
+        output = log.read_text(encoding="utf-8", errors="replace")
+        diagnostics, status = _compile_diagnostics(output, args.backend)
+        receipt["diagnostics"], receipt["diagnostic_status"] = diagnostics, status
+        version = re.search(r"Verilator\s+\S+[^\n]*|Version\s+\S+[^\n]*", output)
+        if version:
+            receipt["version"] = version[0]
+        errors = any(item["severity"] in ("error", "fatal") for item in diagnostics)
+        failed = receipt["exit_code"] != 0 or receipt["timed_out"] or errors
+        if args.backend == "vcs" and not (work / "simv").is_file():
+            failed = True
+            receipt["limitations"].append("VCS did not produce the requested executable")
+        if receipt["exit_code"] is None:
+            receipt["compilation_status"], receipt["cli_exit_code"] = "NOT_EVALUATED", 2
+        else:
+            receipt["compilation_status"] = "FAIL" if failed else ("PASS" if status == "COMPLETE" else "NOT_EVALUATED")
+            receipt["cli_exit_code"] = 1 if failed else (0 if status == "COMPLETE" else 2)
+    receipt["timestamp_end"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    report.parent.mkdir(parents=True, exist_ok=True)
+    # Exclusive creation keeps earlier actual attempts intact, including failures.
+    with report.open("x", encoding="utf-8") as stream:
+        json.dump(receipt, stream, indent=2, sort_keys=True)
+        stream.write("\n")
+    return receipt
+
+
 def _representative_behavior_spec(model_path: Path) -> None:
     """Reject a model other than the sealed APB behavior fixture.
 
@@ -2092,6 +2291,15 @@ def capabilities(manifest: Path, baseline_contract: Path, capability_report: Pat
     """Execute retained backend probes, then transactionally exchange evidence and report."""
     inventory(manifest)
     manifest_path = manifest.resolve()
+    raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    verification = {item["kind"]: item for item in raw_manifest["verification_records"]}
+    if set(("strict_compile", "register_behavior")) - set(verification):
+        raise RuntimeConfigurationError("A05/A06 verification records are required before capabilities")
+    if verification["strict_compile"]["exit_code"] != 0:
+        raise RuntimeConfigurationError("A05 strict compile evidence is not a pass")
+    behavior = verification["register_behavior"]
+    if behavior["exit_code"] != 0 or behavior["run"]["exit_code"] != 0:
+        raise RuntimeConfigurationError("A06 behavior compile/run evidence is not a pass")
     try:
         contract = json.loads(baseline_contract.read_text(encoding="utf-8"))
         buses = json.loads(bus_models.read_text(encoding="utf-8"))
@@ -2108,10 +2316,6 @@ def capabilities(manifest: Path, baseline_contract: Path, capability_report: Pat
     unit = _capability_file(acceptance_dir / "unit_tests.xml", "A02_unit_tests")
     if any(int(node.get(key, 0)) for node in __import__("xml.etree.ElementTree", fromlist=["parse"]).parse(unit["path"]).getroot().iter("testsuite") for key in ("failures", "errors", "skipped")):
         raise RuntimeConfigurationError("A02 JUnit evidence is not a clean pass")
-    raw_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    verification = {item["kind"]: item for item in raw_manifest["verification_records"]}
-    if set(("strict_compile", "register_behavior")) - set(verification):
-        raise RuntimeConfigurationError("A05/A06 verification records are required before capabilities")
     consistency_path = _manifest_relative_path(raw_manifest["output_root"], acceptance_dir, "output_root") / "verification" / "consistency_report.json"
     consistency_evidence = _capability_file(consistency_path, "A07_consistency")
     root, final, report_path = _validate_capability_targets(secondary_output_dir, capability_report)
@@ -2275,10 +2479,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     inventory_parser.add_argument("--manifest", required=True, type=Path)
     compile_parser = subcommands.add_parser(
-        "compile", help="run strict RTL lint and append a replay-stable verification record"
+        "compile", help="explicit backend compile facts, or legacy strict qualification without --backend"
     )
-    compile_parser.add_argument("--manifest", required=True, type=Path)
-    compile_parser.add_argument("--tool", required=True)
+    compile_inputs = compile_parser.add_mutually_exclusive_group(required=True)
+    compile_inputs.add_argument("--manifest", type=Path)
+    compile_inputs.add_argument("--filelist", type=Path)
+    compile_parser.add_argument("--tool", help="executable only; --backend selects its argument recipe")
+    compile_parser.add_argument("--backend", choices=("verilator", "vcs"))
+    compile_parser.add_argument("--top")
+    compile_parser.add_argument("--cwd", type=Path)
+    compile_parser.add_argument("--work-dir", type=Path)
+    compile_parser.add_argument("--report", type=Path)
+    compile_parser.add_argument("--timeout", type=float)
     behavior_parser = subcommands.add_parser(
         "behavior", help="compile and execute the sealed representative APB behavior test"
     )
@@ -2314,6 +2526,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(inventory(args.manifest), sort_keys=True))
         return 0
     if args.command == "compile":
+        if args.backend is not None:
+            if args.timeout is None:
+                args.timeout = 300.0
+            payload = _compile_backend(args)
+            print(json.dumps(payload, sort_keys=True))
+            return int(payload["cli_exit_code"])
+        if (args.manifest is None or args.tool is None or args.timeout is not None
+                or any(value is not None for value in (args.top, args.cwd, args.work_dir, args.report))):
+            parser.error("legacy strict compile requires --manifest and --tool; new options require --backend")
         payload = compile_rtl(args.manifest, args.tool)
         print(json.dumps(payload, sort_keys=True))
         return int(payload["exit_code"])

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import address_planner.selftest as selftest
 
 from address_planner.selftest import (
     ModelValidationError,
@@ -43,6 +44,28 @@ def test_capability_report_validator_rejects_missing_rows_and_missing_evidence(t
     evidence.unlink()
     with pytest.raises(RuntimeConfigurationError, match="missing evidence"):
         _validate_capability_payload(tampered, ["retain"], ["optional"])
+
+
+@pytest.mark.parametrize("strict_exit,compile_exit,run_exit,expected", [
+    (1, 0, 0, "A05 strict compile"),
+    (0, 1, 0, "A06 behavior"),
+    (0, 0, 1, "A06 behavior"),
+    (0, 0, 0, "cannot read capabilities fixture"),
+])
+def test_capabilities_consumes_success_not_record_presence(tmp_path, monkeypatch, strict_exit, compile_exit, run_exit, expected):
+    # Inventory integrity has separate tests; exercise the real capabilities
+    # consumer before external fixture reads or capability publication.
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"verification_records": [
+        {"kind": "strict_compile", "exit_code": strict_exit},
+        {"kind": "register_behavior", "exit_code": compile_exit, "run": {"exit_code": run_exit}},
+    ]}))
+    monkeypatch.setattr(selftest, "inventory", lambda _: {})
+    missing = tmp_path / "not_supplied"
+    with pytest.raises(RuntimeConfigurationError, match=expected):
+        selftest.capabilities(manifest, missing, tmp_path / "report.json", tmp_path / "secondary",
+                              missing, missing, missing, missing, missing, missing)
+    assert not (tmp_path / "report.json").exists()
 
 
 def test_aggregate_headers_are_stable_across_python_hash_seeds(tmp_path: Path) -> None:
